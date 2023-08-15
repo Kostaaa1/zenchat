@@ -12,7 +12,6 @@ const Search = () => {
       searchRef.current &&
       !searchRef.current.contains(event.target as Node)
     ) {
-      console.log("run");
       setIsSearchFocused(false);
     }
   };
