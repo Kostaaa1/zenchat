@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import useStore, { ActiveList } from "../../store";
 import { useEffect, useRef } from "react";
+import { useUser } from "@clerk/clerk-react";
+import supabase from "../../../lib/supabaseClient";
 
 const Header = () => {
   const {
@@ -16,6 +18,7 @@ const Header = () => {
   const navigate = useNavigate();
   const iconRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
 
   const handleActivateSearch = () => {
     setIsSearchActive(!isSearchActive);
@@ -49,6 +52,39 @@ const Header = () => {
       window.removeEventListener("click", handleRefs);
     };
   });
+
+  useEffect(() => {
+    if (user) {
+      getUserDataFromDb();
+    }
+  }, [user]);
+
+  const getUserDataFromDb = async () => {
+    try {
+      if (!user) return;
+      const { username, imageUrl } = user;
+      const email = user.emailAddresses[0]?.emailAddress;
+
+      const { data: userData } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email);
+
+      if (userData && userData.length === 0) {
+        const { data: newUserData } = await supabase
+          .from("users")
+          .insert({ username, imageUrl, email })
+          .select("*");
+        console.log("new User data create", newUserData);
+      } else {
+        console.log(userData);
+      }
+
+      // return await supabase.from("messages").insert({ room, message, user_id });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <>
