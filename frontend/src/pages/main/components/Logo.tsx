@@ -1,18 +1,28 @@
 import { SiZend } from "react-icons/si";
 import ListItem from "./ListItem";
 import { FC } from "react";
+import { useNavigate } from "react-router-dom";
+import Icon from "./Icon";
 
 type LogoProps = {
-  head?: string;
+  variant: "default" | "list";
 };
 
-const Logo: FC<LogoProps> = ({ head }) => {
+const Logo: FC<LogoProps> = ({ variant }) => {
+  const navigate = useNavigate();
   return (
-    <ListItem head={head} hover="blank" variant="list">
-      <div>
-        <SiZend className="w-[24px] h-[24px] rotate-90" />
-      </div>
-    </ListItem>
+    <div>
+      <ListItem
+        onClick={() => navigate("/")}
+        head={variant === "default" ? "" : "Zenchat"}
+        hover="blank"
+        variant={variant}
+      >
+        <div>
+          <SiZend className="w-[28px] h-[28px] rotate-90" />
+        </div>
+      </ListItem>
+    </div>
   );
 };
 
