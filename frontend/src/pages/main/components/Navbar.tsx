@@ -4,7 +4,7 @@ import Icon from "./Icon";
 import ListItem from "./ListItem";
 import { AnimatePresence, motion } from "framer-motion";
 import Logo from "./Logo";
-import useStore, { ActiveList } from "../../../store";
+import useStore, { ActiveList } from "../../../utils/store";
 import UserDropdown from "./UserDropdown";
 
 interface NavbarProps {
@@ -32,10 +32,11 @@ const Navbar: FC<NavbarProps> = ({
             initial={{ width: "288px" }}
             animate={{ width: "80px" }}
             exit={{ width: "288px" }}
+            transition={{ type: "spring", damping: 35, stiffness: 280 }}
             className="absolute flex flex-col justify-between px-4 bg-[#000000] select-none left-0 top-0 z-[100] h-full py-6 border-r border-[#262626]"
           >
             <Logo variant="default" />
-            <div className="my-5 py-5 h-full w-full">
+            <div className="my-4 py-4 h-full w-full">
               <ListItem
                 variant="default"
                 className="mb-4"
@@ -45,7 +46,9 @@ const Navbar: FC<NavbarProps> = ({
               </ListItem>
               <ListItem
                 variant="default"
-                className={`${isSearchActive && "ring-1 ring-white"} mb-4`}
+                className={`${
+                  isSearchActive ? "outline outline-1" : null
+                } mb-4`}
                 onClick={handleActivateSearch}
               >
                 <Icon name="Search" color="white" size="28px" />
@@ -68,11 +71,12 @@ const Navbar: FC<NavbarProps> = ({
           <motion.ul
             initial={{ width: "80px" }}
             animate={{ width: "288px" }}
-            exit={{ width: "80px" }}
+            exit={{ width: "77px" }}
+            transition={{ type: "spring", damping: 35, stiffness: 280 }}
             className="absolute px-4 w-[288px] bg-[#000000] select-none left-0 top-0 z-[100] flex justify-between flex-col h-full py-6 border-r border-[#262626]"
           >
             <Logo variant="list" />
-            <div className="my-5 py-5 h-full w-full flex flex-col">
+            <div className="my-4 py-4 h-full w-full flex flex-col">
               <ListItem
                 className="mb-4"
                 title="Messages"
@@ -95,7 +99,7 @@ const Navbar: FC<NavbarProps> = ({
                 <img src={user?.imageUrl} className="w-7 h-7 rounded-full" />
               </ListItem>
             </div>
-            <div>
+            <div ref={iconRef} onClick={() => setShowDropdown(!showDropdown)}>
               <ListItem title="Menu">
                 <Icon name="Menu" color="white" size="28px" />
               </ListItem>

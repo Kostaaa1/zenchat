@@ -16,7 +16,7 @@ const Icon: FC<IconProps> = ({ className, name, size }) => {
   }
 
   return (
-    <div className="transition-transform cursor-pointer duration-100 transform group-hover:scale-[1.03] group-active:scale-100">
+    <div className="transition-transform cursor-pointer duration-50 transform group-hover:scale-10 group-active:scale-100">
       <LucideIcon className={className} id="icon" size={size} />
     </div>
   );

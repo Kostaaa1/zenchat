@@ -3,6 +3,11 @@ const http = require("http");
 const socketIo = require("socket.io");
 import supabase from "./db/supabase";
 
+export interface IUserData {
+  username: string;
+  imageUrl: string;
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -13,43 +18,24 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket: any) => {
-  socket.on("joinRoom", async (room: any) => {
+  socket.on("users", async (input: any) => {
     try {
-      socket.join(room);
-
-      const { data: messages } = await supabase
-        .from("messages")
+      socket.join(input);
+      console.log(input);
+      const { data: users, error } = await supabase
+        .from("users")
         .select("*")
-        .eq("room", room);
+        .ilike("username", `%${input}%`);
 
-      io.to(room).emit("messages", messages);
+      if (error) {
+        console.error("Supabase query error:", error.message);
+        return;
+      }
+      console.log("Fetched users", users);
+
+      io.to(input).emit("users", users);
     } catch (error) {
       console.error("Error occured while joining the room", error);
-    }
-  });
-
-  socket.on("chatMessage", async (data: any) => {
-    try {
-      console.log("chat messages run", data);
-      const { room, message, user_id } = data;
-
-      const { error: insertError } = await insertMessage(
-        room,
-        message,
-        user_id
-      );
-
-      if (!insertError) {
-        const newMessage = await fetchLatestMessage(room);
-        console.log("newMessage: ", newMessage);
-
-        if (newMessage) {
-          io.to(room).emit("message", newMessage);
-        }
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
-      socket.emit("chatError", "An error occurred while sending the message.");
     }
   });
 
@@ -57,23 +43,6 @@ io.on("connection", (socket: any) => {
     console.log("A user disconnected");
   });
 });
-
-async function fetchLatestMessage(room: string) {
-  const { data, error } = await supabase
-    .from("messages")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .match({ room })
-    .limit(1);
-  if (error) {
-    throw error;
-  }
-  return data[0];
-}
-
-async function insertMessage(room: string, message: string, user_id: string) {
-  return await supabase.from("messages").insert({ room, message, user_id });
-}
 
 server.listen(3000, () => {
   console.log("Server is running on port 3000");

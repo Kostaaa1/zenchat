@@ -1,10 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "../Icon";
+import io from "socket.io-client";
+import useStore from "../../../../utils/store";
+const socket = io("http://localhost:3000"); // Replace with your server's URL
+import { IUserData } from "../../../../utils/store";
 
 const Search = () => {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean | null>(null);
   const [search, setSearch] = useState<string>("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const { setSearchedUsers } = useStore();
+
+  useEffect(() => {
+    const handleConnect = () => {
+      console.log("Connected to server");
+    };
+    const handleUsers = (users: IUserData[]) => {
+      setSearchedUsers(users);
+    };
+    socket.on("connect", handleConnect);
+    socket.on("users", handleUsers);
+    if (search !== "") {
+      socket.emit("users", search);
+    }
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("users", handleUsers);
+    };
+  }, [search]);
 
   const handleChangeState = (event: MouseEvent) => {
     if (

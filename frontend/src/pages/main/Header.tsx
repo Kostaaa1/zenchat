@@ -2,10 +2,12 @@ import Navbar from "./components/Navbar";
 import SideSearch from "./components/search/SideSearch";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import useStore, { ActiveList } from "../../store";
+import useStore, { ActiveList } from "../../utils/store";
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import supabase from "../../../lib/supabaseClient";
+import { useQuery } from "@tanstack/react-query";
+import { IUserData } from "../../utils/store";
 
 const Header = () => {
   const {
@@ -53,15 +55,10 @@ const Header = () => {
     };
   });
 
-  useEffect(() => {
-    if (user) {
-      getUserDataFromDb();
-    }
-  }, [user]);
-
-  const getUserDataFromDb = async () => {
+  const getUserDataFromDb = async (): Promise<IUserData | null> => {
     try {
-      if (!user) return;
+      if (!user) return null;
+
       const { username, imageUrl } = user;
       const email = user.emailAddresses[0]?.emailAddress;
 
@@ -70,21 +67,32 @@ const Header = () => {
         .select("*")
         .eq("email", email);
 
-      if (userData && userData.length === 0) {
+      const typedUserData = userData as IUserData[];
+
+      if (!typedUserData || typedUserData.length === 0) {
         const { data: newUserData } = await supabase
           .from("users")
           .insert({ username, imageUrl, email })
           .select("*");
-        console.log("new User data create", newUserData);
-      } else {
-        console.log(userData);
-      }
 
-      // return await supabase.from("messages").insert({ room, message, user_id });
+        const typedNewUserData = newUserData as IUserData[];
+        return typedNewUserData[0] || null;
+      } else {
+        return typedUserData[0];
+      }
     } catch (error) {
       console.error(error);
+      return null;
     }
   };
+
+  const { data: userData } = useQuery(
+    ["userData", user?.username],
+    getUserDataFromDb,
+    {
+      enabled: !!user,
+    }
+  );
 
   return (
     <>

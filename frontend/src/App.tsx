@@ -10,6 +10,13 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import Header from "./pages/main/Header";
 import Chat from "./pages/chat/Chat";
 import Dashboard from "./pages/dashboard/Dashboard";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 
 const { VITE_APP_CLERK_PUBLISHABLE_KEY } = import.meta.env;
 if (!VITE_APP_CLERK_PUBLISHABLE_KEY) {
@@ -26,7 +33,7 @@ function ClerkProviderWithRoutes() {
         <SignedIn>
           <Header />
         </SignedIn>
-        <div className="ml-[78px] w-full h-full">
+        <div className="ml-[80px] w-full h-full">
           <Routes>
             <Route
               path="/sign-in/*"
@@ -58,10 +65,13 @@ function ClerkProviderWithRoutes() {
 }
 
 function App() {
+  const queryClient = new QueryClient();
   return (
-    <BrowserRouter>
-      <ClerkProviderWithRoutes />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ClerkProviderWithRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

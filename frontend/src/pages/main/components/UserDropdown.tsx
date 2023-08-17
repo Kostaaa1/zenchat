@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
-import useStore from "../../../store";
+import useStore from "../../../utils/store";
 
 interface UserDropdownProps {
   dropdownRef: React.RefObject<HTMLDivElement>;

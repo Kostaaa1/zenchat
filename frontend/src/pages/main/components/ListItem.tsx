@@ -1,16 +1,17 @@
-import { cn } from "../../../utils";
+import { cn } from "../../../utils/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { motion } from "framer-motion";
 import { FC, ReactElement } from "react";
+import useStore from "../../../utils/store";
 
 export const listVariants = cva(
-  "relative px-2 transition-colors flex active:text-zinc-500 h-[52px] items-center cursor-pointer rounded-lg",
+  "relative transition-colors px-[10px] flex active:text-zinc-500 h-[48px] items-center cursor-pointer rounded-lg",
   {
     variants: {
       variant: {
         default:
-          "group active:ring active:ring-white active:ring-1 w-[44px] transition-all duration-200",
-        list: "group active:bg-opacity-5 justify-start",
+          "group active:ring max-w-[48px] w-[48px] active:ring-white active:ring-1 transition-all duration-200",
+        list: "group w-full active:bg-opacity-5",
       },
       hover: {
         darker: "hover:bg-white hover:bg-opacity-10",

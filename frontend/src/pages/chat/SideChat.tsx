@@ -1,9 +1,9 @@
 import { useUser, UserButton } from "@clerk/clerk-react";
 import { FC, useEffect } from "react";
 import Icon from "../main/components/Icon";
-import { cn } from "../../utils";
+import { cn } from "../../utils/utils";
 
-const ChatList = ({
+export const ChatList = ({
   imageUrl,
   userName,
   lastMessage,
