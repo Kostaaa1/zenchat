@@ -6,17 +6,19 @@ import {
   SignIn,
   SignUp,
 } from "@clerk/clerk-react";
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import Header from "./pages/main/Header";
 import Chat from "./pages/chat/Chat";
 import Dashboard from "./pages/dashboard/Dashboard";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import useStore from "./utils/store";
+import { useEffect } from "react";
 
 const { VITE_APP_CLERK_PUBLISHABLE_KEY } = import.meta.env;
 if (!VITE_APP_CLERK_PUBLISHABLE_KEY) {
@@ -26,14 +28,27 @@ const clerkPubKey = VITE_APP_CLERK_PUBLISHABLE_KEY;
 
 function ClerkProviderWithRoutes() {
   const navigate = useNavigate();
+  // const location = useLocation();
+  // const { setIsSearchActive, setCurrentActiveList } = useStore();
+
+  // useEffect(() => {
+  //   const path = location.pathname;
+  //   setIsSearchActive(false);
+
+  //   if (path === "/") {
+  //     console.log("Current route: home");
+  //     setCurrentActiveList("home");
+  //   } else if (path === "inbox") {
+  //     console.log("Current route: inbox");
+  //     setCurrentActiveList("inbox");
+  //   }
+  // }, [location, navigate]);
 
   return (
     <ClerkProvider publishableKey={clerkPubKey} navigate={(to) => navigate(to)}>
-      <div className="relative h-screen">
+      <div className="relative h-screen flex justify-center items-center">
         <SignedIn>
           <Header />
-        </SignedIn>
-        <div className="ml-[80px] w-full h-full">
           <Routes>
             <Route
               path="/sign-in/*"
@@ -43,22 +58,13 @@ function ClerkProviderWithRoutes() {
               path="/sign-up/*"
               element={<SignUp routing="path" path="/sign-up" />}
             />
-            <Route
-              path="/"
-              element={
-                <>
-                  <SignedIn>
-                    <Dashboard />
-                  </SignedIn>
-                  <SignedOut>
-                    <RedirectToSignIn />
-                  </SignedOut>
-                </>
-              }
-            />
             <Route path="/inbox" element={<Chat />} />
+            <Route path="/:userId" element={<Dashboard />} />
           </Routes>
-        </div>
+        </SignedIn>
+        <SignedOut>
+          <RedirectToSignIn />
+        </SignedOut>
       </div>
     </ClerkProvider>
   );
