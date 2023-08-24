@@ -1,31 +1,62 @@
-import { useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import Icon from "../Icon";
-import io from "socket.io-client";
 import useStore from "../../../../utils/store";
-const socket = io("http://localhost:3000"); // Replace with your server's URL
 import { IUserData } from "../../../../utils/store";
+import supabase from "../../../../../lib/supabaseClient";
+import { useUser } from "@clerk/clerk-react";
+import { useQueryClient } from "@tanstack/react-query";
+import useCachedUser from "../../../../hooks/useCachedUser";
+import io from "socket.io-client";
+import { debounce } from "lodash";
+const socket = io("http://localhost:3000"); // Replace with your server's URL
 
-const Search = () => {
+type SearchProps = {
+  setLoading: (bool: boolean) => void;
+};
+
+const Search: FC<SearchProps> = ({ setLoading }) => {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean | null>(null);
-  const [search, setSearch] = useState<string>("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const { setSearchedUsers } = useStore();
+  const { setSearchedUsers, searchedUsers } = useStore();
+  const [search, setSearch] = useState<string>("");
+  const { userData } = useCachedUser();
+
+  const handleConnect = () => {
+    console.log("Connected to server");
+  };
+
+  const handleUsers = (users: IUserData[]) => {
+    setSearchedUsers(users);
+    setLoading(false);
+  };
+
+  const debouncedEmit = debounce((searchValue) => {
+    if (!userData?.username) {
+      console.log("There is no user data, lost cache");
+      return;
+    }
+    socket.emit("users", [searchValue, userData?.username]);
+  }, 400);
+
+  const startDebounce = () => {
+    if (search.length !== 0) {
+      setLoading(true);
+      debouncedEmit(search);
+    } else {
+      setLoading(false);
+      setSearchedUsers([]);
+    }
+  };
 
   useEffect(() => {
-    const handleConnect = () => {
-      console.log("Connected to server");
-    };
-    const handleUsers = (users: IUserData[]) => {
-      setSearchedUsers(users);
-    };
     socket.on("connect", handleConnect);
-    socket.on("users", handleUsers);
-    if (search !== "") {
-      socket.emit("users", search);
-    }
+    socket.on("search-users", handleUsers);
+    startDebounce();
+
     return () => {
       socket.off("connect", handleConnect);
-      socket.off("users", handleUsers);
+      socket.off("search-users", handleUsers);
+      debouncedEmit.cancel();
     };
   }, [search]);
 
@@ -47,7 +78,7 @@ const Search = () => {
   });
 
   return (
-    <div className="relative flex text-neutral-400 select-none" ref={searchRef}>
+    <div className="relative flex select-none text-neutral-400" ref={searchRef}>
       {!isSearchFocused && (
         <Icon
           name="Search"
@@ -58,7 +89,7 @@ const Search = () => {
       <input
         className={`${
           !isSearchFocused ? "pl-8" : "pl-4"
-        } py-2 text-neutral-400 focus:text-white bg-[#303030] placeholder-neutral-400 rounded-md`}
+        } rounded-md bg-[#303030] py-2 text-neutral-400 placeholder-neutral-400 focus:text-white`}
         type="text"
         onFocus={() => setIsSearchFocused(true)}
         onBlur={() => setIsSearchFocused(false)}
@@ -68,7 +99,7 @@ const Search = () => {
       />
       {isSearchFocused || isSearchFocused === null ? (
         <div
-          className="absolute right-2 rounded-full flex items-center bg-zinc-300 p-[2px] text-zinc-600 bottom-1/2 translate-y-1/2"
+          className="absolute bottom-1/2 right-2 flex translate-y-1/2 items-center rounded-full bg-zinc-300 p-[2px] text-zinc-600"
           onClick={() => setSearch("")}
         >
           <Icon name="X" size="14px" />
