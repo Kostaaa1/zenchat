@@ -37,7 +37,7 @@ const Dashboard = () => {
     },
   );
 
-  const createChatRoom = async (): Promise<number | null> => {
+  const createChatRoom = async (): Promise<string | null> => {
     try {
       const { data, error } = await supabase
         .from("chatrooms")
@@ -57,7 +57,7 @@ const Dashboard = () => {
   };
 
   const insertChatroomUser = async (
-    chatroomId: number,
+    chatroomId: string,
     userId: string,
   ): Promise<void> => {
     await supabase
@@ -68,34 +68,30 @@ const Dashboard = () => {
   const getChatRoomId = async (): Promise<void> => {
     try {
       if (!userData || !inspectedUserData) return;
+      const userIds: string[] = [userData.id, inspectedUserData.id];
 
-      const [userData1, userData2] = await Promise.all([
-        supabase
-          .from("chatroom_users")
-          .select("chatroom_id")
-          .eq("user_id", userData.id),
-        supabase
-          .from("chatroom_users")
-          .select("chatroom_id")
-          .eq("user_id", inspectedUserData.id),
-      ]);
+      const { data, error } = await supabase.rpc("get_chatroom_id", {
+        user_id_1: userIds[0],
+        user_id_2: userIds[1],
+      });
 
-      const finalData1 = userData1?.data;
-      const finalData2 = userData2?.data;
+      console.log(data);
 
-      console.log(finalData1);
-      console.log(finalData2);
+      if (error) {
+        throw new Error(`Error executing SQL Procedure: ${error}`);
+      }
 
-      if (!finalData1?.length || !finalData2?.length) {
+      if (data.length === 0) {
         const chatroomId = await createChatRoom();
         if (chatroomId) {
-          await insertChatroomUser(chatroomId, userData.id);
-          await insertChatroomUser(chatroomId, inspectedUserData.id);
+          await insertChatroomUser(chatroomId, userIds[0]);
+          await insertChatroomUser(chatroomId, userIds[1]);
+
           const path = `/inbox/${chatroomId}`;
           navigate(path);
         }
       } else {
-        const path = `/inbox/${finalData1?.[0]?.chatroom_id}`;
+        const path = `/inbox/${data[0].chatroom_id}`;
         navigate(path);
       }
     } catch (error) {
