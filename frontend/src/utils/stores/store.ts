@@ -1,13 +1,23 @@
 import { create } from "zustand";
 
-export type ActiveList = string | "inbox" | "home";
+export type ActiveList = "inbox" | "user" | "";
 
 export interface IUserData {
-  id: number;
+  id: string;
   created_at: string;
   username: string;
   email: string;
-  imageUrl: string;
+  image_url: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface TChat {
+  id?: string;
+  created_at?: string;
+  last_message: string;
+  userId1: number;
+  userId2: number;
 }
 
 type Store = {
@@ -27,7 +37,7 @@ const useStore = create<Store>(
     setSearchedUsers: (searchedUsers: IUserData[]) =>
       set((state) => ({
         ...state,
-        searchedUsers: searchedUsers,
+        searchedUsers,
       })),
     currentActiveList: "",
     setCurrentActiveList: (list) =>
@@ -47,7 +57,7 @@ const useStore = create<Store>(
         ...state,
         isSearchActive: isActive,
       })),
-  })
+  }),
 );
 
 export default useStore;
