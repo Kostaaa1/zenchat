@@ -1,13 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import supabase from "../../lib/supabaseClient";
-import useUserChats, { TMessage } from "./useUserChats";
+import useUserChats, { TChatRoomData, TMessage } from "./useUserChats";
+import { useParams } from "react-router-dom";
 
-type TUseChatRoomProps = {
-  chatRoomId: string | undefined;
-};
-
-const useChatRoom = ({ chatRoomId }: TUseChatRoomProps) => {
+const useChatRoom = () => {
   const { userChats } = useUserChats();
+  const queryClient = useQueryClient();
+  const params = useParams();
+  const { chatRoomId } = params;
+  const queryKey = ["chatroom-data", chatRoomId];
 
   const fetchAllMessages = async () => {
     const currentChatData = userChats?.find(
@@ -16,7 +17,8 @@ const useChatRoom = ({ chatRoomId }: TUseChatRoomProps) => {
     const { data } = await supabase
       .from("messages")
       .select("*")
-      .eq("chatroom_id", chatRoomId);
+      .eq("chatroom_id", chatRoomId)
+      .order("created_at", { ascending: false });
 
     if (currentChatData) {
       currentChatData.messages = data as TMessage[];
@@ -25,9 +27,26 @@ const useChatRoom = ({ chatRoomId }: TUseChatRoomProps) => {
     return currentChatData;
   };
 
-  return useQuery(["chatroom-data"], fetchAllMessages, {
+  const data = useQuery(queryKey, fetchAllMessages, {
     enabled: !!userChats && !!chatRoomId,
   });
+
+  const addNewMessageQuery = (message: TMessage) => {
+    queryClient.setQueryData<TChatRoomData>(queryKey, (oldData) => {
+      if (oldData) {
+        return {
+          ...oldData,
+          messages: [message, ...oldData.messages],
+        };
+      }
+      return oldData;
+    });
+  };
+
+  return {
+    ...data,
+    addNewMessageQuery,
+  };
 };
 
 export default useChatRoom;
