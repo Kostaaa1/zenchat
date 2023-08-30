@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import Icon from "../Icon";
-import useStore from "../../../../utils/store";
-import { IUserData } from "../../../../utils/store";
+import useStore from "../../../../utils/stores/store";
+import { IUserData } from "../../../../utils/stores/store";
 import supabase from "../../../../../lib/supabaseClient";
 import { useUser } from "@clerk/clerk-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,65 +17,64 @@ type SearchProps = {
 const Search: FC<SearchProps> = ({ setLoading }) => {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const { setSearchedUsers, searchedUsers } = useStore();
+  const { setSearchedUsers } = useStore();
   const [search, setSearch] = useState<string>("");
   const { userData } = useCachedUser();
+  const searchUsersSocket = "search-users";
 
-  const handleConnect = () => {
-    console.log("Connected to server");
+  const handleSearchUsers = async (
+    currentSearch: string,
+  ): Promise<IUserData[] | undefined> => {
+    try {
+      console.log(currentSearch);
+      const { data: users, error } = await supabase
+        .from("users")
+        .select("*")
+        .not("username", "eq", userData?.username)
+        .ilike("username", `${currentSearch}%`);
+
+      if (!users || error) {
+        console.error("Supabase query error:", error.message);
+        return;
+      }
+
+      return users;
+    } catch (error) {
+      console.error("Error occured while joining the room", error);
+    }
   };
 
-  const handleUsers = (users: IUserData[]) => {
-    setSearchedUsers(users);
-    setLoading(false);
-  };
-
-  const debouncedEmit = debounce((searchValue) => {
+  const debouncedEmit = debounce(async () => {
     if (!userData?.username) {
       console.log("There is no user data, lost cache");
       return;
     }
-    socket.emit("users", [searchValue, userData?.username]);
+    const currentSearch = search;
+    const data = await handleSearchUsers(currentSearch);
+
+    if (data) {
+      setSearchedUsers(data);
+      setLoading(false);
+    }
   }, 400);
 
   const startDebounce = () => {
     if (search.length !== 0) {
       setLoading(true);
-      debouncedEmit(search);
+      debouncedEmit();
     } else {
-      setLoading(false);
       setSearchedUsers([]);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    socket.on("connect", handleConnect);
-    socket.on("search-users", handleUsers);
     startDebounce();
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("search-users", handleUsers);
       debouncedEmit.cancel();
     };
   }, [search]);
-
-  const handleChangeState = (event: MouseEvent) => {
-    if (
-      isSearchFocused &&
-      searchRef.current &&
-      !searchRef.current.contains(event.target as Node)
-    ) {
-      setIsSearchFocused(false);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener("click", handleChangeState);
-    return () => {
-      window.removeEventListener("click", handleChangeState);
-    };
-  });
 
   return (
     <div className="relative flex select-none text-neutral-400" ref={searchRef}>

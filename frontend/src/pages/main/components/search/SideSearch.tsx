@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import Search from "./Search";
-import useStore from "../../../../utils/store";
+import useStore from "../../../../utils/stores/store";
 import { useState } from "react";
 import ChatList from "../../../../components/ChatList";
 import { useNavigate } from "react-router-dom";
