@@ -11,9 +11,8 @@ import useMessageStore from "../../utils/stores/messageStore";
 import Chat from "./Chat";
 import getCurrentDate from "../../utils/getCurrentDate";
 import io from "socket.io-client";
-import { Loader2 } from "lucide-react";
 import { TMessage } from "../../../../server/src/types/types";
-import { trpc } from "../../utils/trpcClient";
+import { trpc, trpcVanilla } from "../../utils/trpcClient";
 import useStore from "../../utils/stores/store";
 const { VITE_SERVER_URL } = import.meta.env;
 const socket = io(VITE_SERVER_URL);
@@ -38,41 +37,20 @@ const Inbox = () => {
   const ctx = trpc.useContext();
 
   const { data: userChats, isLoading: isUserChatsLoading } =
-    trpc.chat.getCurrentChatRooms.useQuery(userId, { enabled: !!userId });
+    trpc.chat.getCurrentChatRooms.useQuery(userId, {
+      enabled: !!userId,
+    });
 
   const currentChatData = userChats?.find(
     (chat) => chat.chatroom_id === params.chatRoomId,
   );
 
-  const { data: messages, isLoading } = trpc.chat.fetchAllMessages.useQuery(
+  const { data: messages, isLoading } = trpc.chat.messages.getAll.useQuery(
     {
-      activeChat: currentChatData,
       chatroom_id: params.chatRoomId as string,
     },
-    {
-      enabled: !!params.chatRoomId && !!userChats,
-      keepPreviousData: true,
-    },
+    { enabled: !!params.chatRoomId },
   );
-
-  useEffect(() => {
-    if (messages) {
-      ctx.chat.getCurrentChatRooms.setData(userId, (oldData) => {
-        if (oldData) {
-          return oldData.map((chat) =>
-            chat.chatroom_id === params.chatRoomId
-              ? { ...chat, messages }
-              : chat,
-          );
-        }
-        return oldData;
-      });
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    console.log(userChats);
-  }, [userChats]);
 
   const scrollToTop = () => {
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -86,78 +64,95 @@ const Inbox = () => {
       if (!currentChatData || message.trim() === "") {
         return;
       }
-
       const { user_id, chatroom_id } = currentChatData;
+      const created_at = getCurrentDate();
 
       const messageData = {
         content: message,
         sender_id: user_id,
         chatroom_id,
-        created_at: getCurrentDate(),
+        created_at,
       };
 
-      const { chatRoomId } = params;
-      const { content, created_at } = messageData;
-
-      if (chatRoomId) {
-        updateMessagesCache(chatRoomId, messageData);
-        updateCurrenChatRoomCache(content, created_at);
-      }
-
-      socket.emit("new-message", messageData);
+      trpcVanilla.chat.messages.send.mutate(messageData);
       setMessage("");
     } catch (error) {
       console.log(error);
     }
   };
 
-  const updateMessagesCache = (chatRoomId: string, messageData: TMessage) => {
-    ctx.chat.fetchAllMessages.setData(
-      {
-        chatroom_id: chatRoomId,
-      },
-      (staleChats) => {
-        if (staleChats) {
-          return [messageData, ...staleChats];
-        }
-        return staleChats;
-      },
-    );
-  };
-
-  const updateCurrenChatRoomCache = (content: string, created_at: string) => {
-    ctx.chat.getCurrentChatRooms.setData(userId, (oldData) => {
-      return oldData?.map((chat) =>
-        chat.chatroom_id === params.chatRoomId
-          ? {
-              ...chat,
-              last_message: content,
-              created_at: created_at,
-            }
-          : chat,
+  const addNewMessage = useCallback(
+    (messageData: TMessage) => {
+      ctx.chat.messages.getAll.setData(
+        {
+          chatroom_id: messageData.chatroom_id,
+        },
+        (staleChats) => {
+          if (staleChats) {
+            return [messageData, ...staleChats];
+          }
+          return staleChats;
+        },
       );
-    });
-  };
+    },
+    [ctx.chat.messages.getAll],
+  );
+
+  const updateUserChatLastMessage = useCallback(
+    (msg: TMessage) => {
+      ctx.chat.getCurrentChatRooms.setData(userId, (oldData) => {
+        const data = oldData
+          ?.map((chat) =>
+            chat.chatroom_id === msg.chatroom_id
+              ? {
+                  ...chat,
+                  last_message: msg.content,
+                  created_at: getCurrentDate(),
+                }
+              : chat,
+          )
+          .sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+
+            return dateB - dateA;
+          });
+
+        return data;
+      });
+    },
+    [ctx.chat.getCurrentChatRooms, userId],
+  );
 
   const handleReceiveMessage = useCallback(
-    (messageData: TMessage) => {
-      console.log("Message sent", messageData);
+    (msg: TMessage) => {
+      if (msg) {
+        addNewMessage(msg);
+        updateUserChatLastMessage(msg);
+      }
     },
-    [params.chatRoomId, userId, ctx.chat.getCurrentChatRooms],
+    [addNewMessage, updateUserChatLastMessage],
   );
 
   useEffect(() => {
-    socket.emit("join-room", params.chatRoomId);
-    socket.on("new-message", handleReceiveMessage);
+    if (!userId) return;
+
+    socket.emit("join-room", userId);
+    socket.on("join-room", handleReceiveMessage);
+
+    socket.emit("listen-to-messages", userId);
+    socket.on("listen-to-messages", handleReceiveMessage);
 
     return () => {
-      socket.off("disconnect", () => {
-        console.log("Disconnected fron new-message socket");
-      });
+      console.log('ran')
       socket.off("join-room", handleReceiveMessage);
-      socket.off("new-message", handleReceiveMessage);
+      socket.off("listen-to-messages", handleReceiveMessage);
+
+      socket.off("disconnect", () => {
+        console.log("Disconnected fron socket");
+      });
     };
-  }, [params]);
+  }, [userId]);
 
   return (
     <div className="ml-20 flex h-full w-full">
@@ -182,7 +177,6 @@ const Inbox = () => {
               chatRoomId={params.chatRoomid}
               scrollRef={scrollRef}
               isLoading={isLoading}
-              // isRefetching={isRefetching}
             />
             <MessageInput
               iconRef={iconRef}
@@ -199,7 +193,7 @@ const Inbox = () => {
             className="rounded-full border-2 border-white p-6"
           />
           <div className="mt-4 flex h-14 flex-col items-center">
-            <h3 className="text-2xl">Your Messages</h3>
+            <h3 className="text-xl">Your Messages</h3>
             <p className="py-3 pt-1 text-neutral-400">
               Send private photos and messages to a friend
             </p>
