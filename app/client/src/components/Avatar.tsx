@@ -1,17 +1,17 @@
 import { VariantProps, cva } from "class-variance-authority";
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { FaUser } from "react-icons/fa";
 import { cn } from "../utils/utils";
 
 const avatarVariance = cva(
-  "flex items-center justify-center overflow-hidden rounded-full",
+  "flex items-center justify-center text-white overflow-hidden rounded-full",
   {
     variants: {
       size: {
         sm: "h-7 w-7 p-1",
         md: "h-12 w-12 p-2",
         lg: "h-16 w-16 p-3",
-        xl: "h-32 w-32 p-4",
+        xl: "h-28 w-28 p-4",
       },
     },
     defaultVariants: {
