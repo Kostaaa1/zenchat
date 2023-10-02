@@ -14,6 +14,7 @@ import LoadingPage from "./pages/LoadingPage";
 import { trpc } from "./utils/trpcClient";
 import { useEffect } from "react";
 import useStore from "./utils/stores/store";
+import Modals from "./components/Modals";
 
 function App() {
   const { user } = useUser();
@@ -31,7 +32,7 @@ function App() {
     },
   });
 
-  useEffect(() => {
+  const createUser = async () => {
     if (userData) setUserId(userData.id);
 
     if (user?.emailAddresses?.[0]?.emailAddress) {
@@ -42,7 +43,7 @@ function App() {
       console.log("The user is not existing, creating it !");
       const { firstName, lastName, username } = user;
 
-      createUserMutation
+      await createUserMutation
         .mutateAsync({
           firstName,
           lastName,
@@ -53,15 +54,19 @@ function App() {
           console.log(err);
         });
     }
+  };
+
+  useEffect(() => {
+    createUser();
   }, [userData, user, email]);
 
   return (
-    <div className="relative flex h-screen items-center justify-center">
+    <>
       <SignedIn>
         {!isFetched ? (
           <LoadingPage />
         ) : (
-          <>
+          <div className="relative flex h-screen items-center justify-center">
             <Header />
             <Routes>
               <Route
@@ -77,13 +82,14 @@ function App() {
               <Route path="/:userId" element={<Dashboard />} />
               <Route path="/" element={<Dashboard />} />
             </Routes>
-          </>
+            <Modals />
+          </div>
         )}
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
-    </div>
+    </>
   );
 }
 

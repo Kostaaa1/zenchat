@@ -2,7 +2,6 @@ import { cn } from "../utils/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import { motion } from "framer-motion";
-import { FaUser } from "react-icons/fa";
 import Avatar from "./Avatar";
 
 export const listVariants = cva(
@@ -32,7 +31,6 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   image_url?: string;
   className?: string;
   onClick?: () => void;
-  loading?: boolean;
   isHoverDisabled?: boolean;
   reduceImgSize?: boolean;
   icon?: ReactNode;
@@ -51,7 +49,6 @@ const ChatList: FC<ListProps> = ({
   isHoverDisabled,
   reduceImgSize,
   icon,
-  loading,
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
@@ -87,7 +84,7 @@ const ChatList: FC<ListProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
           onClick={onIconClick}
-          className="absolute bottom-1/2 right-6 flex translate-y-1/2 items-center rounded-full p-[2px] text-zinc-500 transition-colors duration-300 hover:bg-white hover:bg-opacity-10"
+          className="absolute bottom-1/2 right-6 flex translate-y-1/2 items-center rounded-full p-[2px] text-zinc-500 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
         >
           {icon}
         </motion.div>

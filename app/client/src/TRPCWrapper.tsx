@@ -9,10 +9,7 @@ const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Remove this after:
             refetchOnWindowFocus: false,
-            // staleTime: Infinity,
-            // refetchOnMount: false,
           },
         },
       }),

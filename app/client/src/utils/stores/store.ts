@@ -16,10 +16,18 @@ type Store = {
   setEmail: (email: string) => void;
   userId: string;
   setUserId: (id: string) => void;
+  search: string;
+  setSearch: (search: string) => void;
 };
 
 const useStore = create<Store>(
   (set): Store => ({
+    search: "",
+    setSearch: (search: string) =>
+      set((state) => ({
+        ...state,
+        search,
+      })),
     userId: "",
     setUserId: (userId: string) =>
       set((state) => ({

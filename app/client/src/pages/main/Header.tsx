@@ -18,7 +18,9 @@ const Header = () => {
   const { user } = useUser();
   const iconRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  useOutsideClick([iconRef, dropdownRef], () => setShowDropdown(false));
+  useOutsideClick([iconRef, dropdownRef], "click", () =>
+    setShowDropdown(false),
+  );
 
   const handleActivateSearch = () => {
     setIsSearchActive(!isSearchActive);

@@ -12,9 +12,11 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 html {
   -webkit-text-size-adjust: 100%;
 }
+
 body {
   background-color: #000000;
   overflow-x: hidden;
@@ -23,14 +25,10 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-input {
+input,
+textarea {
   outline: 1px solid black;
   width: 100%;
-}
-
-button {
-  outline: 1px solid black;
-  padding: 0.2rem 0.8rem;
 }
 
 img {
@@ -47,15 +45,14 @@ li {
 ::-webkit-scrollbar,
 *::-webkit-scrollbar {
   background-color: #2b2b2b;
-  width: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-thumb,
 *::-webkit-scrollbar-thumb {
-  border-radius: 8px;
+  border-radius: 12px;
   background-color: #6b6b6b;
   border: 3px solid #2b2b2b;
-  /* min-height: 24px; */
 }
 
 ::-webkit-scrollbar-thumb:focus,

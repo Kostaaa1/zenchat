@@ -10,7 +10,7 @@ import { cn } from "../../../../utils/utils";
 import { trpcVanilla } from "../../../../utils/trpcClient";
 
 const SideSearch = () => {
-  const { setIsSearchActive, searchedUsers } = useStore();
+  const { search, setIsSearchActive, searchedUsers } = useStore();
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { userData } = useUser();
@@ -42,7 +42,7 @@ const SideSearch = () => {
 
   return (
     <motion.div
-      className="fixed left-[80px] top-0 z-10 flex h-full w-full max-w-[440px] flex-col border-r border-[#262626] bg-[#000000]"
+      className="fixed left-[80px] top-0 z-10 flex h-full w-full max-w-[400px] flex-col border-r border-[#262626] bg-black"
       initial={{ x: "-100%" }}
       animate={{ x: 0 }}
       exit={{ x: "-100%" }}
@@ -52,32 +52,45 @@ const SideSearch = () => {
         <h1 className="text-3xl font-bold">Search</h1>
         <Search setLoading={setLoading} />
       </div>
-      <div className={cn(!loading ? "overflow-y-auto" : "overflow-hidden")}>
+      <div
+        className={cn(
+          "h-full w-full",
+          !loading ? "overflow-y-auto" : "overflow-hidden",
+        )}
+      >
         {!loading ? (
           <>
-            {searchedUsers.length > 0 ? (
-              <div>
-                {searchedUsers.map((user) => (
-                  <ChatList
-                    title={user?.username}
-                    key={user?.id}
-                    image_url={user?.image_url}
-                    hover="darker"
-                    subtitle={`${user?.first_name} ${user?.last_name}`}
-                    onClick={() => {
-                      const { username, id } = user;
-                      handleListClick({
-                        username,
-                        id,
-                      });
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
+            {search.length === 0 || searchedUsers.length === 0 ? (
               <RecentSearchedUsers
                 navigateToUserDashboard={navigateToUserDashboard}
               />
+            ) : (
+              <>
+                {searchedUsers.length > 0 ? (
+                  <div>
+                    {searchedUsers.map((user) => (
+                      <ChatList
+                        title={user?.username}
+                        key={user?.id}
+                        image_url={user?.image_url}
+                        hover="darker"
+                        subtitle={`${user?.first_name} ${user?.last_name}`}
+                        onClick={() => {
+                          const { username, id } = user;
+                          handleListClick({
+                            username,
+                            id,
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-1 flex h-full max-h-full w-full items-center justify-center">
+                    No results found.
+                  </div>
+                )}
+              </>
             )}
           </>
         ) : (

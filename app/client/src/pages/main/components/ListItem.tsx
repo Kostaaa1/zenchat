@@ -4,13 +4,12 @@ import { motion } from "framer-motion";
 import { FC, ReactElement } from "react";
 
 export const listVariants = cva(
-  "relative transition-colors px-[10px] flex active:text-zinc-500 h-[48px] items-center cursor-pointer rounded-lg",
+  "relative transition-colors px-[10px] flex active:text-zinc-500 h-[48px] items-center justify-start cursor-pointer w-full rounded-lg",
   {
     variants: {
       variant: {
-        default:
-          "group active:ring max-w-[48px] w-[48px] active:ring-white active:ring-1 transition-all duration-200",
-        list: "group w-full active:bg-opacity-10",
+        default: "max-w-[48px] transition-all duration-200 group",
+        list: "active:bg-opacity-10",
       },
       hover: {
         darker:
@@ -54,7 +53,7 @@ const ListItem: FC<ListProps> = ({
         <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="ml-3 text-lg"
+          className="pl-3 text-lg"
         >
           {title}
         </motion.span>
@@ -63,7 +62,7 @@ const ListItem: FC<ListProps> = ({
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className=" ml-3 text-3xl font-bold"
+          className=" pl-3 text-3xl font-bold"
         >
           {head}
         </motion.h1>

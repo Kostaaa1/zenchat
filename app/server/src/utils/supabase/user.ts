@@ -1,4 +1,4 @@
-import supabase from "../../db/supabase";
+import supabase from "../../config/supabase";
 import { TCreateUserInput, TUserData } from "../../types/types";
 
 export const getUser = async (email: string): Promise<TUserData | null> => {

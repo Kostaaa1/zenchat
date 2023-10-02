@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import useUser from "../../../../hooks/useUser";
 import ChatList from "../../../../components/ChatList";
 import Icon from "../Icon";
@@ -60,13 +60,12 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
           <Loader2 className="mr-2 h-8 w-8 animate-spin" />
         </div>
       ) : (
-        <div className="flex h-full flex-col items-center justify-center">
+        <div className="flex h-full flex-col justify-start">
           {searchedChats && searchedChats.length > 0 ? (
             <>
               {searchedChats?.map((chat) => (
                 <ChatList
                   key={chat.id}
-                  loading={isLoading}
                   isHoverDisabled={true}
                   image_url={chat.users.image_url}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}
@@ -80,7 +79,11 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
               ))}
             </>
           ) : (
-            <p className="font-semibold text-neutral-400">No recent searches</p>
+            <div className="flex h-full items-center justify-center">
+              <p className="text-md font-semibold text-neutral-400">
+                No recent searches
+              </p>
+            </div>
           )}
         </div>
       )}

@@ -1,186 +1,110 @@
 import Icon from "../main/components/Icon";
-import { FormEvent, useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "../../components/Button";
 import { useLocation, useParams } from "react-router-dom";
-import UserChats from "./UserChats";
-import Picker from "@emoji-mart/react";
-import { AnimatePresence, motion } from "framer-motion";
 import useOutsideClick from "../../hooks/useOutsideClick";
-import MessageInput from "./MessageInput";
-import useMessageStore from "../../utils/stores/messageStore";
-import Chat from "./Chat";
-import getCurrentDate from "../../utils/getCurrentDate";
-import io from "socket.io-client";
-import { TMessage } from "../../../../server/src/types/types";
-import { trpc, trpcVanilla } from "../../utils/trpcClient";
+import MessageInput from "./components/MessageInput";
+import useChatStore from "../../utils/stores/chatStore";
+import Chat from "./components/Chat";
 import useStore from "../../utils/stores/store";
-const { VITE_SERVER_URL } = import.meta.env;
-const socket = io(VITE_SERVER_URL);
-import data from "@emoji-mart/data";
 import Avatar from "../../components/Avatar";
+import useChatSocket from "../../hooks/useChatSocket";
+import UserChats from "./components/UserChats";
+import useChat from "../../hooks/useChat";
+import { EmojiPickerContainer } from "./components/EmojiPicker";
+import { trpc } from "../../utils/trpcClient";
+const { VITE_SERVER_URL } = import.meta.env;
+import io from "socket.io-client";
+const socket = io(VITE_SERVER_URL);
 
 const Inbox = () => {
   const {
-    message,
-    setMessage,
     handleSelectEmoji,
     setShowEmojiPicker,
     showEmojiPicker,
-  } = useMessageStore();
+    currentChatroom,
+    setCurrentChatroom,
+  } = useChatStore();
   const location = useLocation();
-  const params = useParams();
+  const { userId } = useStore();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  useOutsideClick([emojiRef, iconRef], () => setShowEmojiPicker(false));
-  const { userId } = useStore();
-  const ctx = trpc.useContext();
+  const params = useParams<{ chatRoomId: string }>();
+  useOutsideClick([emojiRef, iconRef], "click", () =>
+    setShowEmojiPicker(false),
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const scrollToStart = () => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  };
 
   const { data: userChats, isLoading: isUserChatsLoading } =
     trpc.chat.getCurrentChatRooms.useQuery(userId, {
       enabled: !!userId,
     });
 
-  const currentChatData = userChats?.find(
-    (chat) => chat.chatroom_id === params.chatRoomId,
+  const { data } = trpc.chat.messages.getAll.useQuery(
+    { userId },
+    { enabled: !!userId },
   );
 
-  const { data: messages, isLoading } = trpc.chat.messages.getAll.useQuery(
-    {
-      chatroom_id: params.chatRoomId as string,
-    },
-    { enabled: !!params.chatRoomId },
-  );
-
-  const scrollToTop = () => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleSendMessage = async (e: FormEvent): Promise<void> => {
-    try {
-      e.preventDefault();
-      scrollToTop();
-
-      if (!currentChatData || message.trim() === "") {
-        return;
-      }
-      const { user_id, chatroom_id } = currentChatData;
-      const created_at = getCurrentDate();
-
-      const messageData = {
-        content: message,
-        sender_id: user_id,
-        chatroom_id,
-        created_at,
-      };
-
-      trpcVanilla.chat.messages.send.mutate(messageData);
-      setMessage("");
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const addNewMessage = useCallback(
-    (messageData: TMessage) => {
-      ctx.chat.messages.getAll.setData(
-        {
-          chatroom_id: messageData.chatroom_id,
-        },
-        (staleChats) => {
-          if (staleChats) {
-            return [messageData, ...staleChats];
-          }
-          return staleChats;
-        },
-      );
-    },
-    [ctx.chat.messages.getAll],
-  );
-
-  const updateUserChatLastMessage = useCallback(
-    (msg: TMessage) => {
-      ctx.chat.getCurrentChatRooms.setData(userId, (oldData) => {
-        const data = oldData
-          ?.map((chat) =>
-            chat.chatroom_id === msg.chatroom_id
-              ? {
-                  ...chat,
-                  last_message: msg.content,
-                  created_at: getCurrentDate(),
-                }
-              : chat,
-          )
-          .sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-
-            return dateB - dateA;
-          });
-
-        return data;
-      });
-    },
-    [ctx.chat.getCurrentChatRooms, userId],
-  );
-
-  const handleReceiveMessage = useCallback(
-    (msg: TMessage) => {
-      if (msg) {
-        addNewMessage(msg);
-        updateUserChatLastMessage(msg);
-      }
-    },
-    [addNewMessage, updateUserChatLastMessage],
-  );
+  const messages = data?.find((x) => x.chatroom_id === params.chatRoomId)
+    ?.messages;
 
   useEffect(() => {
-    if (!userId) return;
+    console.log(isLoading);
+  }, [isLoading]);
 
-    socket.emit("join-room", userId);
-    socket.on("join-room", handleReceiveMessage);
+  useEffect(() => {
+    if (data) {
+      setIsLoading(false);
+    }
+  }, [data]);
 
-    socket.emit("listen-to-messages", userId);
-    socket.on("listen-to-messages", handleReceiveMessage);
+  useEffect(() => {
+    if (userChats) {
+      const chatRoomData = userChats?.find(
+        (chat) => chat.chatroom_id === params.chatRoomId,
+      );
+      if (chatRoomData) setCurrentChatroom(chatRoomData);
+    }
+  }, [userChats, params.chatRoomId, setCurrentChatroom]);
 
-    return () => {
-      console.log('ran')
-      socket.off("join-room", handleReceiveMessage);
-      socket.off("listen-to-messages", handleReceiveMessage);
-
-      socket.off("disconnect", () => {
-        console.log("Disconnected fron socket");
-      });
-    };
-  }, [userId]);
+  const { recieveNewSocketMessage, addNewMessageToChatCache } = useChat(
+    params.chatRoomId as string,
+  );
+  useChatSocket({ socket, userId, recieveNewSocketMessage });
 
   return (
-    <div className="ml-20 flex h-full w-full">
+    <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>
       <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
-      {location.pathname !== "/inbox" ? (
+      {location.pathname !== "/inbox" &&
+      currentChatroom &&
+      params.chatRoomId ? (
         <div className="w-full">
           <div className="relative flex h-full w-full flex-col justify-between pb-4">
             <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
               <div className="flex items-center">
-                <Avatar image_url={currentChatData?.image_url} />
+                <Avatar image_url={currentChatroom.image_url} />
                 <h1 className="ml-4 text-xl font-semibold">
-                  {currentChatData?.username}
+                  {currentChatroom.username}
                 </h1>
               </div>
               <Icon name="Info" size="28px" />
             </div>
             <Chat
-              image_url={currentChatData?.image_url}
-              username={currentChatData?.username}
-              messages={messages}
-              user_id={currentChatData?.user_id}
-              chatRoomId={params.chatRoomid}
-              scrollRef={scrollRef}
+              setIsLoading={setIsLoading}
               isLoading={isLoading}
+              chatRoomId={params.chatRoomId}
+              messages={messages}
+              scrollRef={scrollRef}
             />
             <MessageInput
+              scrollToStart={scrollToStart}
               iconRef={iconRef}
-              handleSendMessage={handleSendMessage}
+              addNewMessageToChatCache={addNewMessageToChatCache}
             />
           </div>
         </div>
@@ -201,24 +125,11 @@ const Inbox = () => {
           </div>
         </div>
       )}
-      <AnimatePresence>
-        {showEmojiPicker ? (
-          <motion.div
-            ref={emojiRef}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="absolute bottom-24 left-[540px]"
-          >
-            <Picker
-              theme="dark"
-              data={data}
-              onEmojiSelect={handleSelectEmoji}
-            />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <EmojiPickerContainer
+        emojiRef={emojiRef}
+        handleSelectEmoji={handleSelectEmoji}
+        showEmojiPicker={showEmojiPicker}
+      />
     </div>
   );
 };

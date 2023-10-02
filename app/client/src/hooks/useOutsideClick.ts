@@ -2,6 +2,7 @@ import { useEffect, RefObject, useCallback } from "react";
 
 const useOutsideClick = (
   refs: RefObject<HTMLElement>[],
+  event: "mousedown" | "click",
   callback: () => void,
 ) => {
   const handleClick = useCallback(
@@ -20,11 +21,11 @@ const useOutsideClick = (
   );
 
   useEffect(() => {
-    window.addEventListener("click", handleClick);
+    window.addEventListener(event, handleClick as EventListener);
     return () => {
-      window.removeEventListener("click", handleClick);
+      window.removeEventListener(event, handleClick as EventListener);
     };
-  }, [handleClick]);
+  }, [event, handleClick]);
 };
 
 export default useOutsideClick;

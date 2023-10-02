@@ -1,21 +1,41 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import multerS3 from "multer-s3";
-import path from "path";
+import "dotenv/config";
+
+const {
+  AWS_REGION,
+  AWS_ACCESS_KEY_ID = "",
+  AWS_SECRET_ACCESS_KEY = "",
+  AWS_S3_BUCKETNAME = "",
+} = process.env;
 
 const s3 = new S3Client({
-  region: "eu-central-1",
+  region: AWS_REGION,
   credentials: {
-    accessKeyId: "AKIAZ2D72R4435V5KXMI",
-    secretAccessKey: "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",
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
   },
 });
-const bucketName = "zenchat-images";
+
+export const deleteImageFromS3 = async (fileName: string) => {
+  try {
+    const params = {
+      Bucket: AWS_S3_BUCKETNAME,
+      Key: fileName,
+    };
+    const deleteCommand = new DeleteObjectCommand(params);
+    await s3.send(deleteCommand);
+    console.log("File ${fileName} deleted successfully !");
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: bucketName,
+    bucket: AWS_S3_BUCKETNAME,
     key: (req, file, cb) => {
       cb(null, file.originalname);
     },

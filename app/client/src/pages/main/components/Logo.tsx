@@ -4,7 +4,7 @@ import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 import useStore from "../../../utils/stores/store";
 import { motion } from "framer-motion";
-import { trpc } from "../../../utils/trpcClient";
+import useUser from "../../../hooks/useUser";
 
 type LogoProps = {
   variant: "default" | "list";
@@ -13,10 +13,7 @@ type LogoProps = {
 const Logo: FC<LogoProps> = ({ variant }) => {
   const navigate = useNavigate();
   const { isSearchActive } = useStore();
-
-  const { email } = useStore();
-  const ctx = trpc.useContext();
-  const userData = ctx.getUser.getData(email);
+  const { userData } = useUser();
 
   return (
     <div>

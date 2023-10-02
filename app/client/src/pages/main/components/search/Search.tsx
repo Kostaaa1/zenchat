@@ -13,10 +13,9 @@ type SearchProps = {
 const Search: FC<SearchProps> = ({ setLoading }) => {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const { setSearchedUsers } = useStore();
-  const [search, setSearch] = useState<string>("");
+  const { search, setSearch, setSearchedUsers } = useStore();
   const { userData } = UseUser();
-  useOutsideClick([searchRef], () => setIsSearchFocused(false));
+  useOutsideClick([searchRef], "click", () => setIsSearchFocused(false));
 
   const debounceEmit = debounce(
     async () => {

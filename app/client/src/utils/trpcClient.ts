@@ -3,7 +3,7 @@ import {
   createTRPCReact,
   httpBatchLink,
 } from "@trpc/react-query";
-import type { AppRouter } from "../../../server/src/api";
+import type { AppRouter } from "../../../server/src/index";
 
 export const trpc = createTRPCReact<AppRouter>();
 export const trpcVanilla = createTRPCProxyClient<AppRouter>({

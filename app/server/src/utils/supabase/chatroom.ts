@@ -1,6 +1,14 @@
-import supabase from "../../db/supabase";
-import { TChatRoomData, TChatHistory, TMessage } from "../../types/types";
-// import {} from "../../types/types";
+import { TRPCError } from "@trpc/server";
+import { purgeImageCache } from "../../config/imagekit";
+import supabase from "../../config/supabase";
+import { deleteImageFromS3 } from "../../middleware/multer";
+import {
+  TChatRoomData,
+  TChatHistory,
+  TMessage,
+  TPopulateColumnsResponse,
+} from "../../types/types";
+import "dotenv/config";
 
 export const getUserIdFromChatroom = async (
   chatroom_id: string
@@ -15,67 +23,121 @@ export const getUserIdFromChatroom = async (
     throw new Error(error.message);
   }
 
-  console.log("CHATROOM DATA CHECKING TYPE", chatroomData);
   return chatroomData;
 };
 
-export const getChatroomId = async (
-  userId: string,
-  inspectedUserId: string
-): Promise<string | undefined> => {
-  try {
-    const userIds: string[] = [userId, inspectedUserId];
-
-    const { data, error } = await supabase.rpc("get_chatroom_id", {
-      user_id_1: userIds[0],
-      user_id_2: userIds[1],
-    });
-
-    if (error) {
-      throw new Error(`Error executing SQL Procedure: ${error}`);
-    }
-
-    if (data.length === 0) {
-      const chatroomId = await createChatRoom();
-      if (chatroomId) {
-        await insertChatroomUser(chatroomId, userIds[0]);
-        await insertChatroomUser(chatroomId, userIds[1]);
-
-        return chatroomId;
-      }
-    } else {
-      return data[0].chatroom_id;
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-// for updating the cache
-export const fetchAllMessages = async (
-  chatroom_id: string
-): Promise<TMessage[]> => {
+export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
     .from("messages")
     .select("*")
     .eq("chatroom_id", chatroom_id)
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(22);
 
   if (!data) {
     throw new Error(`Error when fetching all messages: ${error.message}`);
   }
 
-  console.log(data);
   return data;
 };
 
-export const fetchSpecifiedChatData = async (
+export const unsendMessage = async ({
+  id,
+  imageUrl,
+}: {
+  id: string;
+  imageUrl: string | null;
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("id", id);
+
+    if (!data) {
+      console.log(error);
+    }
+
+    if (imageUrl) {
+      console.log(
+        "This si iamgekit link for purifying: ",
+        process.env.IMAGEKIT_URL_ENDPOINT + imageUrl
+      );
+
+      await purgeImageCache(process.env.IMAGEKIT_URL_ENDPOINT + imageUrl);
+      await deleteImageFromS3(imageUrl);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getMoreMessages = async (
+  chatroom_id: string,
+  lastMessageDate: string
+): Promise<TMessage[]> => {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("chatroom_id", chatroom_id)
+    .lt("created_at", lastMessageDate)
+    .order("created_at", { ascending: false })
+    .limit(15);
+
+  if (!data) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Error when fetching all messages: ${error.message}`,
+    });
+  }
+
+  return data;
+};
+
+// Create new message:
+export const sendMessage = async (messageData: TMessage) => {
+  const { chatroom_id, content, created_at } = messageData;
+  const { error: newMessageError } = await supabase
+    .from("messages")
+    .insert(messageData);
+
+  if (messageData.isImage) return;
+
+  const { error: lastMessageUpdateError } = await supabase
+    .from("chatrooms")
+    .update({
+      last_message:
+        content.length > 40 ? content.slice(0, 40) + "..." : content,
+      created_at,
+    })
+    .eq("id", chatroom_id);
+
+  if (lastMessageUpdateError) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Error when updating chatroom last message: ${lastMessageUpdateError}`,
+    });
+  }
+
+  if (newMessageError) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Error when inserting new message: ${newMessageError}`,
+    });
+  }
+};
+
+export const populateForeignColumns = async (
   chatroom_id: string,
   currentUser_id: string
-) => {
+): Promise<TPopulateColumnsResponse> => {
   const { data, error } = await supabase
     .from("chatroom_users")
-    .select("*, users(username, image_url), chatrooms(last_message)")
+    .select(
+      "*, users(username, image_url), chatrooms(last_message, created_at)"
+    )
     .neq("user_id", currentUser_id)
     .eq("chatroom_id", chatroom_id);
 
@@ -90,49 +152,57 @@ export const fetchSpecifiedChatData = async (
   return data[0];
 };
 
+export const getUserChatRooms = async (
+  userId: string
+): Promise<{ chatroom_id: string }[]> => {
+  const { data, error } = await supabase
+    .from("chatroom_users")
+    .select("chatroom_id")
+    .eq("user_id", userId);
+
+  if (!data || error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
 export const getCurrentChatRooms = async (
   userId: string
 ): Promise<TChatRoomData[]> => {
   try {
-    const { data: chatrooms, error } = await supabase
-      .from("chatroom_users")
-      .select("chatroom_id")
-      .eq("user_id", userId);
-
-    if (!chatrooms || error) {
-      throw new Error(error.message);
-    }
+    const chatData = await getUserChatRooms(userId);
 
     const conversations = await Promise.all(
-      chatrooms.map(async (chatroom) => {
-        const chatData = await fetchSpecifiedChatData(
+      chatData.map(async (chatroom) => {
+        const chatData = await populateForeignColumns(
           chatroom.chatroom_id,
           userId
         );
 
-        const {
-          users,
-          chatrooms: chatroomData,
-          id,
-          user_id,
-          created_at,
-          chatroom_id,
-        } = chatData;
+        const { users, chatrooms, id, user_id, chatroom_id } = chatData;
+        const { created_at, last_message } = chatrooms;
+        const { image_url, username } = users;
 
         return {
           id,
           user_id,
           created_at,
+          last_message,
           chatroom_id,
-          last_message: chatroomData.last_message,
-          image_url: users.image_url,
-          username: users.username,
-          messages: [],
+          image_url,
+          username,
         };
       })
     );
 
-    console.log("REturn from getCurrentChatRooms", conversations);
+    conversations.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+
+      return dateB - dateA;
+    });
+
     return conversations;
   } catch (error) {
     console.error(error);
@@ -160,7 +230,7 @@ export const getSearchedHistory = async (
   }
 };
 
-export const deleteChat = async (id: string) => {
+export const deleteChat = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from("searched_users")
     .delete()
@@ -171,7 +241,7 @@ export const deleteChat = async (id: string) => {
   }
 };
 
-export const deleteAllChats = async (id: string) => {
+export const deleteAllChats = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from("searched_users")
     .delete()
@@ -200,9 +270,10 @@ export const addUserToChatHistory = async ({
   }
 
   if (existingData.length === 0) {
-    const { error } = await supabase
-      .from("searched_users")
-      .insert({ main_user_id, user_id });
+    const { error } = await supabase.from("searched_users").insert({
+      main_user_id,
+      user_id,
+    });
 
     if (error) {
       console.log(error);
@@ -210,28 +281,59 @@ export const addUserToChatHistory = async ({
   }
 };
 
+//**// GETTING CHATROOM ID, IF IT DOES NOT EXISTS IT CREATES IT !!
+export const getChatroomId = async (
+  userId: string,
+  inspectedUserId: string
+): Promise<string | undefined> => {
+  try {
+    const userIds: string[] = [userId, inspectedUserId];
+
+    const { data, error } = await supabase.rpc("get_chatroom_id", {
+      user_id_1: userIds[0],
+      user_id_2: userIds[1],
+    });
+
+    if (error) {
+      throw new Error(`Error executing SQL Procedure: ${error}`);
+    }
+
+    if (data.length === 0) {
+      const chatroomId = await createChatRoom();
+
+      if (chatroomId) {
+        await insertChatroomUser(chatroomId, userIds[0]);
+        await insertChatroomUser(chatroomId, userIds[1]);
+
+        return chatroomId;
+      }
+    } else {
+      return data[0].chatroom_id;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const insertChatroomUser = async (
   chatroomId: string,
   userId: string
 ): Promise<void> => {
-  await supabase
-    .from("chatroom_users")
-    .insert({ chatroom_id: chatroomId, user_id: userId });
+  await supabase.from("chatroom_users").insert({
+    chatroom_id: chatroomId,
+    user_id: userId,
+  });
 };
 
-export const createChatRoom = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("chatrooms")
-      .insert({ last_message: "" })
-      .select("id");
+export const createChatRoom = async (): Promise<string> => {
+  const { data, error } = await supabase
+    .from("chatrooms")
+    .insert({ last_message: "" })
+    .select("id");
 
-    if (!data) {
-      console.log(error.message);
-    }
-
-    return data?.[0].id;
-  } catch (error) {
-    console.log(error);
+  if (!data) {
+    console.log(error.message);
   }
+
+  return data?.[0].id;
 };

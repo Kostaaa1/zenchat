@@ -1,16 +1,22 @@
-const getCurrentDate = () => {
+function getCurrentDate() {
   const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hour = String(now.getHours()).padStart(2, "0");
+  const minute = String(now.getMinutes()).padStart(2, "0");
+  const second = String(now.getSeconds()).padStart(2, "0");
+  const millisecond = String(now.getMilliseconds()).padStart(3, "0");
+  const timezoneOffset = now.getTimezoneOffset();
 
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(now.getUTCDate()).padStart(2, "0");
+  const offsetHours = Math.abs(Math.floor(timezoneOffset / 60));
+  const offsetMinutes = Math.abs(timezoneOffset % 60);
+  const offsetSign = timezoneOffset < 0 ? "+" : "-";
 
-  const hours = String(now.getUTCHours()).padStart(2, "0");
-  const minutes = String(now.getUTCMinutes()).padStart(2, "0");
-  const seconds = String(now.getUTCSeconds()).padStart(2, "0");
-  const miliseconds = String(now.getUTCMilliseconds()).padStart(6, "0");
+  const string = `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${offsetSign}${String(
+    offsetHours,
+  ).padStart(2, "0")}:${String(offsetMinutes).padStart(2, "0")}`;
 
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${miliseconds}+00`;
-};
-
+  return string;
+}
 export default getCurrentDate;

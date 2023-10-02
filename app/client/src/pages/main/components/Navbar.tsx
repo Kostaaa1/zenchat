@@ -22,7 +22,12 @@ const Navbar: FC<NavbarProps> = ({
   iconRef,
   dropdownRef,
 }) => {
-  const { setShowDropdown, showDropdown, isSearchActive } = useStore();
+  const {
+    currentActiveNavList,
+    setShowDropdown,
+    showDropdown,
+    isSearchActive,
+  } = useStore();
   const location = useLocation();
   const [isResponsive, setIsResponsive] = useState<boolean>(false);
   const [list, setList] = useState<"list" | "default">("default");
@@ -45,15 +50,45 @@ const Navbar: FC<NavbarProps> = ({
     setIsResponsive(isSearchActive);
   };
 
+  type ListItems = {
+    iconName?: "MessageCircle" | "Search" | undefined;
+    iconStrokeWidth?: string;
+    title?: string;
+    onClick?: () => void;
+    className?: string;
+  };
+
+  const listItems: ListItems[] = [
+    {
+      iconName: "MessageCircle",
+      iconStrokeWidth: currentActiveNavList === "inbox" ? "3" : "",
+      title: isResponsive ? "" : "Messages",
+      onClick: () => handleClick("inbox"),
+      className: "mb-2",
+    },
+    {
+      iconName: "Search",
+      iconStrokeWidth: isSearchActive ? "3" : "",
+      title: isResponsive ? "" : "Search",
+      onClick: handleActivateSearch,
+      className: `${isSearchActive ? "outline outline-1" : null} mb-2`,
+    },
+    {
+      title: isResponsive ? "" : "Profile",
+      className: "mb-2",
+      onClick: () => handleClick("user"),
+    },
+  ];
+
   return (
-    <nav className="">
+    <nav>
       <AnimatePresence>
         <motion.ul
           initial={{ width: isResponsive ? "320px" : "80px" }}
           animate={{ width: isResponsive ? "80px" : "320px" }}
           exit={{ width: isResponsive ? "320px" : "80px" }}
           transition={{ type: "spring", damping: 45, stiffness: 320 }}
-          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-[#000000] px-4 py-6"
+          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black px-4 py-6"
         >
           <Logo variant={isResponsive ? "default" : "list"} />
           <div
@@ -63,32 +98,36 @@ const Navbar: FC<NavbarProps> = ({
                 : "my-4 flex h-full w-full flex-col py-4",
             )}
           >
-            <ListItem
-              variant={list}
-              className="mb-2"
-              title={isResponsive ? "" : "Messages"}
-              onClick={() => handleClick("inbox")}
-            >
-              <Icon name="MessageCircle" color="white" size="28px" />
-            </ListItem>
-            <ListItem
-              variant={list}
-              title={isResponsive ? "" : "Search"}
-              className={`${isSearchActive ? "outline outline-1" : null} mb-2`}
-              onClick={handleActivateSearch}
-            >
-              <Icon name="Search" color="white" size="28px" />
-            </ListItem>
-            <ListItem
-              variant={list}
-              className="mb-2"
-              title={isResponsive ? "" : "Profile"}
-              onClick={() => handleClick("user")}
-            >
-              <div className="">
-                <Avatar size="sm" />
+            {listItems.map((li, id) => (
+              <div key={id}>
+                {id !== listItems.length - 1 && li.iconName ? (
+                  <ListItem
+                    variant={list}
+                    onClick={li.onClick}
+                    title={li.title}
+                    className={li.className}
+                  >
+                    <Icon
+                      strokeWidth={li.iconStrokeWidth}
+                      name={li.iconName}
+                      color="white"
+                      size="28px"
+                    />
+                  </ListItem>
+                ) : (
+                  <ListItem
+                    variant={list}
+                    title={li.title}
+                    className="mb-2"
+                    onClick={() => handleClick("user")}
+                  >
+                    <div>
+                      <Avatar size="sm" />
+                    </div>
+                  </ListItem>
+                )}
               </div>
-            </ListItem>
+            ))}
           </div>
           <div
             className="relative"
