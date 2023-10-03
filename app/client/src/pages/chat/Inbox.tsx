@@ -1,5 +1,5 @@
 import Icon from "../main/components/Icon";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Button from "../../components/Button";
 import { useLocation, useParams } from "react-router-dom";
 import useOutsideClick from "../../hooks/useOutsideClick";
@@ -34,7 +34,6 @@ const Inbox = () => {
   useOutsideClick([emojiRef, iconRef], "click", () =>
     setShowEmojiPicker(false),
   );
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const scrollToStart = () => {
     scrollRef.current?.scrollTo({ top: 0 });
@@ -45,24 +44,6 @@ const Inbox = () => {
       enabled: !!userId,
     });
 
-  const { data } = trpc.chat.messages.getAll.useQuery(
-    { userId },
-    { enabled: !!userId },
-  );
-
-  const messages = data?.find((x) => x.chatroom_id === params.chatRoomId)
-    ?.messages;
-
-  useEffect(() => {
-    console.log(isLoading);
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (data) {
-      setIsLoading(false);
-    }
-  }, [data]);
-
   useEffect(() => {
     if (userChats) {
       const chatRoomData = userChats?.find(
@@ -70,11 +51,11 @@ const Inbox = () => {
       );
       if (chatRoomData) setCurrentChatroom(chatRoomData);
     }
-  }, [userChats, params.chatRoomId, setCurrentChatroom]);
-
+  }, [userChats]);
   const { recieveNewSocketMessage, addNewMessageToChatCache } = useChat(
     params.chatRoomId as string,
   );
+
   useChatSocket({ socket, userId, recieveNewSocketMessage });
 
   return (
@@ -95,10 +76,8 @@ const Inbox = () => {
               <Icon name="Info" size="28px" />
             </div>
             <Chat
-              setIsLoading={setIsLoading}
-              isLoading={isLoading}
               chatRoomId={params.chatRoomId}
-              messages={messages}
+          
               scrollRef={scrollRef}
             />
             <MessageInput

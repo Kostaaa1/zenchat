@@ -7,13 +7,12 @@ import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useChatStore from "../../../utils/stores/chatStore";
 import useStore from "../../../utils/stores/store";
-import { trpc, trpcVanilla } from "../../../utils/trpcClient";
+import { trpc } from "../../../utils/trpcClient";
 import Icon from "../../main/components/Icon";
 import { debounce } from "lodash";
 import useModalStore from "../../../utils/stores/modalStore";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import { loadImages } from "../../../utils/loadImages";
-import { useQueryClient } from "@tanstack/react-query";
 
 const List = ({ message }: { message: TMessage }) => {
   const {
@@ -138,25 +137,20 @@ const List = ({ message }: { message: TMessage }) => {
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
   chatRoomId: string;
-  messages: TMessage[] | undefined;
-  setIsLoading: (val: boolean) => void;
-  isLoading: boolean;
 };
 
-const Chat: FC<ChatProps> = ({
-  setIsLoading,
-  isLoading,
-  chatRoomId,
-  scrollRef,
-  messages,
-}) => {
+const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const navigate = useNavigate();
   const { userId } = useStore();
-  const { currentChatroom } = useChatStore();
+  const {
+    shouldFetchMoreMessages,
+    setShouldFetchMoreMessages,
+    currentChatroom,
+    setIsMessagesLoading,
+    isMessagesLoading,
+  } = useChatStore();
   const ctx = trpc.useContext();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
-  const [shouldFetchMore, setShouldFetchMore] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const { mutateAsync: getMoreMutation, isSuccess } =
     trpc.chat.messages.getMore.useMutation({
@@ -166,10 +160,8 @@ const Chat: FC<ChatProps> = ({
         },
       ],
       onSuccess: (messages) => {
-        if (!messages) return;
+        if (!messages || !shouldFetchMoreMessages) return;
         console.log("Fetched messages", messages);
-        if (!shouldFetchMore) return;
-
         ctx.chat.messages.get.setData(
           {
             chatroom_id: chatRoomId,
@@ -180,53 +172,41 @@ const Chat: FC<ChatProps> = ({
             }
           },
         );
-        if (messages.length <= 22) {
-          setShouldFetchMore(false);
-        }
+        if (messages.length <= 22) setShouldFetchMoreMessages(false);
       },
     });
 
+  const { data: messages } = trpc.chat.messages.get.useQuery(
+    { chatroom_id: chatRoomId as string },
+    { enabled: !!chatRoomId },
+  );
+
+  const fetchLoadedImages = async (messages: TMessage[]) => {
+    try {
+      const loadedImages = await loadImages(messages);
+      ctx.chat.messages.get.setData(
+        { chatroom_id: chatRoomId as string },
+        loadedImages,
+      );
+      if (messages.length <= 22) setShouldFetchMoreMessages(false);
+      setIsMessagesLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
-    trpcVanilla.chat.messages.get
-      .query({ chatroom_id: chatRoomId })
-      .then((data) => {
-        const messages = data;
-        if (messages) {
-          if (messages.length <= 22) {
-            setShouldFetchMore(false);
-          }
+    if (messages) {
+      fetchLoadedImages(messages);
 
-          const fetchImages = async () => {
-            try {
-              const loadedImages = await loadImages(messages);
-              ctx.chat.messages.getAll.setData(
-                {
-                  userId,
-                },
-                (stale) => {
-                  const newData = {
-                    chatroom_id: chatRoomId,
-                    messages: loadedImages,
-                  };
+      if (messages.length > 0)
+        setLastMessageDate(messages[messages.length - 1].created_at);
+    }
+  }, [messages]);
 
-                  if (!stale) return [newData];
-                  const data = stale?.find((x) => x.chatroom_id === chatRoomId);
-                  return data ? stale : [...stale, newData];
-                },
-              );
-            } catch (error) {
-              console.log(error);
-            } finally {
-              // setIsLoading(false);
-            }
-          };
-
-          fetchImages();
-          if (messages.length > 0)
-            setLastMessageDate(messages?.[messages.length - 1].created_at);
-        }
-      });
-  }, [chatRoomId]);
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -238,7 +218,7 @@ const Chat: FC<ChatProps> = ({
 
       if (
         Math.abs(scrollTop) >= scrollHeight - clientHeight - scrollTolerance &&
-        shouldFetchMore
+        shouldFetchMoreMessages
       ) {
         console.log("condition called");
         getMoreMutation({
@@ -255,9 +235,63 @@ const Chat: FC<ChatProps> = ({
     };
   });
 
+  useEffect(() => {
+    console.log(isMessagesLoading);
+  }, [isMessagesLoading]);
+
+  // Big CACHE
+  // const { data } = trpc.chat.messages.getAll.useQuery(
+  //   { userId },
+  //   { enabled: !!userId },
+  // );
+  // const messages = data?.find((x) => x.chatroom_id === chatRoomId)?.messages;
+
+  // useEffect(() => {
+  //   const currentData = messages?.find((x) => x.chatroom_id === chatRoomId);
+  //   if (currentData) {
+  //     setShouldFetchMoreMessages(false);
+  //     return;
+  //   }
+
+  //   trpcVanilla.chat.messages.get
+  //     .query({ chatroom_id: chatRoomId })
+  //     .then((data) => {
+  //       if (data) {
+  //         const fetchImages = async () => {
+  //           try {
+  //             const loadedImages = await loadImages(data);
+  //             ctx.chat.messages.getAll.setData(
+  //               {
+  //                 userId,
+  //               },
+  //               (stale) => {
+  //                 const newData = {
+  //                   chatroom_id: chatRoomId,
+  //                   messages: loadedImages,
+  //                 };
+
+  //                 if (!stale) return [newData];
+  //                 return [...stale, newData];
+  //               },
+  //             );
+  //           } catch (error) {
+  //             console.log(error);
+  //           } finally {
+  // setIsMessagesLoading(false);
+  // if (data.length <= 22) setShouldFetchMoreMessages(false);
+  //           }
+  //         };
+
+  //         fetchImages();
+  // if (data && data.length > 0)
+  //   setLastMessageDate(data[data.length - 1].created_at);
+  //       }
+  //     });
+  // }, [chatRoomId]);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {isLoading ? (
+      {isMessagesLoading ? (
         <div className="flex w-full items-center justify-center py-4">
           <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
         </div>
@@ -271,12 +305,15 @@ const Chat: FC<ChatProps> = ({
               <List key={message.id} message={message} />
             ))}
           </ul>
-          {messages && messages?.length > 0 && shouldFetchMore && !isSuccess ? (
+          {messages &&
+          messages?.length > 0 &&
+          shouldFetchMoreMessages &&
+          !isSuccess ? (
             <div className="gw-full flex items-center justify-center py-4">
               <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
             </div>
           ) : null}
-          {!shouldFetchMore ? (
+          {!shouldFetchMoreMessages ? (
             <div className="flex flex-col items-center pb-8 pt-4">
               <Avatar image_url={currentChatroom?.image_url} size="xl" />
               <h3 className="text-md py-2 font-semibold">

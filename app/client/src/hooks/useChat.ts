@@ -115,18 +115,13 @@ const useChat = (chatRoomId: string) => {
   //   });
 
   // Cache Mutation functions: //
-  const removeMessageCache = (id: string, chatroomId: string) => {
-    ctx.chat.messages.get.setData(
-      {
-        chatroom_id: chatroomId,
-      },
-      (staleChats) => {
-        if (staleChats && id) {
-          console.log(id, staleChats);
-          return staleChats.filter((x) => x.id !== id);
-        }
-      },
-    );
+  const removeMessageCache = (id: string, chatroom_id: string) => {
+    ctx.chat.messages.get.setData({ chatroom_id }, (staleChats) => {
+      if (staleChats && id) {
+        console.log(id, staleChats);
+        return staleChats.filter((x) => x.id !== id);
+      }
+    });
   };
 
   const replacePreviewImage = useCallback(

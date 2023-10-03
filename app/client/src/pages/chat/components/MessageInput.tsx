@@ -29,8 +29,8 @@ const MessageInput: FC<MessageInputProps> = ({
     showEmojiPicker,
     setShowEmojiPicker,
     clearSelectedFiles,
-    message,
-    setMessage,
+    newMessage,
+    setNewMessage,
     currentChatroom,
   } = useChatStore();
   const [imgUrls, setImgUrls] = useState<string[]>([]);
@@ -107,15 +107,15 @@ const MessageInput: FC<MessageInputProps> = ({
 
     const { chatroom_id } = currentChatroom;
 
-    if (message.length > 0) {
+    if (newMessage.length > 0) {
       const messageData = createNewMessage({
-        content: message,
+        content: newMessage,
         isImage: false,
         chatroom_id,
       });
 
       addNewMessageToChatCache(messageData);
-      setMessage("");
+      setNewMessage("");
       if (messageData) await trpcVanilla.chat.messages.send.mutate(messageData);
     }
 
@@ -204,7 +204,7 @@ const MessageInput: FC<MessageInputProps> = ({
       >
         <Icon name="Smile" size="24px" onClick={showEmoji} />
       </div>
-      {message.length === 0 ? (
+      {newMessage.length === 0 ? (
         <div
           className={cn(
             isEmpty ? "" : "pt-[68px]",
@@ -228,8 +228,8 @@ const MessageInput: FC<MessageInputProps> = ({
       <input
         type="text"
         placeholder="Send Message..."
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        value={newMessage}
+        onChange={(e) => setNewMessage(e.target.value)}
         className={cn(
           isEmpty ? "" : "pt-[68px]",
           "h-full rounded-3xl border-2 border-neutral-800 bg-black px-14 placeholder:text-white",
@@ -241,7 +241,7 @@ const MessageInput: FC<MessageInputProps> = ({
           "absolute bottom-1/2 right-10 translate-y-1/2",
         )}
       >
-        {message.length > 0 ? (
+        {newMessage.length > 0 ? (
           <input
             type="submit"
             value="Send"
