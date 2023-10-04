@@ -108,8 +108,7 @@ export const sendMessage = async (messageData: TMessage) => {
   const { error: lastMessageUpdateError } = await supabase
     .from("chatrooms")
     .update({
-      last_message:
-        content.length > 40 ? content.slice(0, 40) + "..." : content,
+      last_message: content,
       created_at,
     })
     .eq("id", chatroom_id);
@@ -281,7 +280,6 @@ export const addUserToChatHistory = async ({
   }
 };
 
-//**// GETTING CHATROOM ID, IF IT DOES NOT EXISTS IT CREATES IT !!
 export const getChatroomId = async (
   userId: string,
   inspectedUserId: string

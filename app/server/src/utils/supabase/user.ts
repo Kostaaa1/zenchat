@@ -1,33 +1,25 @@
 import supabase from "../../config/supabase";
 import { TCreateUserInput, TUserData } from "../../types/types";
 
-export const getUser = async (email: string): Promise<TUserData | null> => {
-  if (!email) return null;
+export const getUser = async ({
+  data,
+  type,
+}: {
+  data: string;
+  type: "userId" | "email" | "username";
+}): Promise<TUserData | null> => {
+  if (!data) return null;
 
-  const { data, error } = await supabase
+  const { data: userData, error } = await supabase
     .from("users")
     .select("*")
-    .eq("email", email);
+    .eq(type, data);
 
   if (error) {
     console.log(error);
   }
 
-  return data && data.length > 0 ? data[0] : null;
-};
-
-export const getUserWithUsername = async (
-  paramsUsername: string
-): Promise<TUserData> => {
-  const { data } = await supabase
-    .from("users")
-    .select("*")
-    .eq("username", paramsUsername);
-
-  if (!data) {
-    console.log("Inspect user data hasn't been found");
-  }
-  return data?.[0];
+  return userData && userData.length > 0 ? userData[0] : null;
 };
 
 export const getSeachedUsers = async (

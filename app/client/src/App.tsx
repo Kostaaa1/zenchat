@@ -21,18 +21,22 @@ function App() {
   const { email, setEmail, setUserId } = useStore();
   const ctx = trpc.useContext();
 
-  const { data: userData, isFetched } = trpc.user.getUser.useQuery(email, {
-    enabled: !!email,
-  });
+  const { data: userData, isFetched } = trpc.user.getUser.useQuery(
+    { data: email, type: "email" },
+    {
+      enabled: !!email,
+    },
+  );
 
   const createUserMutation = trpc.user.createUser.useMutation({
     mutationKey: [email],
     onSuccess: (data) => {
-      ctx.user.getUser.setData(email, data);
+      ctx.user.getUser.setData({ data: email, type: "email" }, data);
     },
   });
 
-  const createUser = async () => {
+  const getUser = async () => {
+    console.log(userData);
     if (userData) setUserId(userData.id);
 
     if (user?.emailAddresses?.[0]?.emailAddress) {
@@ -40,7 +44,7 @@ function App() {
     }
 
     if (user && userData === null && email) {
-      console.log("The user is not existing, creating it !");
+      console.log("No User, creating it !");
       const { firstName, lastName, username } = user;
 
       await createUserMutation
@@ -57,8 +61,8 @@ function App() {
   };
 
   useEffect(() => {
-    createUser();
-  }, [userData, user, email]);
+    getUser();
+  }, [userData, user]);
 
   return (
     <>
@@ -79,7 +83,7 @@ function App() {
               />
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/inbox/:chatRoomId" element={<Inbox />} />
-              <Route path="/:userId" element={<Dashboard />} />
+              <Route path="/:username" element={<Dashboard />} />
               <Route path="/" element={<Dashboard />} />
             </Routes>
             <Modals />

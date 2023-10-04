@@ -3,7 +3,7 @@ import Button from "../../../components/Button";
 import { cn } from "../../../utils/utils";
 import Avatar from "../../../components/Avatar";
 import { TMessage } from "../../../../../server/src/types/types";
-import { Loader2 } from "lucide-react";
+import { Dot, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useChatStore from "../../../utils/stores/chatStore";
 import useStore from "../../../utils/stores/store";
@@ -13,6 +13,7 @@ import { debounce } from "lodash";
 import useModalStore from "../../../utils/stores/modalStore";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import { loadImages } from "../../../utils/loadImages";
+import useUser from "../../../hooks/useUser";
 
 const List = ({ message }: { message: TMessage }) => {
   const {
@@ -23,22 +24,22 @@ const List = ({ message }: { message: TMessage }) => {
   } = useModalStore();
   const { userId } = useStore();
   const [isHovered, setIsHovered] = useState<boolean>(false);
-  const { currentChatroom } = useChatStore();
   const { content, id, sender_id, isImage } = message;
   const moreDropdownRef = useRef<HTMLDivElement>(null);
-  useOutsideClick([moreDropdownRef], "mousedown", () =>
+  useOutsideClick([moreDropdownRef], "click", () =>
     setMessageDropdownData(null),
   );
 
   const handleMessageDropdownData = () => {
     const imageKitPrefix = import.meta.env.VITE_IMAGEKIT_PREFIX;
-    const msgContent = content.split(imageKitPrefix)[1];
+    const imageUrl = isImage ? content.split(imageKitPrefix)[1] : null;
+
     const msgData = {
       id,
-      imageUrl: isImage ? msgContent : null,
+      imageUrl,
     };
 
-    setMessageDropdownData(msgData);
+    setMessageDropdownData(messageDropdownData ? null : msgData);
   };
 
   return (
@@ -52,11 +53,11 @@ const List = ({ message }: { message: TMessage }) => {
           : "justify-start self-start",
       )}
     >
-      {sender_id !== userId ? (
+      {/* {sender_id !== userId ? (
         <div className="mr-2">
           <Avatar size={"sm"} image_url={currentChatroom?.image_url} />
         </div>
-      ) : null}
+      ) : null} */}
       {isImage ? (
         <div
           onClick={() => {
@@ -79,8 +80,8 @@ const List = ({ message }: { message: TMessage }) => {
             className={cn(
               "max-w-[300px] px-2 py-1",
               sender_id === userId
-                ? "rounded-2xl bg-[#356ed0]"
-                : "rounded-2xl bg-neutral-700",
+                ? "rounded-xl bg-[#356ed0]"
+                : "rounded-xl bg-neutral-700",
             )}
           >
             {content}
@@ -141,7 +142,6 @@ type ChatProps = {
 
 const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const navigate = useNavigate();
-  const { userId } = useStore();
   const {
     shouldFetchMoreMessages,
     setShouldFetchMoreMessages,
@@ -151,6 +151,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   } = useChatStore();
   const ctx = trpc.useContext();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
+  const { typingUser } = useChatStore();
+  const { userData } = useUser();
 
   const { mutateAsync: getMoreMutation, isSuccess } =
     trpc.chat.messages.getMore.useMutation({
@@ -188,10 +190,11 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
         { chatroom_id: chatRoomId as string },
         loadedImages,
       );
-      if (messages.length <= 22) setShouldFetchMoreMessages(false);
-      setIsMessagesLoading(false);
     } catch (error) {
       console.log(error);
+    } finally {
+      if (messages.length <= 22) setShouldFetchMoreMessages(false);
+      setIsMessagesLoading(false);
     }
   };
 
@@ -202,10 +205,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
       if (messages.length > 0)
         setLastMessageDate(messages[messages.length - 1].created_at);
     }
-  }, [messages]);
-
-  useEffect(() => {
-    console.log(messages);
   }, [messages]);
 
   useEffect(() => {
@@ -220,7 +219,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
         Math.abs(scrollTop) >= scrollHeight - clientHeight - scrollTolerance &&
         shouldFetchMoreMessages
       ) {
-        console.log("condition called");
         getMoreMutation({
           chatroom_id: chatRoomId,
           lastMessageDate: lastMessageDate,
@@ -235,60 +233,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     };
   });
 
-  useEffect(() => {
-    console.log(isMessagesLoading);
-  }, [isMessagesLoading]);
-
-  // Big CACHE
-  // const { data } = trpc.chat.messages.getAll.useQuery(
-  //   { userId },
-  //   { enabled: !!userId },
-  // );
-  // const messages = data?.find((x) => x.chatroom_id === chatRoomId)?.messages;
-
-  // useEffect(() => {
-  //   const currentData = messages?.find((x) => x.chatroom_id === chatRoomId);
-  //   if (currentData) {
-  //     setShouldFetchMoreMessages(false);
-  //     return;
-  //   }
-
-  //   trpcVanilla.chat.messages.get
-  //     .query({ chatroom_id: chatRoomId })
-  //     .then((data) => {
-  //       if (data) {
-  //         const fetchImages = async () => {
-  //           try {
-  //             const loadedImages = await loadImages(data);
-  //             ctx.chat.messages.getAll.setData(
-  //               {
-  //                 userId,
-  //               },
-  //               (stale) => {
-  //                 const newData = {
-  //                   chatroom_id: chatRoomId,
-  //                   messages: loadedImages,
-  //                 };
-
-  //                 if (!stale) return [newData];
-  //                 return [...stale, newData];
-  //               },
-  //             );
-  //           } catch (error) {
-  //             console.log(error);
-  //           } finally {
-  // setIsMessagesLoading(false);
-  // if (data.length <= 22) setShouldFetchMoreMessages(false);
-  //           }
-  //         };
-
-  //         fetchImages();
-  // if (data && data.length > 0)
-  //   setLastMessageDate(data[data.length - 1].created_at);
-  //       }
-  //     });
-  // }, [chatRoomId]);
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {isMessagesLoading ? (
@@ -301,6 +245,17 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
           className="flex h-full flex-col-reverse justify-between overflow-y-auto overflow-x-hidden"
         >
           <ul className="flex flex-col-reverse p-3">
+            <span>
+              {typingUser !== userData?.id && typingUser.length > 0 ? (
+                <div className="typing-indicator">
+                  <div className="message-cloud rounded-2xl bg-gray-300 p-3">
+                    <Dot className="dot dot-1" color="#4285f4" size="8px" />
+                    <Dot className="dot dot-2" color="#4285f4" size="8px" />
+                    <Dot className="dot dot-3" color="#4285f4" size="8px" />
+                  </div>
+                </div>
+              ) : null}
+            </span>
             {messages?.map((message) => (
               <List key={message.id} message={message} />
             ))}

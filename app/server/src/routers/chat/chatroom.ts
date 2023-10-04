@@ -9,7 +9,7 @@ import { chatHistoryRouter } from "./history";
 import { messageRouter } from "./messages";
 
 export const chatRouter = t.router({
-  getId: t.procedure
+  getChatroomId: t.procedure
     .input(
       z.object({
         userId: z.string(),
@@ -32,9 +32,10 @@ export const chatRouter = t.router({
     .input(z.string().nullish())
     .query(async ({ input: userId }) => {
       if (!userId) return;
-      const chatRooms = await getCurrentChatRooms(userId);
+      const chatrooms = await getCurrentChatRooms(userId);
 
-      return chatRooms;
+      console.log("Returb data", chatrooms);
+      return chatrooms;
     }),
   messages: messageRouter,
   history: chatHistoryRouter,

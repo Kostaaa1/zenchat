@@ -4,7 +4,7 @@ import { trpc } from "../utils/trpcClient";
 const useUser = () => {
   const { email } = useStore();
   const ctx = trpc.useContext();
-  const userData = ctx.user.getUser.getData(email);
+  const userData = ctx.user.getUser.getData({ data: email, type: "email" });
 
   return {
     userData,

@@ -13,8 +13,7 @@ const UnsendMsgModal = () => {
   useOutsideClick([unsendMsgModal], "mousedown", closeImageModal);
   const { currentChatroom } = useChatStore();
   const params = useParams<{ chatRoomId: string }>();
-  const chatRoomId = params.chatRoomId;
-  const { removeMessageCache } = useChat(chatRoomId as string);
+  const { removeMessageCache } = useChat();
 
   const handleUnsendMessage = () => {
     if (messageDropdownData && currentChatroom) {

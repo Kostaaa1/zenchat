@@ -1,17 +1,11 @@
 import { Skin } from "@emoji-mart/data";
 import { create } from "zustand";
-import { TChatRoomData, TMessage } from "../../../../server/src/types/types";
-import { trpc, trpcVanilla } from "../trpcClient";
+import { TChatRoomData } from "../../../../server/src/types/types";
 
 export type ActiveList = "inbox" | "user" | "";
 
 const handleSelectEmoji = (e: Skin, message: string): string =>
   `${message}${e.native}`;
-
-type ChatMessage = {
-  chatroom_id: string;
-  messages: TMessage[];
-};
 
 type ChatStore = {
   newMessage: string;
@@ -29,10 +23,26 @@ type ChatStore = {
   setCurrentChatroom: (currentChatroom: TChatRoomData) => void;
   shouldFetchMoreMessages: boolean;
   setShouldFetchMoreMessages: (val: boolean) => void;
+  typingUser: string;
+  setTypingUser: (userId: string) => void;
+  isTyping: boolean;
+  setIsTyping: (isTyping: boolean) => void;
 };
 
 const useChatStore = create<ChatStore>(
   (set): ChatStore => ({
+    typingUser: "",
+    setTypingUser: (userId: string) =>
+      set((state) => ({
+        ...state,
+        typingUser: userId,
+      })),
+    isTyping: false,
+    setIsTyping: (isTyping) =>
+      set((state) => ({
+        ...state,
+        isTyping,
+      })),
     shouldFetchMoreMessages: true,
     setShouldFetchMoreMessages: (val: boolean) =>
       set((state) => ({

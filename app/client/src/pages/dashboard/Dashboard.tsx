@@ -3,13 +3,12 @@ import Button from "../../components/Button";
 import { FaUser } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
 import { trpc, trpcVanilla } from "../../utils/trpcClient";
-import useStore from "../../utils/stores/store";
 import ErrorPage from "../ErrorPage";
 import { useEffect, useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 
-const UserDashboardComponent = ({
+const UserBoarddash = ({
   userData,
   username,
 }: {
@@ -17,17 +16,17 @@ const UserDashboardComponent = ({
   username: string | undefined;
 }) => {
   const navigate = useNavigate();
-  const { userData: user } = useUser();
+  const { userData: inspectedUser } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
 
-    if (!userData || !user) return;
+    if (!userData || !inspectedUser) return;
 
-    const path = await trpcVanilla.chat.getId.query({
+    const path = await trpcVanilla.chat.getChatroomId.query({
       userId: userData.id,
-      inspectedUserId: user?.id,
+      inspectedUserId: inspectedUser?.id,
     });
 
     if (path) {
@@ -76,23 +75,23 @@ const UserDashboardComponent = ({
 };
 
 const Dashboard = () => {
-  const params = useParams<{ userId: string }>();
-  const { userId } = params;
+  const params = useParams<{ username: string }>();
+  const { username } = params;
   const location = useLocation();
-  const ctx = trpc.useContext();
-  const { email } = useStore();
-  const userData = ctx.user.getUser.getData(email);
+  const { userData } = useUser();
   const [isIndexRoute, setIsIndexRoute] = useState<boolean>(true);
 
   useEffect(() => {
     location.pathname === "/" ? setIsIndexRoute(true) : setIsIndexRoute(false);
   }, [location.pathname]);
 
-  const { data: inspectedUserData, isFetching } =
-    trpc.user.getUserWithUsername.useQuery(userId, {
-      enabled: !!userData && !!userId && userData.username !== userId,
+  const { data: inspectedUserData, isFetching } = trpc.user.getUser.useQuery(
+    { data: username as string, type: "username" },
+    {
+      enabled: !!userData && !!username && userData.username !== username,
       refetchOnWindowFocus: false,
-    });
+    },
+  );
 
   return (
     <>
@@ -107,10 +106,10 @@ const Dashboard = () => {
               </div>
             ) : (
               <>
-                <UserDashboardComponent
+                <UserBoarddash
                   username={userData?.username}
                   userData={
-                    isIndexRoute || userData?.username === userId
+                    userData?.username === username || isIndexRoute
                       ? userData
                       : inspectedUserData
                   }

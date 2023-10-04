@@ -7,22 +7,8 @@ import {
   unsendMessage,
 } from "../../utils/supabase/chatroom";
 import { messageSchema } from "../../types/zodSchemas";
-import { TMessage } from "../../types/types";
 
 export const messageRouter = t.router({
-  getAll: t.procedure
-    .input(z.object({ userId: z.string() }))
-    .output(
-      z
-        .array(
-          z.object({
-            chatroom_id: z.string(),
-            messages: z.array(messageSchema),
-          })
-        )
-        .nullable()
-    )
-    .query(() => null),
   get: t.procedure
     .input(
       z.object({
@@ -63,6 +49,5 @@ export const messageRouter = t.router({
     .mutation(async ({ input }) => {
       console.log(input);
       await unsendMessage(input);
-      return { succes: true };
     }),
 });

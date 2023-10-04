@@ -51,12 +51,11 @@ const Inbox = () => {
       );
       if (chatRoomData) setCurrentChatroom(chatRoomData);
     }
-  }, [userChats]);
-  const { recieveNewSocketMessage, addNewMessageToChatCache } = useChat(
-    params.chatRoomId as string,
-  );
+  }, [userChats, params.chatRoomId]);
 
-  useChatSocket({ socket, userId, recieveNewSocketMessage });
+  const { recieveNewSocketMessage, addNewMessageToChatCache, handleTyping } =
+    useChat();
+  useChatSocket({ socket, userId, recieveNewSocketMessage, handleTyping });
 
   return (
     <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>
@@ -75,11 +74,7 @@ const Inbox = () => {
               </div>
               <Icon name="Info" size="28px" />
             </div>
-            <Chat
-              chatRoomId={params.chatRoomId}
-          
-              scrollRef={scrollRef}
-            />
+            <Chat chatRoomId={params.chatRoomId} scrollRef={scrollRef} />
             <MessageInput
               scrollToStart={scrollToStart}
               iconRef={iconRef}

@@ -66,7 +66,7 @@ const SideSearch = () => {
               />
             ) : (
               <>
-                {searchedUsers.length > 0 ? (
+                {searchedUsers.length !== 0 ? (
                   <div>
                     {searchedUsers.map((user) => (
                       <ChatList

@@ -19,6 +19,11 @@ export const initSocket = (io: Server) => {
       io.emit("join-room", messageData);
     });
 
+    socket.on("typing", (username: string) => {
+      console.log(username);
+      io.emit("typing", username);
+    });
+
     socket.on("messages-channel", () => {
       try {
         supabase
@@ -27,10 +32,9 @@ export const initSocket = (io: Server) => {
             "postgres_changes",
             { event: "*", schema: "public", table: "messages" },
             async (payload) => {
-              const messageData = payload.new as TMessage;
-
-              // if (messageData.isImage) return;
+              const messageData = payload.new;
               io.emit("join-room", messageData);
+              // if (messageData.isImage) return;
             }
           )
           .subscribe();

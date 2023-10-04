@@ -9,6 +9,7 @@ import { TMessage } from "../../../../../server/src/types/types";
 import { trpcVanilla } from "../../../utils/trpcClient";
 import useStore from "../../../utils/stores/store";
 import io from "socket.io-client";
+import useUser from "../../../hooks/useUser";
 const socket = io(import.meta.env.VITE_SERVER_URL);
 
 interface MessageInputProps {
@@ -32,11 +33,22 @@ const MessageInput: FC<MessageInputProps> = ({
     newMessage,
     setNewMessage,
     currentChatroom,
+    isTyping,
+    setIsTyping,
   } = useChatStore();
   const [imgUrls, setImgUrls] = useState<string[]>([]);
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
   const { userId } = useStore();
   const [formData, setFormdata] = useState<FormData>(new FormData());
+  const { userData } = useUser();
+
+  useEffect(() => {
+    setIsTyping(newMessage.length > 0);
+  }, [newMessage]);
+
+  useEffect(() => {
+    socket.emit("typing", isTyping ? userData?.id : "");
+  }, [isTyping]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!currentChatroom) return;
@@ -55,6 +67,7 @@ const MessageInput: FC<MessageInputProps> = ({
       setImgUrls((prev) => [...prev, blob]);
       addSelectedFile(newFile);
     }
+
     e.target.value = "";
   };
 
@@ -63,7 +76,7 @@ const MessageInput: FC<MessageInputProps> = ({
   }, [imgUrls]);
 
   const removeFileFromArray = (id: number) => {
-    const currentFile = selectedImageFiles.find((x, i) => i === id);
+    const currentFile = selectedImageFiles.find((_, i) => i === id);
     const newFormData = new FormData();
 
     formData.forEach((x) => {
@@ -162,7 +175,7 @@ const MessageInput: FC<MessageInputProps> = ({
           isImage: true,
         });
 
-        socket.emit("join-room", messageData);
+        socket.emit("new-message", messageData);
         await trpcVanilla.chat.messages.send.mutate(messageData);
       }
 
@@ -230,6 +243,7 @@ const MessageInput: FC<MessageInputProps> = ({
         placeholder="Send Message..."
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
+        // onBlur={() => socket.emit("typing", { userId: null })}
         className={cn(
           isEmpty ? "" : "pt-[68px]",
           "h-full rounded-3xl border-2 border-neutral-800 bg-black px-14 placeholder:text-white",
