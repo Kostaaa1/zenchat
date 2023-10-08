@@ -85,7 +85,7 @@ const Dashboard = () => {
     location.pathname === "/" ? setIsIndexRoute(true) : setIsIndexRoute(false);
   }, [location.pathname]);
 
-  const { data: inspectedUserData, isFetching } = trpc.user.getUser.useQuery(
+  const { data: inspectedUserData, isFetching } = trpc.user.get.useQuery(
     { data: username as string, type: "username" },
     {
       enabled: !!userData && !!username && userData.username !== username,

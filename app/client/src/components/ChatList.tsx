@@ -8,10 +8,6 @@ export const listVariants = cva(
   "flex cursor-pointer w-full justify-between px-6 py-2 items-center",
   {
     variants: {
-      size: {
-        default: "",
-        sm: "",
-      },
       hover: {
         darker:
           "transition-colors duration-100 hover:bg-white hover:bg-opacity-10",
@@ -32,8 +28,8 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   className?: string;
   onClick?: () => void;
   isHoverDisabled?: boolean;
-  reduceImgSize?: boolean;
   icon?: ReactNode;
+  avatarSize: "sm" | "md" | "lg" | "xl";
   onIconClick?: () => void;
 }
 
@@ -47,7 +43,7 @@ const ChatList: FC<ListProps> = ({
   className,
   children,
   isHoverDisabled,
-  reduceImgSize,
+  avatarSize,
   icon,
   ...props
 }) => {
@@ -70,7 +66,7 @@ const ChatList: FC<ListProps> = ({
     >
       <div className={cn("flex w-full items-center")} onClick={onClick}>
         {children}
-        <Avatar image_url={image_url} size={reduceImgSize ? "md" : "lg"} />
+        <Avatar image_url={image_url} size={avatarSize} />
         <div className="ml-4 flex h-full flex-col justify-center">
           <h1 className="font-semibold"> {title} </h1>
           <h4 className="text-sm font-semibold text-neutral-400">

@@ -24,7 +24,7 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
         return null;
       }
 
-      const searchedUsers = await trpcVanilla.user.searchUser.query({
+      const searchedUsers = await trpcVanilla.user.search.query({
         username: userData?.username,
         searchValue: search,
       });
@@ -72,7 +72,7 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
       />
       {isSearchFocused || isSearchFocused === null ? (
         <div
-          className="absolute bottom-1/2 right-2 flex translate-y-1/2 items-center rounded-full bg-zinc-300 p-[2px] text-zinc-600"
+          className="absolute bottom-1/2 right-2 flex translate-y-1/2 items-center rounded-full bg-zinc-300 p-[2px] text-zinc-500"
           onClick={() => setSearch("")}
         >
           <Icon name="X" size="14px" />

@@ -4,8 +4,9 @@ import { TChatRoomData } from "../../../../server/src/types/types";
 
 export type ActiveList = "inbox" | "user" | "";
 
-const handleSelectEmoji = (e: Skin, message: string): string =>
-  `${message}${e.native}`;
+const handleSelectEmoji = (e: Skin, message: string): string => {
+  return `${message}${e.native}`;
+};
 
 type ChatStore = {
   newMessage: string;
@@ -91,7 +92,7 @@ const useChatStore = create<ChatStore>(
     handleSelectEmoji: (e) =>
       set((state) => ({
         ...state,
-        message: handleSelectEmoji(e, state.newMessage),
+        newMessage: handleSelectEmoji(e, state.newMessage),
       })),
   }),
 );

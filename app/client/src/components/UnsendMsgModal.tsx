@@ -3,7 +3,7 @@ import useModalStore from "../utils/stores/modalStore";
 import useOutsideClick from "../hooks/useOutsideClick";
 import { trpcVanilla } from "../utils/trpcClient";
 import useChatStore from "../utils/stores/chatStore";
-import useChat from "../hooks/useChat";
+import useChatCache from "../hooks/useChatCache";
 import { useParams } from "react-router-dom";
 
 const UnsendMsgModal = () => {
@@ -13,7 +13,7 @@ const UnsendMsgModal = () => {
   useOutsideClick([unsendMsgModal], "mousedown", closeImageModal);
   const { currentChatroom } = useChatStore();
   const params = useParams<{ chatRoomId: string }>();
-  const { removeMessageCache } = useChat();
+  const { removeMessageCache } = useChatCache();
 
   const handleUnsendMessage = () => {
     if (messageDropdownData && currentChatroom) {
@@ -27,7 +27,7 @@ const UnsendMsgModal = () => {
     <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
       <div
         ref={unsendMsgModal}
-        className="flex h-max w-96 flex-col items-center rounded-xl bg-[#333333] px-2 py-4 pb-0 text-center"
+        className="flex h-max w-96 flex-col items-center rounded-xl bg-[#2d2d2d] px-2 py-4 pb-0 text-center"
       >
         <h4 className="py-2 text-xl">Unsend message?</h4>
         <p className="text-sm leading-4 text-neutral-400">

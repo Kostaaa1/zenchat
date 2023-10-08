@@ -10,11 +10,12 @@ import useStore from "../../utils/stores/store";
 import Avatar from "../../components/Avatar";
 import useChatSocket from "../../hooks/useChatSocket";
 import UserChats from "./components/UserChats";
-import useChat from "../../hooks/useChat";
+import useChatCache from "../../hooks/useChatCache";
 import { EmojiPickerContainer } from "./components/EmojiPicker";
 import { trpc } from "../../utils/trpcClient";
 const { VITE_SERVER_URL } = import.meta.env;
 import io from "socket.io-client";
+import useUser from "../../hooks/useUser";
 const socket = io(VITE_SERVER_URL);
 
 const Inbox = () => {
@@ -26,7 +27,7 @@ const Inbox = () => {
     setCurrentChatroom,
   } = useChatStore();
   const location = useLocation();
-  const { userId } = useStore();
+  const { userId } = useUser();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -53,9 +54,8 @@ const Inbox = () => {
     }
   }, [userChats, params.chatRoomId]);
 
-  const { recieveNewSocketMessage, addNewMessageToChatCache, handleTyping } =
-    useChat();
-  useChatSocket({ socket, userId, recieveNewSocketMessage, handleTyping });
+  const { recieveNewSocketMessage } = useChatCache();
+  useChatSocket({ socket, userId, recieveNewSocketMessage });
 
   return (
     <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>
@@ -68,18 +68,14 @@ const Inbox = () => {
             <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
               <div className="flex items-center">
                 <Avatar image_url={currentChatroom.image_url} />
-                <h1 className="ml-4 text-xl font-semibold">
+                <h1 className="ml-4 text-xl font-medium">
                   {currentChatroom.username}
                 </h1>
               </div>
               <Icon name="Info" size="28px" />
             </div>
             <Chat chatRoomId={params.chatRoomId} scrollRef={scrollRef} />
-            <MessageInput
-              scrollToStart={scrollToStart}
-              iconRef={iconRef}
-              addNewMessageToChatCache={addNewMessageToChatCache}
-            />
+            <MessageInput scrollToStart={scrollToStart} iconRef={iconRef} />
           </div>
         </div>
       ) : null}

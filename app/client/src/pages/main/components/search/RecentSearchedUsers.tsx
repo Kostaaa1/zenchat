@@ -14,8 +14,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   navigateToUserDashboard,
 }) => {
   const ctx = trpc.useContext();
-  const { userData } = useUser();
-  const { userId } = useStore();
+  const { userData, userId } = useUser();
 
   const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(
     userId,
@@ -72,7 +71,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                   onClick={() => navigateToUserDashboard(chat.users.username)}
                   hover="darker"
                   title={chat.users.username}
-                  reduceImgSize={true}
+                  avatarSize="md"
                   icon={<Icon name="X" size="28px" />}
                   subtitle={`${chat.users.first_name} ${chat.users.last_name}`}
                 />

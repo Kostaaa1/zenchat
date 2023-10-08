@@ -22,11 +22,12 @@ type Store = {
 
 const useStore = create<Store>(
   (set): Store => ({
-    search: "",
-    setSearch: (search: string) =>
+    /*  USER RELATED */
+    email: "",
+    setEmail: (email: string) =>
       set((state) => ({
         ...state,
-        search,
+        email,
       })),
     userId: "",
     setUserId: (userId: string) =>
@@ -34,11 +35,12 @@ const useStore = create<Store>(
         ...state,
         userId,
       })),
-    email: "",
-    setEmail: (email: string) =>
+    /* */
+    search: "",
+    setSearch: (search: string) =>
       set((state) => ({
         ...state,
-        email,
+        search,
       })),
     searchedUsers: [],
     setSearchedUsers: (searchedUsers: TUserData[]) =>

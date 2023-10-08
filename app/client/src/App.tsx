@@ -11,58 +11,58 @@ import Header from "./pages/main/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
 import LoadingPage from "./pages/LoadingPage";
-import { trpc } from "./utils/trpcClient";
-import { useEffect } from "react";
-import useStore from "./utils/stores/store";
 import Modals from "./components/Modals";
+import { trpc } from "./utils/trpcClient";
+import useStore from "./utils/stores/store";
+import { useEffect } from "react";
 
 function App() {
   const { user } = useUser();
   const { email, setEmail, setUserId } = useStore();
   const ctx = trpc.useContext();
 
-  const { data: userData, isFetched } = trpc.user.getUser.useQuery(
+  const { data: userData, isFetched } = trpc.user.get.useQuery(
     { data: email, type: "email" },
-    {
-      enabled: !!email,
-    },
+    { enabled: !!email && email.length > 0 && email !== "" },
   );
 
-  const createUserMutation = trpc.user.createUser.useMutation({
+  const createUserMutation = trpc.user.create.useMutation({
     mutationKey: [email],
     onSuccess: (data) => {
-      ctx.user.getUser.setData({ data: email, type: "email" }, data);
+      ctx.user.get.setData({ data: email, type: "email" }, data);
     },
   });
 
-  const getUser = async () => {
-    console.log(userData);
-    if (userData) setUserId(userData.id);
+  const createUser = async () => {
+    if (!user) return;
+    const { firstName, lastName, username } = user;
 
-    if (user?.emailAddresses?.[0]?.emailAddress) {
-      setEmail(user.emailAddresses[0].emailAddress);
-    }
-
-    if (user && userData === null && email) {
-      console.log("No User, creating it !");
-      const { firstName, lastName, username } = user;
-
-      await createUserMutation
-        .mutateAsync({
-          firstName,
-          lastName,
-          username,
-          email,
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
+    await createUserMutation
+      .mutateAsync({
+        firstName,
+        lastName,
+        username,
+        email,
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   useEffect(() => {
-    getUser();
-  }, [userData, user]);
+    if (userData === null) {
+      createUser();
+      return;
+    }
+
+    if (userData) setUserId(userData.id);
+  }, [userData]);
+
+  useEffect(() => {
+    if (!user) return;
+    const userEmailAddress = user?.emailAddresses?.[0]?.emailAddress;
+    setEmail(userEmailAddress);
+  }, [user]);
 
   return (
     <>

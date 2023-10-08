@@ -18,10 +18,18 @@ type Store = {
   setIsMessageDropdownActive: (isOpen: boolean) => void;
   messageDropdownData: { id: string; imageUrl: string | null } | null;
   setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
+  isSendMessageModalActive: boolean;
+  setIsSendMessageModalActive: (isOpen: boolean) => void;
 };
 
 const useModalStore = create<Store>(
   (set): Store => ({
+    isSendMessageModalActive: false,
+    setIsSendMessageModalActive: (open: boolean) =>
+      set((state) => ({
+        ...state,
+        isSendMessageModalActive: open,
+      })),
     // Message dropdown (show more, copy...) // UnsendModal data..
     messageDropdownData: null,
     setMessageDropdownData: (data: TOpenMessageDropdown | null) =>

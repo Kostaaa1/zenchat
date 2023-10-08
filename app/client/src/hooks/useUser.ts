@@ -1,14 +1,16 @@
-import useStore from "../utils/stores/store";
 import { trpc } from "../utils/trpcClient";
+import useStore from "../utils/stores/store";
 
 const useUser = () => {
-  const { email } = useStore();
-  const ctx = trpc.useContext();
-  const userData = ctx.user.getUser.getData({ data: email, type: "email" });
+  const { userId, email } = useStore();
+  const userData = trpc
+    .useContext()
+    .user.get.getData({ data: email, type: "email" });
 
   return {
     userData,
-    ctx,
+    email,
+    userId,
   };
 };
 

@@ -6,7 +6,6 @@ import { TMessage } from "../../../../../server/src/types/types";
 import { Dot, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useChatStore from "../../../utils/stores/chatStore";
-import useStore from "../../../utils/stores/store";
 import { trpc } from "../../../utils/trpcClient";
 import Icon from "../../main/components/Icon";
 import { debounce } from "lodash";
@@ -22,7 +21,7 @@ const List = ({ message }: { message: TMessage }) => {
     setShowUnsendMsgModal,
     showImageModal,
   } = useModalStore();
-  const { userId } = useStore();
+  const { userId } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { content, id, sender_id, isImage } = message;
   const moreDropdownRef = useRef<HTMLDivElement>(null);
@@ -154,6 +153,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const { typingUser } = useChatStore();
   const { userData } = useUser();
 
+
   const { mutateAsync: getMoreMutation, isSuccess } =
     trpc.chat.messages.getMore.useMutation({
       mutationKey: [
@@ -248,7 +248,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             <span>
               {typingUser !== userData?.id && typingUser.length > 0 ? (
                 <div className="typing-indicator">
-                  <div className="message-cloud rounded-2xl bg-gray-300 p-3">
+                  <div className="message-cloud rounded-2xl bg-slate-300 p-3">
                     <Dot className="dot dot-1" color="#4285f4" size="8px" />
                     <Dot className="dot dot-2" color="#4285f4" size="8px" />
                     <Dot className="dot dot-3" color="#4285f4" size="8px" />

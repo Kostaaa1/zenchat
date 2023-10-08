@@ -1,19 +1,17 @@
 import { useEffect } from "react";
-import { TMessage } from "../../../server/src/types/types";
-import { Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
+import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets";
 
 type TUseChatSocketProps = {
   socket: Socket;
   userId: string;
-  recieveNewSocketMessage: (messageData: TMessage) => void;
-  handleTyping: (data: string) => void;
+  recieveNewSocketMessage: (data: TRecieveNewSocketMessageType) => void;
 };
 
 const useChatSocket = ({
   socket,
   userId,
   recieveNewSocketMessage,
-  handleTyping,
 }: TUseChatSocketProps) => {
   useEffect(() => {
     if (!userId) return;
@@ -24,14 +22,12 @@ const useChatSocket = ({
     socket.emit("messages-channel", userId);
     socket.on("messages-channel", recieveNewSocketMessage);
 
-    socket.on("typing", handleTyping);
-
-    socket.on("new-message", recieveNewSocketMessage);
+    socket.on("typing", recieveNewSocketMessage);
 
     const cleanup = () => {
       socket.off("join-room", recieveNewSocketMessage);
       socket.off("messages-channel", recieveNewSocketMessage);
-      // socket.off("new-message", recieveNewSocketMessage);
+      socket.off("typing", recieveNewSocketMessage);
 
       socket.off("disconnect", () => {
         console.log("Disconnected from socket");

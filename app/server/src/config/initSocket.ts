@@ -1,6 +1,5 @@
 import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
-import { TMessage } from "../types/types";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -10,18 +9,12 @@ export const initSocket = (io: Server) => {
   io.on("connection", (socket: TCustomSocketType) => {
     socket.on("join-room", async (userId: string) => {
       if (!userId) return;
-
       console.log("Joined room: ", userId);
       socket.join(userId);
     });
-
-    socket.on("new-message", (messageData: TMessage) => {
-      io.emit("join-room", messageData);
-    });
-
-    socket.on("typing", (username: string) => {
-      console.log(username);
-      io.emit("typing", username);
+    socket.on("typing", (data: { username: string; chatroom_id: string }) => {
+      console.log(data);
+      io.emit("join-room", { channel: "typing", data });
     });
 
     socket.on("messages-channel", () => {
@@ -33,8 +26,10 @@ export const initSocket = (io: Server) => {
             { event: "*", schema: "public", table: "messages" },
             async (payload) => {
               const messageData = payload.new;
-              io.emit("join-room", messageData);
-              // if (messageData.isImage) return;
+              io.emit("join-room", {
+                channel: "messages-channel",
+                data: messageData,
+              });
             }
           )
           .subscribe();

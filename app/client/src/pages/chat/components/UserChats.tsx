@@ -5,6 +5,8 @@ import { TChatRoomData } from "../../../../../server/src/types/types";
 import Icon from "../../main/components/Icon";
 import ChatList from "../../../components/ChatList";
 import useChatStore from "../../../utils/stores/chatStore";
+import { trpc } from "../../../utils/trpcClient";
+import useModalStore from "../../../utils/stores/modalStore";
 
 type TUserChatsProps = {
   userChats: TChatRoomData[] | undefined;
@@ -17,12 +19,20 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const navigate = useNavigate();
   const params = useParams<{ chatRoomId: string }>();
   const { chatRoomId } = params;
+  const ctx = trpc.useContext();
+  const { setIsSendMessageModalActive } = useModalStore();
 
   const handleChatUserClick = (chatroom_id: string) => {
     if (chatRoomId === chatroom_id) return;
 
-    setIsMessagesLoading(true);
-    setShouldFetchMoreMessages(true);
+    const data = ctx.chat.messages.get
+      .getData({ chatroom_id })
+      ?.find((x) => x.chatroom_id === chatroom_id);
+
+    if (!data) {
+      setIsMessagesLoading(true);
+      setShouldFetchMoreMessages(true);
+    }
 
     navigate(`/inbox/${chatroom_id}`);
   };
@@ -34,7 +44,12 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
           <h1 className="mr-1 text-2xl font-bold"> {user?.username} </h1>
           <Icon name="ChevronDown" size="20px" />
         </div>
-        <Icon name="PenSquare" size="28px" className="active:text-zinc-500" />
+        <Icon
+          name="PenSquare"
+          size="28px"
+          onClick={() => setIsSendMessageModalActive(true)}
+          className="active:text-zinc-500"
+        />
       </div>
       <ul className="scrollbar-colored h-full overflow-y-auto">
         {userChats?.length === 0 ? (
@@ -50,13 +65,11 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
                 key={id}
                 className="relative flex w-full cursor-pointer items-center justify-between px-6 py-2"
               >
-                <div className="flex h-16 w-full items-center">
+                <div className="flex h-16 w-full animate-pulse items-center">
                   <div className="h-full w-16 overflow-hidden rounded-full bg-neutral-800"></div>
                   <div className="ml-4 flex h-full flex-col justify-center">
                     <div className="mb-3 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
-                    <div className="h-4 w-[80px] rounded-lg bg-neutral-800">
-                      {" "}
-                    </div>
+                    <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
                   </div>
                 </div>
               </div>
@@ -71,6 +84,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
                 hover="darker"
                 title={chat.username}
                 subtitle={chat.last_message}
+                avatarSize="lg"
                 onClick={() => handleChatUserClick(chat.chatroom_id)}
                 className={
                   chatRoomId === chat.chatroom_id

@@ -75,6 +75,7 @@ const SideSearch = () => {
                         image_url={user?.image_url}
                         hover="darker"
                         subtitle={`${user?.first_name} ${user?.last_name}`}
+                        avatarSize="md"
                         onClick={() => {
                           const { username, id } = user;
                           handleListClick({
@@ -97,7 +98,10 @@ const SideSearch = () => {
           Array(12)
             .fill("")
             .map((_, id) => (
-              <div key={id} className="flex items-center px-6 py-2">
+              <div
+                key={id}
+                className="flex animate-pulse items-center px-6 py-2"
+              >
                 <div className="block h-16 w-16 rounded-full bg-neutral-800"></div>
                 <div className="ml-4 flex h-full flex-col justify-between py-[6px]">
                   <div className="mb-2 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
