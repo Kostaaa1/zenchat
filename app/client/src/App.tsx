@@ -70,7 +70,7 @@ function App() {
         {!isFetched ? (
           <LoadingPage />
         ) : (
-          <div className="relative flex h-screen items-center justify-center">
+          <div className="relative flex h-screen w-screen justify-center">
             <Header />
             <Routes>
               <Route

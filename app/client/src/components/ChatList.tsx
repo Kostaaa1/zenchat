@@ -67,10 +67,10 @@ const ChatList: FC<ListProps> = ({
       <div className={cn("flex w-full items-center")} onClick={onClick}>
         {children}
         <Avatar image_url={image_url} size={avatarSize} />
-        <div className="ml-4 flex h-full flex-col justify-center">
+        <div className="ml-4 flex h-full flex-col items-start">
           <h1 className="font-semibold"> {title} </h1>
           <h4 className="text-sm font-semibold text-neutral-400">
-            {subtitle ? subtitle : `No messages with this user. Say Hi! 😁`}
+            {subtitle || null}
           </h4>
         </div>
       </div>

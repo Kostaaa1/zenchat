@@ -24,10 +24,10 @@ const UserBoarddash = ({
 
     if (!userData || !inspectedUser) return;
 
-    const path = await trpcVanilla.chat.getChatroomId.query({
-      userId: userData.id,
-      inspectedUserId: inspectedUser?.id,
-    });
+    const path = await trpcVanilla.chat.getChatroomId.query([
+      userData.id,
+      inspectedUser?.id,
+    ]);
 
     if (path) {
       setIsLoading(false);
@@ -49,18 +49,16 @@ const UserBoarddash = ({
         )}
       </div>
       <div className="ml-16 flex w-full flex-col">
-        <div className="flex h-20 flex-wrap">
+        <div className="flex h-20 flex-wrap items-start justify-start">
           <h1 className="pr-8 text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
-            <Button
-              isLoading={isLoading}
-              buttonColor="blue"
-              onClick={handleGetChatRoomId}
-            >
-              Message
-            </Button>
+            <>
+              <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
+                Message
+              </Button>
+            </>
           ) : (
-            <Button> Edit Profile</Button>
+            <Button className="text-sm"> Edit Profile</Button>
           )}
         </div>
         <div>
@@ -100,7 +98,7 @@ const Dashboard = () => {
           <ErrorPage />
         ) : (
           <>
-            {isFetching && !isIndexRoute ? (
+            {isFetching ? (
               <div className="mt-10 flex items-center justify-center">
                 <Loader2 className="h-10 w-10 animate-spin" />
               </div>

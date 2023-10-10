@@ -10,15 +10,10 @@ import { messageRouter } from "./messages";
 
 export const chatRouter = t.router({
   getChatroomId: t.procedure
-    .input(
-      z.object({
-        userId: z.string(),
-        inspectedUserId: z.string(),
-      })
-    )
-    .query(async ({ input }) => {
-      const { userId, inspectedUserId } = input;
-      const path = await getChatroomId(inspectedUserId, userId);
+    .input(z.array(z.string()))
+    .query(async ({ input: userIds }) => {
+      console.log("Get CHATROOM ID CALLED: ", userIds);
+      const path = await getChatroomId(userIds);
 
       return path;
     }),

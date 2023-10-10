@@ -4,16 +4,15 @@ import useOutsideClick from "../hooks/useOutsideClick";
 import { trpcVanilla } from "../utils/trpcClient";
 import useChatStore from "../utils/stores/chatStore";
 import useChatCache from "../hooks/useChatCache";
-import { useParams } from "react-router-dom";
 
 const UnsendMsgModal = () => {
-  const { closeImageModal, setShowUnsendMsgModal, messageDropdownData } =
-    useModalStore();
-  const unsendMsgModal = useRef<HTMLDivElement>(null);
-  useOutsideClick([unsendMsgModal], "mousedown", closeImageModal);
+  const { setShowUnsendMsgModal, messageDropdownData } = useModalStore();
   const { currentChatroom } = useChatStore();
-  const params = useParams<{ chatRoomId: string }>();
   const { removeMessageCache } = useChatCache();
+  const unsendMsgModal = useRef<HTMLDivElement>(null);
+  useOutsideClick([unsendMsgModal], "mousedown", () =>
+    setShowUnsendMsgModal(false),
+  );
 
   const handleUnsendMessage = () => {
     if (messageDropdownData && currentChatroom) {

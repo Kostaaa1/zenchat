@@ -12,6 +12,7 @@ export const initSocket = (io: Server) => {
       console.log("Joined room: ", userId);
       socket.join(userId);
     });
+
     socket.on("typing", (data: { username: string; chatroom_id: string }) => {
       console.log(data);
       io.emit("join-room", { channel: "typing", data });
@@ -37,6 +38,7 @@ export const initSocket = (io: Server) => {
         console.log(error);
       }
     });
+
     socket.on("disconnect", () => {
       console.log("A user disconnected");
     });

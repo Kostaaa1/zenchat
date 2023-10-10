@@ -33,11 +33,7 @@ const Navbar: FC<NavbarProps> = ({
   const [list, setList] = useState<"list" | "default">("default");
 
   useEffect(() => {
-    if (isSearchActive || location.pathname.split("/inbox").length > 1) {
-      setIsResponsive(true);
-    } else {
-      setIsResponsive(false);
-    }
+    setIsResponsive(isSearchActive || location.pathname.includes("/inbox"));
   }, [isSearchActive, location]);
 
   useEffect(() => {
@@ -88,14 +84,13 @@ const Navbar: FC<NavbarProps> = ({
           animate={{ width: isResponsive ? "80px" : "320px" }}
           exit={{ width: isResponsive ? "320px" : "80px" }}
           transition={{ type: "spring", damping: 45, stiffness: 320 }}
-          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black px-4 py-6"
+          className="sm:w-[80px fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black px-4 py-6"
         >
           <Logo variant={isResponsive ? "default" : "list"} />
           <div
             className={cn(
-              isResponsive
-                ? "my-4 h-full w-full py-4"
-                : "my-4 flex h-full w-full flex-col py-4",
+              "my-4 h-full w-full py-4",
+              !isResponsive && "flex flex-col",
             )}
           >
             {listItems.map((li, id) => (

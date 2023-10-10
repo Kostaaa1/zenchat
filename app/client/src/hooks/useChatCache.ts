@@ -1,7 +1,7 @@
 import { TMessage } from "../../../server/src/types/types";
 import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import getCurrentDate from "../utils/getCurrentDate";
 import { trpc } from "../utils/trpcClient";
 import useChatStore from "../utils/stores/chatStore";
@@ -10,7 +10,7 @@ import { useParams } from "react-router-dom";
 
 const useChatCache = () => {
   const ctx = trpc.useContext();
-  const { setTypingUser, currentChatroom } = useChatStore();
+  const { setTypingUser } = useChatStore();
   const { userId } = useUser();
   const params = useParams<{ chatRoomId: string }>();
 
@@ -29,11 +29,6 @@ const useChatCache = () => {
     },
     [ctx.chat.messages.get],
   );
-
-  useEffect(() => {
-    console.log("params: ", params.chatRoomId);
-    console.log("chatroom: ", currentChatroom);
-  }, [currentChatroom, params]);
 
   // Cache Mutation functions: //
   const removeMessageCache = (id: string, chatroom_id: string) => {

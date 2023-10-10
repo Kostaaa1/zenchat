@@ -104,7 +104,6 @@ export const sendMessage = async (messageData: TMessage) => {
     .insert(messageData);
 
   if (messageData.isImage) return;
-
   const { error: lastMessageUpdateError } = await supabase
     .from("chatrooms")
     .update({
@@ -281,27 +280,26 @@ export const addUserToChatHistory = async ({
 };
 
 export const getChatroomId = async (
-  userId: string,
-  inspectedUserId: string
+  userIds: string[]
 ): Promise<string | undefined> => {
   try {
-    const userIds: string[] = [userId, inspectedUserId];
-
     const { data, error } = await supabase.rpc("get_chatroom_id", {
-      user_id_1: userIds[0],
-      user_id_2: userIds[1],
+      user_ids: userIds,
     });
 
     if (error) {
-      throw new Error(`Error executing SQL Procedure: ${error}`);
+      throw new Error(
+        `Error executing SQL Procedure: ${JSON.stringify(error)}`
+      );
     }
 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       const chatroomId = await createChatRoom();
 
       if (chatroomId) {
-        await insertChatroomUser(chatroomId, userIds[0]);
-        await insertChatroomUser(chatroomId, userIds[1]);
+        for (const user of userIds) {
+          await insertChatroomUser(chatroomId, user);
+        }
 
         return chatroomId;
       }

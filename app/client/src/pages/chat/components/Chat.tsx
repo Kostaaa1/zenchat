@@ -271,11 +271,11 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
           {!shouldFetchMoreMessages ? (
             <div className="flex flex-col items-center pb-8 pt-4">
               <Avatar image_url={currentChatroom?.image_url} size="xl" />
-              <h3 className="text-md py-2 font-semibold">
+              <h3 className="text-md py-3 font-semibold">
                 {currentChatroom?.username}
               </h3>
               <Button
-                className="text-sm"
+                className="text-sm font-semibold"
                 onClick={() => navigate(`/${currentChatroom?.username}`)}
               >
                 View profile

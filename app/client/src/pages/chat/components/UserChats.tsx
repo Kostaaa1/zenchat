@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { TChatRoomData } from "../../../../../server/src/types/types";
 import Icon from "../../main/components/Icon";
 import ChatList from "../../../components/ChatList";
@@ -25,14 +25,14 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const handleChatUserClick = (chatroom_id: string) => {
     if (chatRoomId === chatroom_id) return;
 
-    const data = ctx.chat.messages.get
-      .getData({ chatroom_id })
-      ?.find((x) => x.chatroom_id === chatroom_id);
+    // const data = ctx.chat.messages.get
+    //   .getData({ chatroom_id })
+    //   ?.find((x) => x.chatroom_id === chatroom_id);
 
-    if (!data) {
-      setIsMessagesLoading(true);
-      setShouldFetchMoreMessages(true);
-    }
+    // if (!data) {
+    setIsMessagesLoading(true);
+    setShouldFetchMoreMessages(true);
+    // }
 
     navigate(`/inbox/${chatroom_id}`);
   };
