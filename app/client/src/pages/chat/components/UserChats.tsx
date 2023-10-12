@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FC, useEffect } from "react";
-import { TChatRoomData } from "../../../../../server/src/types/types";
+import { TPopulatedChatResponse } from "../../../../../server/src/types/types";
 import Icon from "../../main/components/Icon";
 import ChatList from "../../../components/ChatList";
 import useChatStore from "../../../utils/stores/chatStore";
@@ -9,7 +9,7 @@ import { trpc } from "../../../utils/trpcClient";
 import useModalStore from "../../../utils/stores/modalStore";
 
 type TUserChatsProps = {
-  userChats: TChatRoomData[] | undefined;
+  userChats: TPopulatedChatResponse[] | undefined;
   isLoading: boolean;
 };
 
@@ -33,7 +33,6 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
     setIsMessagesLoading(true);
     setShouldFetchMoreMessages(true);
     // }
-
     navigate(`/inbox/${chatroom_id}`);
   };
 
@@ -76,13 +75,17 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
             ))
         ) : (
           <>
-            {userChats?.map((chat) => (
+            {userChats?.map((chat, i) => (
               <ChatList
                 key={chat.id}
                 isHoverDisabled={true}
-                image_url={chat.image_url}
+                image_url={
+                  chat.is_group
+                    ? [chat.users[0].image_url, chat.users[1].image_url]
+                    : chat.users[0].image_url
+                }
                 hover="darker"
-                title={chat.username}
+                title={chat.users[0].username}
                 subtitle={chat.last_message}
                 avatarSize="lg"
                 onClick={() => handleChatUserClick(chat.chatroom_id)}

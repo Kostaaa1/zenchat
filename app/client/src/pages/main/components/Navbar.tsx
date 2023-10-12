@@ -7,7 +7,7 @@ import useStore, { ActiveList } from "../../../utils/stores/store";
 import UserDropdown from "./UserDropdown";
 import { useLocation } from "react-router-dom";
 import { cn } from "../../../utils/utils";
-import Avatar from "../../../components/Avatar";
+import Avatar from "../../../components/avatar/Avatar";
 
 interface NavbarProps {
   handleActivateSearch: () => void;

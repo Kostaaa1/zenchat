@@ -4,7 +4,6 @@ import ChatList from "../../../../components/ChatList";
 import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
 import { trpc, trpcVanilla } from "../../../../utils/trpcClient";
-import useStore from "../../../../utils/stores/store";
 
 interface RecentSearchedUsersProps {
   navigateToUserDashboard: (username: string) => void;

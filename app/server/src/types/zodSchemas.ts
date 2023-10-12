@@ -56,6 +56,7 @@ export const chatRoomDataSchema: ZodSchema<
       image_url: string;
       username: string;
       messages: z.infer<typeof messageSchema>[];
+      is_group: boolean;
     }
   | undefined
 > = z.object({
@@ -67,4 +68,5 @@ export const chatRoomDataSchema: ZodSchema<
   image_url: z.string(),
   username: z.string(),
   messages: z.array(messageSchema),
+  is_group: z.boolean(),
 });

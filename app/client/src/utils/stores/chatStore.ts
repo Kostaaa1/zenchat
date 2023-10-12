@@ -1,6 +1,6 @@
 import { Skin } from "@emoji-mart/data";
 import { create } from "zustand";
-import { TChatRoomData } from "../../../../server/src/types/types";
+import { TPopulatedChatResponse } from "../../../../server/src/types/types";
 
 export type ActiveList = "inbox" | "user" | "";
 
@@ -20,8 +20,8 @@ type ChatStore = {
   addSelectedFile: (file: File) => void;
   clearSelectedFiles: () => void;
   removeSelectedFile: (id: number) => void;
-  currentChatroom: TChatRoomData | undefined;
-  setCurrentChatroom: (currentChatroom: TChatRoomData) => void;
+  currentChatroom: TPopulatedChatResponse | undefined;
+  setCurrentChatroom: (currentChatroom: TPopulatedChatResponse) => void;
   shouldFetchMoreMessages: boolean;
   setShouldFetchMoreMessages: (val: boolean) => void;
   typingUser: string;
@@ -57,7 +57,7 @@ const useChatStore = create<ChatStore>(
         isMessagesLoading: isLoaded,
       })),
     currentChatroom: undefined,
-    setCurrentChatroom: (currentChatroom: TChatRoomData) =>
+    setCurrentChatroom: (currentChatroom: TPopulatedChatResponse) =>
       set((state) => ({
         ...state,
         currentChatroom,

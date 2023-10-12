@@ -21,15 +21,17 @@ export const chatRouter = t.router({
     .input(z.string())
     .query(async ({ input: chatroom_id }) => {
       const data = await getUserIdFromChatroom(chatroom_id);
+
       return data;
     }),
   getCurrentChatRooms: t.procedure
     .input(z.string().nullish())
     .query(async ({ input: userId }) => {
+      console.log(userId);
+
       if (!userId) return;
       const chatrooms = await getCurrentChatRooms(userId);
 
-      console.log("Returb data", chatrooms);
       return chatrooms;
     }),
   messages: messageRouter,

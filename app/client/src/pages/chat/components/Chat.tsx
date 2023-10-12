@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import Button from "../../../components/Button";
 import { cn } from "../../../utils/utils";
-import Avatar from "../../../components/Avatar";
+import Avatar from "../../../components/avatar/Avatar";
 import { TMessage } from "../../../../../server/src/types/types";
 import { Dot, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import useModalStore from "../../../utils/stores/modalStore";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import { loadImages } from "../../../utils/loadImages";
 import useUser from "../../../hooks/useUser";
+import RenderAvatar from "../../../components/avatar/RenderAvatar";
 
 const List = ({ message }: { message: TMessage }) => {
   const {
@@ -52,11 +53,6 @@ const List = ({ message }: { message: TMessage }) => {
           : "justify-start self-start",
       )}
     >
-      {/* {sender_id !== userId ? (
-        <div className="mr-2">
-          <Avatar size={"sm"} image_url={currentChatroom?.image_url} />
-        </div>
-      ) : null} */}
       {isImage ? (
         <div
           onClick={() => {
@@ -153,7 +149,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const { typingUser } = useChatStore();
   const { userData } = useUser();
 
-
   const { mutateAsync: getMoreMutation, isSuccess } =
     trpc.chat.messages.getMore.useMutation({
       mutationKey: [
@@ -233,6 +228,10 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     };
   });
 
+  useEffect(() => {
+    console.log(currentChatroom);
+  }, [currentChatroom]);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {isMessagesLoading ? (
@@ -248,7 +247,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             <span>
               {typingUser !== userData?.id && typingUser.length > 0 ? (
                 <div className="typing-indicator">
-                  <div className="message-cloud rounded-2xl bg-slate-300 p-3">
+                  <div className="message-cloud rounded-2xl bg-slate-300 p-2 py-3">
                     <Dot className="dot dot-1" color="#4285f4" size="8px" />
                     <Dot className="dot dot-2" color="#4285f4" size="8px" />
                     <Dot className="dot dot-3" color="#4285f4" size="8px" />
@@ -268,18 +267,32 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
               <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
             </div>
           ) : null}
-          {!shouldFetchMoreMessages ? (
+          {!shouldFetchMoreMessages && currentChatroom ? (
             <div className="flex flex-col items-center pb-8 pt-4">
-              <Avatar image_url={currentChatroom?.image_url} size="xl" />
-              <h3 className="text-md py-3 font-semibold">
-                {currentChatroom?.username}
-              </h3>
-              <Button
-                className="text-sm font-semibold"
-                onClick={() => navigate(`/${currentChatroom?.username}`)}
-              >
-                View profile
-              </Button>
+              <RenderAvatar
+                image_url_1={currentChatroom.users[0]?.image_url}
+                image_url_2={currentChatroom.users[1]?.image_url}
+                avatarSize="md"
+              />
+              <div className="flex flex-col items-center pt-4">
+                <h3 className="text-md py-2 font-semibold">
+                  {currentChatroom && currentChatroom?.users.length > 1
+                    ? currentChatroom?.users.map((x) => x.username).join(", ")
+                    : currentChatroom?.users[0].username}
+                </h3>
+                {currentChatroom?.users.length === 1 ? (
+                  <Button
+                    className="text-sm font-semibold"
+                    onClick={() => navigate(`/${currentChatroom?.users[0]}`)}
+                  >
+                    View profile
+                  </Button>
+                ) : (
+                  <p className="text-sm font-bold text-neutral-400">
+                    You created this group
+                  </p>
+                )}
+              </div>
             </div>
           ) : null}
         </div>

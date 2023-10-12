@@ -3,10 +3,10 @@ import { purgeImageCache } from "../../config/imagekit";
 import supabase from "../../config/supabase";
 import { deleteImageFromS3 } from "../../middleware/multer";
 import {
-  TChatRoomData,
   TChatHistory,
   TMessage,
-  TPopulateColumnsResponse,
+  TPopulatedChat,
+  TPopulatedChatResponse,
 } from "../../types/types";
 import "dotenv/config";
 
@@ -130,15 +130,17 @@ export const sendMessage = async (messageData: TMessage) => {
 export const populateForeignColumns = async (
   chatroom_id: string,
   currentUser_id: string
-): Promise<TPopulateColumnsResponse> => {
+): Promise<TPopulatedChatResponse> => {
   const { data, error } = await supabase
     .from("chatroom_users")
     .select(
-      "*, users(username, image_url), chatrooms(last_message, created_at)"
+      "*, users(username, image_url), chatrooms(last_message, created_at, is_group)"
     )
     .neq("user_id", currentUser_id)
     .eq("chatroom_id", chatroom_id);
+  console.log("ytdksakdosa", data);
 
+  //  UPDATEEEEEEEEE //
   if (!data) {
     throw new Error(
       `Error fetching chat data for chatroom ${chatroom_id}: ${
@@ -147,7 +149,32 @@ export const populateForeignColumns = async (
     );
   }
 
-  return data[0];
+  const populatedData = data as TPopulatedChat[];
+  const newUsers = [] as {
+    username: string;
+    image_url: string;
+    user_id: string;
+  }[];
+
+  for (const item of populatedData) {
+    const { users, user_id } = item;
+    const { image_url, username } = users;
+    newUsers.push({ username, image_url, user_id });
+  }
+
+  const { id, created_at, chatrooms } = populatedData[0];
+  const { last_message, is_group } = chatrooms;
+
+  const groupedData = {
+    id,
+    chatroom_id,
+    last_message,
+    created_at: created_at,
+    is_group,
+    users: newUsers,
+  };
+
+  return groupedData;
 };
 
 export const getUserChatRooms = async (
@@ -167,7 +194,7 @@ export const getUserChatRooms = async (
 
 export const getCurrentChatRooms = async (
   userId: string
-): Promise<TChatRoomData[]> => {
+): Promise<TPopulatedChatResponse[]> => {
   try {
     const chatData = await getUserChatRooms(userId);
 
@@ -178,19 +205,7 @@ export const getCurrentChatRooms = async (
           userId
         );
 
-        const { users, chatrooms, id, user_id, chatroom_id } = chatData;
-        const { created_at, last_message } = chatrooms;
-        const { image_url, username } = users;
-
-        return {
-          id,
-          user_id,
-          created_at,
-          last_message,
-          chatroom_id,
-          image_url,
-          username,
-        };
+        return chatData;
       })
     );
 
@@ -294,13 +309,13 @@ export const getChatroomId = async (
     }
 
     if (!data || data.length === 0) {
-      const chatroomId = await createChatRoom();
+      const isGroupChat = userIds.length > 2;
+      const chatroomId = await createChatRoom(isGroupChat);
 
       if (chatroomId) {
         for (const user of userIds) {
           await insertChatroomUser(chatroomId, user);
         }
-
         return chatroomId;
       }
     } else {
@@ -321,10 +336,10 @@ export const insertChatroomUser = async (
   });
 };
 
-export const createChatRoom = async (): Promise<string> => {
+export const createChatRoom = async (is_group: boolean): Promise<string> => {
   const { data, error } = await supabase
     .from("chatrooms")
-    .insert({ last_message: "" })
+    .insert({ last_message: "", is_group })
     .select("id");
 
   if (!data) {

@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "../pages/main/components/Icon";
 import Button from "./Button";
 import useModalStore from "../utils/stores/modalStore";
@@ -9,17 +9,17 @@ import { debounce } from "lodash";
 import ChatList from "./ChatList";
 import { cn } from "../utils/utils";
 import useOutsideClick from "../hooks/useOutsideClick";
+import { useNavigate } from "react-router-dom";
 
-interface SendMessageModalProps {}
-
-const SendMessageModal: FC<SendMessageModalProps> = () => {
+const NewGroupChatModal = () => {
   const { setIsSendMessageModalActive } = useModalStore();
   const [search, setSearch] = useState<string>("");
   const [searchedUsers, setSearchedUsers] = useState<TUserData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { userData } = useUser();
+  const { userData, userId } = useUser();
   const [selectedUsers, setSelectedUsers] = useState<TUserData[]>([]);
   const sendMessageModal = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   useOutsideClick([sendMessageModal], "mousedown", () =>
     setIsSendMessageModalActive(false),
   );
@@ -42,7 +42,7 @@ const SendMessageModal: FC<SendMessageModalProps> = () => {
         setLoading(false);
       }
     },
-    Math.floor(Math.random() * 500 + 100),
+    Math.floor(Math.random() * 400 + 150),
   );
 
   useEffect(() => {
@@ -71,10 +71,18 @@ const SendMessageModal: FC<SendMessageModalProps> = () => {
   };
 
   const handleClickChat = async () => {
-    console.log(selectedUsers);
-    const yo =
-      await trpcVanilla.chat.messages.sendGroupMessage.mutate(selectedUsers);
-    console.log(yo);
+    const userIds = selectedUsers.map((x) => x.id);
+
+    const newChatroomId = await trpcVanilla.chat.getChatroomId.query([
+      ...userIds,
+      userId,
+    ]);
+
+    console.log(newChatroomId);
+    if (newChatroomId) {
+      // setIsLoading(false);
+      navigate(`/inbox/${newChatroomId}`);
+    }
   };
 
   return (
@@ -139,7 +147,7 @@ const SendMessageModal: FC<SendMessageModalProps> = () => {
                     <ChatList
                       title={user?.username}
                       key={user?.id}
-                      image_url={user?.image_url}
+                      image_url={user.image_url}
                       hover="darker"
                       avatarSize="md"
                       subtitle={`${user?.first_name} ${user?.last_name}`}
@@ -186,4 +194,4 @@ const SendMessageModal: FC<SendMessageModalProps> = () => {
   );
 };
 
-export default SendMessageModal;
+export default NewGroupChatModal;

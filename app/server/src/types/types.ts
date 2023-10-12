@@ -23,7 +23,24 @@ export type TChatHistory = CommonFields & {
   last_message: string;
 };
 
-export type TPopulateColumnsResponse = CommonFields & {
+export type TPopulatedChat = CommonFields & {
   users: { username: string; image_url: string };
-  chatrooms: { last_message: string; created_at: string };
+  chatrooms: {
+    is_group: boolean;
+    last_message: string;
+    created_at: string;
+  };
+};
+
+export type TPopulatedChatResponse = {
+  id: string;
+  last_message: string;
+  chatroom_id: string;
+  created_at: string;
+  is_group: boolean;
+  users: {
+    user_id: string;
+    username: string;
+    image_url: string;
+  }[];
 };

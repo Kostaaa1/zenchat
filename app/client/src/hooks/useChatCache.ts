@@ -60,7 +60,7 @@ const useChatCache = () => {
   const updateUserChatLastMessageCache = useCallback(
     (msg: TMessage) => {
       console.log("SKRT CALLEDDDSDASKODKasok", msg);
-      const lastmessage = msg.isImage
+      const last_message = msg.isImage
         ? "Photo"
         : msg.content.length > 40
         ? msg.content.slice(0, 40) + "..."
@@ -72,8 +72,9 @@ const useChatCache = () => {
             chat.chatroom_id === msg.chatroom_id
               ? {
                   ...chat,
-                  last_message: lastmessage,
+                  last_message,
                   created_at: getCurrentDate(),
+
                 }
               : chat,
           )

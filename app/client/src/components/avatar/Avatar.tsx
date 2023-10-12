@@ -1,7 +1,7 @@
 import { VariantProps, cva } from "class-variance-authority";
 import { FC } from "react";
 import { FaUser } from "react-icons/fa";
-import { cn } from "../utils/utils";
+import { cn } from "../../utils/utils";
 
 const avatarVariance = cva(
   "flex items-center justify-center text-white overflow-hidden rounded-full",
@@ -30,11 +30,12 @@ const Avatar: FC<AvatarProps> = ({ image_url, className, size }) => {
     <div>
       {!image_url || image_url === "" ? (
         <FaUser
-          className={cn(avatarVariance({ size, className }), "bg-[#c24425] ")}
+          className={cn(avatarVariance({ size, className }), "bg-slate-300 ")}
+          // className={cn(avatarVariance({ size, className }), "bg-[#c24425] ")}
         />
       ) : (
         <div className={cn(avatarVariance({ size, className }), "p-0")}>
-          <img src={image_url} />
+          <img className="h-" src={image_url} />
         </div>
       )}
     </div>
