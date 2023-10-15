@@ -18,6 +18,7 @@ export const messageRouter = t.router({
     .query(async ({ input }) => {
       const { chatroom_id } = input;
       if (!chatroom_id) return;
+
       const messages = await getMessages(chatroom_id);
       return messages;
     }),

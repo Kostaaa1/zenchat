@@ -9,10 +9,15 @@ const ChatHeader = () => {
     <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
       <div className="flex items-center">
         <RenderAvatar
-          image_url_1={currentChatroom?.users[0].image_url as string}
-          image_url_2={currentChatroom?.users[1].image_url as string}
+          image_urls={{
+            image_url_1: currentChatroom?.users[0].image_url as string,
+            image_url_2: currentChatroom?.is_group
+              ? currentChatroom?.users[1].image_url
+              : undefined,
+          }}
+          avatarSize="md"
         />
-        <h1 className="ml-4 text-lg font-medium">
+        <h1 className="ml-2 text-lg font-medium">
           {currentChatroom?.users[0].username}
         </h1>
       </div>

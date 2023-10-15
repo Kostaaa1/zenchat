@@ -25,11 +25,11 @@ const useChat = ({ socket, scrollToStart }: TUseChatProps) => {
     addSelectedFile,
     removeSelectedFile,
     clearSelectedFiles,
-    newMessage,
-    setNewMessage,
     currentChatroom,
     isTyping,
     setIsTyping,
+    newMessage,
+    setNewMessage,
   } = useChatStore();
   const { addNewMessageToChatCache } = useChatCache();
 

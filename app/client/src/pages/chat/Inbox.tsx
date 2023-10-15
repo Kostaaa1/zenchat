@@ -6,7 +6,6 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import MessageInput from "./components/MessageInput";
 import useChatStore from "../../utils/stores/chatStore";
 import Chat from "./components/Chat";
-import Avatar from "../../components/avatar/Avatar";
 import useChatSocket from "../../hooks/useChatSocket";
 import UserChats from "./components/UserChats";
 import useChatCache from "../../hooks/useChatCache";
@@ -15,7 +14,6 @@ import { trpc } from "../../utils/trpcClient";
 const { VITE_SERVER_URL } = import.meta.env;
 import io from "socket.io-client";
 import useUser from "../../hooks/useUser";
-import ErrorPage from "../ErrorPage";
 import ChatHeader from "./components/ChatHeader";
 const socket = io(VITE_SERVER_URL);
 
@@ -24,8 +22,8 @@ const Inbox = () => {
     handleSelectEmoji,
     setShowEmojiPicker,
     showEmojiPicker,
-    currentChatroom,
-    setCurrentChatroom,
+    // currentChatroom,
+    // setCurrentChatroom,
   } = useChatStore();
   const location = useLocation();
   const { userId } = useUser();
@@ -42,21 +40,33 @@ const Inbox = () => {
   };
 
   const { data: userChats, isLoading: isUserChatsLoading } =
-    trpc.chat.getCurrentChatRooms.useQuery(userId, {
+    trpc.chat.getUserChatrooms.useQuery(userId, {
       enabled: !!userId,
     });
 
-  useEffect(() => {
-    if (!userChats) return;
+  const { data: currentChatroom } = trpc.chat.getCurrentChatroom.useQuery(
+    { chatroom_id: params.chatRoomId as string, user_id: userId },
+    { enabled: !!params.chatRoomId },
+  );
 
-    const chatRoomData = userChats?.find(
-      (chat) => chat.chatroom_id === params.chatRoomId,
-    );
-    if (chatRoomData) setCurrentChatroom(chatRoomData);
-  }, [userChats, params.chatRoomId]);
+  // useEffect(() => {
+  // if (!userChats) return;
+  // const chatRoomData = userChats?.find(
+  //   (chat) => chat.chatroom_id === params.chatRoomId,
+  // );
+  // if (chatRoomData) setCurrentChatroom(chatRoomData);
+  // }, [userChats, params.chatRoomId]);
 
   const { recieveNewSocketMessage } = useChatCache();
   useChatSocket({ socket, userId, recieveNewSocketMessage });
+
+  useEffect(() => {
+    console.log(userChats);
+  }, [userChats]);
+
+  // useEffect(() => {
+  //   console.log(current);
+  // }, [current]);
 
   return (
     <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>

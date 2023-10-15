@@ -1,32 +1,37 @@
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import Avatar from "./Avatar";
+import { cn } from "../../utils/utils";
 
 interface RenderAvatarProps {
-  image_url_1: string;
-  image_url_2: string;
-  avatarSize: "xl" | "lg" | "sm" | "md";
+  image_urls: {
+    image_url_1: string;
+    image_url_2?: string;
+  };
+  avatarSize: "sm" | "md" | "lg" | "xl";
 }
 
-const RenderAvatar: FC<RenderAvatarProps> = ({
-  image_url_1,
-  image_url_2,
-  avatarSize,
-}) => {
+const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
+  const { image_url_1, image_url_2 } = image_urls;
+
   return (
-    <div>
+    <div className="flex h-full w-max">
       {image_url_2 === undefined ? (
         <Avatar image_url={image_url_1} size={avatarSize} />
       ) : (
-        <div className="relative flex h-16 w-16">
-          <Avatar
-            image_url={image_url_1}
-            className="absolute left-0 top-0"
-            size={avatarSize}
-          />
+        <div
+          className={cn(
+            "relative h-16 w-16",
+            avatarSize === "md"
+              ? "-m-3 scale-75"
+              : avatarSize === "xl"
+              ? "my-8 scale-[2]"
+              : "",
+          )}
+        >
+          <Avatar image_url={image_url_1} className="absolute left-0 top-0" />
           <Avatar
             image_url={image_url_2}
-            className="absolute left-4 top-4 outline outline-1 outline-neutral-700"
-            size={avatarSize}
+            className="absolute left-4 top-4 outline outline-1 outline-black"
           />
         </div>
       )}

@@ -37,33 +37,43 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
           <div className="flex">
             {imgUrls.map((img, id) => (
               <div key={img} className="relative mr-2">
-                <div>
-                  <img className="h-12 w-12 rounded-lg" src={img} alt="image" />
-                  <div
-                    onClick={() => removeFileFromArray(id)}
-                    className="absolute -right-1 -top-1 flex items-center rounded-full bg-zinc-300 p-[1px] text-zinc-600"
-                  >
-                    <Icon name="X" strokeWidth="3px" size="12px" />
-                  </div>
+                <img className="h-12 w-12 rounded-lg" src={img} alt="image" />
+                <div
+                  onClick={() => removeFileFromArray(id)}
+                  className="absolute right-0 top-0 flex -translate-y-[2px] translate-x-1 items-center rounded-full bg-zinc-300 p-[1px] text-zinc-600"
+                >
+                  <Icon name="X" strokeWidth="3px" size="10px" />
                 </div>
               </div>
             ))}
+            <label
+              htmlFor="file"
+              className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg bg-white bg-opacity-20 transition-all duration-200 hover:bg-opacity-25"
+            >
+              <Icon name="Image" size="28" strokeWidth="1.3" />
+              <input
+                type="file"
+                id="file"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
           </div>
         </div>
       ) : null}
       <div
         ref={iconRef}
         className={cn(
-          isEmpty ? "" : "pt-[68px]",
+          isEmpty ? "" : "pt-[69px]",
           "absolute bottom-1/2 left-10 translate-y-1/2",
         )}
       >
         <Icon name="Smile" size="24px" onClick={showEmoji} />
       </div>
-      {newMessage.length === 0 ? (
+      {newMessage.length === 0 && isEmpty ? (
         <div
           className={cn(
-            isEmpty ? "" : "pt-[68px]",
+            isEmpty ? "" : "pt-[69px]",
             "absolute bottom-1/2 right-10 flex w-14 translate-y-1/2 justify-between",
           )}
         >
@@ -85,16 +95,16 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
         type="text"
         placeholder="Send Message..."
         value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
         // onBlur={() => socket.emit("typing", { userId: null })}
+        onChange={(e) => setNewMessage(e.target.value)}
         className={cn(
-          isEmpty ? "" : "pt-[68px]",
+          isEmpty ? "" : "pt-[69px]",
           "h-full rounded-3xl border-2 border-neutral-800 bg-black px-14 placeholder:text-white",
         )}
       />
       <div
         className={cn(
-          isEmpty ? "" : "pt-[68px]",
+          isEmpty ? "" : "pt-[69px]",
           "absolute bottom-1/2 right-10 translate-y-1/2",
         )}
       >

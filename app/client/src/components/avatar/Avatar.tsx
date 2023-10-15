@@ -9,9 +9,9 @@ const avatarVariance = cva(
     variants: {
       size: {
         sm: "h-7 w-7 p-1",
-        md: "h-12 w-12 p-2",
-        lg: "h-16 w-16 p-3",
-        xl: "h-28 w-28 p-4",
+        md: "h-10 w-10 p-2",
+        lg: "h-14 w-14 p-3",
+        xl: "h-32 w-32 p-4",
       },
     },
     defaultVariants: {
@@ -27,18 +27,19 @@ export interface AvatarProps extends VariantProps<typeof avatarVariance> {
 
 const Avatar: FC<AvatarProps> = ({ image_url, className, size }) => {
   return (
-    <div>
+    <>
       {!image_url || image_url === "" ? (
-        <FaUser
-          className={cn(avatarVariance({ size, className }), "bg-slate-300 ")}
-          // className={cn(avatarVariance({ size, className }), "bg-[#c24425] ")}
-        />
+        <div>
+          <FaUser
+            className={cn(avatarVariance({ size, className }), "bg-slate-300")}
+          />
+        </div>
       ) : (
         <div className={cn(avatarVariance({ size, className }), "p-0")}>
           <img className="h-" src={image_url} />
         </div>
       )}
-    </div>
+    </>
   );
 };
 

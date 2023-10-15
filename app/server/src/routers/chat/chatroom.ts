@@ -2,7 +2,8 @@ import { z } from "zod";
 import { t } from "../../trpc";
 import {
   getChatroomId,
-  getCurrentChatRooms,
+  getCurrentChatRoom,
+  getUserChatRooms,
   getUserIdFromChatroom,
 } from "../../utils/supabase/chatroom";
 import { chatHistoryRouter } from "./history";
@@ -24,15 +25,23 @@ export const chatRouter = t.router({
 
       return data;
     }),
-  getCurrentChatRooms: t.procedure
+  getUserChatrooms: t.procedure
     .input(z.string().nullish())
     .query(async ({ input: userId }) => {
       console.log(userId);
 
       if (!userId) return;
-      const chatrooms = await getCurrentChatRooms(userId);
-
+      const chatrooms = await getUserChatRooms(userId);
       return chatrooms;
+    }),
+  getCurrentChatroom: t.procedure
+    .input(z.object({ chatroom_id: z.string(), user_id: z.string() }))
+    .query(async ({ input }) => {
+      const { chatroom_id, user_id } = input;
+      if (!chatroom_id || !user_id) return;
+
+      const currentChatRoom = await getCurrentChatRoom(chatroom_id, user_id);
+      return currentChatRoom;
     }),
   messages: messageRouter,
   history: chatHistoryRouter,

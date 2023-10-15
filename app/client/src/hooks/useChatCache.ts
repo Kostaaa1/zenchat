@@ -74,7 +74,6 @@ const useChatCache = () => {
                   ...chat,
                   last_message,
                   created_at: getCurrentDate(),
-
                 }
               : chat,
           )
@@ -107,13 +106,13 @@ const useChatCache = () => {
         if (!isImage) {
           if (sender_id !== userId) {
             addNewMessageToChatCache(data);
-            updateUserChatLastMessageCache(data);
           }
         } else {
           sender_id === userId
             ? replacePreviewImage(data)
             : addNewMessageToChatCache(data);
         }
+        updateUserChatLastMessageCache(data);
       }
     },
     [addNewMessageToChatCache, updateUserChatLastMessageCache],

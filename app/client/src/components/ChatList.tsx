@@ -3,6 +3,7 @@ import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import { motion } from "framer-motion";
 import Avatar from "./avatar/Avatar";
+import RenderAvatar from "./avatar/RenderAvatar";
 
 export const listVariants = cva(
   "flex cursor-pointer w-full justify-between px-6 py-2 items-center",
@@ -66,22 +67,13 @@ const ChatList: FC<ListProps> = ({
     >
       <div className={cn("flex w-full items-center")} onClick={onClick}>
         {children}
-        {typeof image_url === "string" ? (
-          <Avatar image_url={image_url} size={avatarSize} />
-        ) : (
-          <div className="relative h-16 w-16">
-            <Avatar
-              image_url={image_url?.[0]}
-              className="absolute left-0 top-0"
-              size="md"
-            />
-            <Avatar
-              image_url={image_url?.[1]}
-              className="absolute left-4 top-4 outline outline-1 outline-neutral-700"
-              size="md"
-            />
-          </div>
-        )}
+        <RenderAvatar
+          image_urls={{
+            image_url_1: image_url?.[0] as string,
+            image_url_2: image_url?.[1],
+          }}
+          avatarSize="lg"
+        />
         <div className="ml-4 flex h-full flex-col items-start">
           <h1 className="font-semibold"> {title} </h1>
           <h4 className="text-sm font-semibold text-neutral-400">

@@ -138,7 +138,6 @@ export const populateForeignColumns = async (
     )
     .neq("user_id", currentUser_id)
     .eq("chatroom_id", chatroom_id);
-  console.log("ytdksakdosa", data);
 
   //  UPDATEEEEEEEEE //
   if (!data) {
@@ -162,41 +161,47 @@ export const populateForeignColumns = async (
     newUsers.push({ username, image_url, user_id });
   }
 
-  const { id, created_at, chatrooms } = populatedData[0];
-  const { last_message, is_group } = chatrooms;
+  const { id, chatrooms } = populatedData[0];
+  const { last_message, created_at, is_group } = chatrooms;
 
   const groupedData = {
     id,
     chatroom_id,
     last_message,
-    created_at: created_at,
+    created_at,
     is_group,
     users: newUsers,
   };
 
+  console.log("groupedData", groupedData);
   return groupedData;
+};
+
+export const getCurrentChatRoom = async (
+  chatroom_id: string,
+  user_id: string
+) => {
+  try {
+    const chatData = await populateForeignColumns(chatroom_id, user_id);
+
+    return { ...chatData, imgUrls: [], newMessage: "" };
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const getUserChatRooms = async (
   userId: string
-): Promise<{ chatroom_id: string }[]> => {
-  const { data, error } = await supabase
-    .from("chatroom_users")
-    .select("chatroom_id")
-    .eq("user_id", userId);
-
-  if (!data || error) {
-    throw new Error(error.message);
-  }
-
-  return data;
-};
-
-export const getCurrentChatRooms = async (
-  userId: string
 ): Promise<TPopulatedChatResponse[]> => {
   try {
-    const chatData = await getUserChatRooms(userId);
+    const { data: chatData, error } = await supabase
+      .from("chatroom_users")
+      .select("chatroom_id")
+      .eq("user_id", userId);
+
+    if (!chatData) {
+      throw new Error("Yoo");
+    }
 
     const conversations = await Promise.all(
       chatData.map(async (chatroom) => {

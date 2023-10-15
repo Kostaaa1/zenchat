@@ -7,6 +7,7 @@ import ErrorPage from "../ErrorPage";
 import { useEffect, useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
+import Avatar from "../../components/avatar/Avatar";
 
 const UserBoarddash = ({
   userData,
@@ -37,7 +38,7 @@ const UserBoarddash = ({
 
   return (
     <div className="mx-16 my-8 flex h-full max-h-[160px]">
-      <div>
+      {/* <div>
         {userData?.image_url === "" ? (
           <FaUser className="h-full w-[160px] rounded-full bg-[#c24425] p-4" />
         ) : (
@@ -47,6 +48,9 @@ const UserBoarddash = ({
             alt="user-image"
           />
         )}
+      </div> */}
+      <div>
+        <Avatar image_url={userData?.image_url} size="xl" />
       </div>
       <div className="ml-16 flex w-full flex-col">
         <div className="flex h-20 flex-wrap items-start justify-start">

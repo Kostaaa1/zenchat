@@ -19,20 +19,13 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const navigate = useNavigate();
   const params = useParams<{ chatRoomId: string }>();
   const { chatRoomId } = params;
-  const ctx = trpc.useContext();
   const { setIsSendMessageModalActive } = useModalStore();
 
   const handleChatUserClick = (chatroom_id: string) => {
     if (chatRoomId === chatroom_id) return;
-
-    // const data = ctx.chat.messages.get
-    //   .getData({ chatroom_id })
-    //   ?.find((x) => x.chatroom_id === chatroom_id);
-
-    // if (!data) {
     setIsMessagesLoading(true);
     setShouldFetchMoreMessages(true);
-    // }
+
     navigate(`/inbox/${chatroom_id}`);
   };
 
@@ -75,7 +68,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
             ))
         ) : (
           <>
-            {userChats?.map((chat, i) => (
+            {userChats?.map((chat) => (
               <ChatList
                 key={chat.id}
                 isHoverDisabled={true}

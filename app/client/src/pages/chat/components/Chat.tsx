@@ -140,14 +140,19 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const {
     shouldFetchMoreMessages,
     setShouldFetchMoreMessages,
-    currentChatroom,
+    // currentChatroom,
     setIsMessagesLoading,
     isMessagesLoading,
   } = useChatStore();
-  const ctx = trpc.useContext();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const { typingUser } = useChatStore();
-  const { userData } = useUser();
+  const { userData, userId } = useUser();
+  const ctx = trpc.useContext();
+
+  const currentChatroom = ctx.chat.getCurrentChatroom.getData({
+    chatroom_id: chatRoomId,
+    user_id: userId,
+  });
 
   const { mutateAsync: getMoreMutation, isSuccess } =
     trpc.chat.messages.getMore.useMutation({
@@ -229,7 +234,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   });
 
   useEffect(() => {
-    console.log(currentChatroom);
+    console.log("currentChatroom", currentChatroom);
   }, [currentChatroom]);
 
   return (
@@ -270,9 +275,11 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
           {!shouldFetchMoreMessages && currentChatroom ? (
             <div className="flex flex-col items-center pb-8 pt-4">
               <RenderAvatar
-                image_url_1={currentChatroom.users[0]?.image_url}
-                image_url_2={currentChatroom.users[1]?.image_url}
-                avatarSize="md"
+                image_urls={{
+                  image_url_1: currentChatroom.users[0]?.image_url,
+                  image_url_2: currentChatroom.users[1]?.image_url,
+                }}
+                avatarSize="xl"
               />
               <div className="flex flex-col items-center pt-4">
                 <h3 className="text-md py-2 font-semibold">
