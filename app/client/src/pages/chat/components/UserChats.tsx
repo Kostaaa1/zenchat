@@ -1,31 +1,31 @@
-import { useUser } from "@clerk/clerk-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FC, useEffect } from "react";
-import { TPopulatedChatResponse } from "../../../../../server/src/types/types";
+import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../main/components/Icon";
-import ChatList from "../../../components/ChatList";
+import List from "../../../components/List";
 import useChatStore from "../../../utils/stores/chatStore";
-import { trpc } from "../../../utils/trpcClient";
 import useModalStore from "../../../utils/stores/modalStore";
+import useUser from "../../../hooks/useUser";
 
 type TUserChatsProps = {
-  userChats: TPopulatedChatResponse[] | undefined;
+  userChats: TChatroom[] | undefined;
   isLoading: boolean;
 };
 
 const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
-  const { user } = useUser();
-  const { setIsMessagesLoading, setShouldFetchMoreMessages } = useChatStore();
+  const { userData } = useUser();
+  const { setIsMessagesLoading, setShowDetails, setShouldFetchMoreMessages } =
+    useChatStore();
   const navigate = useNavigate();
   const params = useParams<{ chatRoomId: string }>();
   const { chatRoomId } = params;
-  const { setIsSendMessageModalActive } = useModalStore();
+  const { setIsCreateGroupChatModalOpen } = useModalStore();
 
   const handleChatUserClick = (chatroom_id: string) => {
     if (chatRoomId === chatroom_id) return;
     setIsMessagesLoading(true);
     setShouldFetchMoreMessages(true);
-
+    setShowDetails(false);
     navigate(`/inbox/${chatroom_id}`);
   };
 
@@ -33,13 +33,13 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
     <div className="flex h-full w-full max-w-[400px] flex-col border-r border-[#262626] bg-black">
       <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
         <div className="flex cursor-pointer items-center active:text-zinc-500">
-          <h1 className="mr-1 text-2xl font-bold"> {user?.username} </h1>
+          <h1 className="mr-1 text-2xl font-bold"> {userData?.username} </h1>
           <Icon name="ChevronDown" size="20px" />
         </div>
         <Icon
           name="PenSquare"
           size="28px"
-          onClick={() => setIsSendMessageModalActive(true)}
+          onClick={() => setIsCreateGroupChatModalOpen(true)}
           className="active:text-zinc-500"
         />
       </div>
@@ -69,19 +69,18 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
         ) : (
           <>
             {userChats?.map((chat) => (
-              <ChatList
+              <List
                 key={chat.id}
                 isHoverDisabled={true}
-                image_url={
-                  chat.is_group
-                    ? [chat.users[0].image_url, chat.users[1].image_url]
-                    : chat.users[0].image_url
-                }
                 hover="darker"
-                title={chat.users[0].username}
+                title={chat.users.map((x) => x.username).join(", ")}
                 subtitle={chat.last_message}
-                avatarSize="lg"
                 onClick={() => handleChatUserClick(chat.chatroom_id)}
+                image_url={
+                  chat.is_group && chat.users.length > 1
+                    ? [chat.users[0].image_url, chat.users[1].image_url]
+                    : [chat.users[0].image_url]
+                }
                 className={
                   chatRoomId === chat.chatroom_id
                     ? "bg-white bg-opacity-10"

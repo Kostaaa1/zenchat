@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import Icon from "../pages/main/components/Icon";
-import Button from "./Button";
-import useModalStore from "../utils/stores/modalStore";
-import { trpcVanilla } from "../utils/trpcClient";
-import { TUserData } from "../../../server/src/types/types";
-import useUser from "../hooks/useUser";
+import Icon from "../../pages/main/components/Icon";
+import Button from "../Button";
+import useModalStore from "../../utils/stores/modalStore";
+import { trpc, trpcVanilla } from "../../utils/trpcClient";
+import { TUserData } from "../../../../server/src/types/types";
+import useUser from "../../hooks/useUser";
 import { debounce } from "lodash";
-import ChatList from "./ChatList";
-import { cn } from "../utils/utils";
-import useOutsideClick from "../hooks/useOutsideClick";
+import List from "../List";
+import { cn } from "../../utils/utils";
+import useOutsideClick from "../../hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
 
-const NewGroupChatModal = () => {
-  const { setIsSendMessageModalActive } = useModalStore();
+const CreateGroupChatModal = () => {
+  const { setIsCreateGroupChatModalOpen } = useModalStore();
   const [search, setSearch] = useState<string>("");
   const [searchedUsers, setSearchedUsers] = useState<TUserData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -21,11 +21,11 @@ const NewGroupChatModal = () => {
   const sendMessageModal = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   useOutsideClick([sendMessageModal], "mousedown", () =>
-    setIsSendMessageModalActive(false),
+    setIsCreateGroupChatModalOpen(false),
   );
 
   const closeSendMessageModal = () => {
-    setIsSendMessageModalActive(false);
+    setIsCreateGroupChatModalOpen(false);
   };
 
   const debounceEmit = debounce(
@@ -70,18 +70,32 @@ const NewGroupChatModal = () => {
     setSelectedUsers((state) => state.filter((x) => x.id !== id));
   };
 
+  const ctx = trpc.useContext();
   const handleClickChat = async () => {
+    setLoading(true);
     const userIds = selectedUsers.map((x) => x.id);
+    const newChatroomId = await trpcVanilla.chat.get.chatroom_id.query({
+      userIds: [...userIds, userId],
+      admin: userId,
+    });
 
-    const newChatroomId = await trpcVanilla.chat.getChatroomId.query([
-      ...userIds,
-      userId,
-    ]);
+    const newChat = await trpcVanilla.chat.get.currentChatRoom.query({
+      chatroom_id: newChatroomId as string,
+      user_id: userId,
+    });
 
-    console.log(newChatroomId);
-    if (newChatroomId) {
-      // setIsLoading(false);
+    if (newChat) {
+      ctx.chat.get.user_chatrooms.setData(userId, (stale) => {
+        if (stale) {
+          return [newChat, ...stale];
+        }
+      });
+    }
+
+    if (newChatroomId && newChat) {
+      closeSendMessageModal();
       navigate(`/inbox/${newChatroomId}`);
+      setLoading(false);
     }
   };
 
@@ -108,11 +122,11 @@ const NewGroupChatModal = () => {
                 {selectedUsers.map((x, id) => (
                   <div key={id} className="py-1 pr-2">
                     <div className="flex cursor-pointer items-center rounded-2xl bg-[#E0F1FF] px-2 py-1 text-xs">
-                      <span className="text-[#4a8ae9] hover:text-opacity-30">
+                      <span className="text-lightBlue hover:text-opacity-30">
                         {x.username}
                       </span>
                       <Icon
-                        className="ml-1 text-[#4a8ae9]"
+                        className="ml-1 text-lightBlue"
                         name="X"
                         size="18px"
                         onClick={() => handleRemoveSelectedUser(x.id)}
@@ -144,19 +158,18 @@ const NewGroupChatModal = () => {
               {searchedUsers.length !== 0 ? (
                 <div>
                   {searchedUsers.map((user) => (
-                    <ChatList
+                    <List
                       title={user?.username}
                       key={user?.id}
-                      image_url={user.image_url}
+                      image_url={[user.image_url]}
                       hover="darker"
-                      avatarSize="md"
                       subtitle={`${user?.first_name} ${user?.last_name}`}
                       onClick={() => handleClick(user)}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="p-4 text-start text-sm text-zinc-400">
+                <div className="p-2 py-4 text-start text-sm text-zinc-400">
                   No results found.
                 </div>
               )}
@@ -183,8 +196,11 @@ const NewGroupChatModal = () => {
             buttonColor="blue"
             className="w-full font-semibold"
             size="lg"
-            disabled={selectedUsers.length === 0 && search.length === 0}
+            disabled={
+              (selectedUsers.length === 0 && search.length === 0) || loading
+            }
             onClick={handleClickChat}
+            isLoading={loading}
           >
             Chat
           </Button>
@@ -194,4 +210,4 @@ const NewGroupChatModal = () => {
   );
 };
 
-export default NewGroupChatModal;
+export default CreateGroupChatModal;

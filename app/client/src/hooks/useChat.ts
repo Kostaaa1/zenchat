@@ -6,47 +6,94 @@ import { v4 as uuidv4 } from "uuid";
 import { TMessage } from "../../../server/src/types/types";
 import getCurrentDate from "../utils/getCurrentDate";
 import useChatCache from "./useChatCache";
-import { trpcVanilla } from "../utils/trpcClient";
-import axios from "axios";
+import { trpc, trpcVanilla } from "../utils/trpcClient";
+import { useParams } from "react-router-dom";
+import { Skin } from "@emoji-mart/data";
+import { uploadImage } from "../utils/utils";
+import { nanoid } from "nanoid";
 
-type TUseChatProps = {
-  socket: Socket;
-  scrollToStart: () => void;
-};
-
-const useChat = ({ socket, scrollToStart }: TUseChatProps) => {
+const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   const { userData, userId } = useUser();
   const [formData, setFormdata] = useState<FormData>(new FormData());
-  const [imgUrls, setImgUrls] = useState<string[]>([]);
-  const [isEmpty, setIsEmpty] = useState<boolean>(true);
+  const { chatRoomId } = useParams();
+  const ctx = trpc.useContext();
 
   const {
     selectedImageFiles,
     addSelectedFile,
     removeSelectedFile,
     clearSelectedFiles,
-    currentChatroom,
     isTyping,
     setIsTyping,
-    newMessage,
-    setNewMessage,
   } = useChatStore();
   const { addNewMessageToChatCache } = useChatCache();
 
-  useEffect(() => {
-    setIsTyping(newMessage.length > 0);
-  }, [newMessage]);
+  const { data: currentChatroom, isLoading } =
+    trpc.chat.get.currentChatRoom.useQuery(
+      { chatroom_id: chatRoomId as string, user_id: userId },
+      {
+        enabled: !!chatRoomId && !!userId,
+      },
+    );
+  const { new_message, img_urls, chatroom_id } = currentChatroom || {};
+
+  const setMessage = (text: string) => {
+    ctx.chat.get.currentChatRoom.setData(
+      {
+        chatroom_id: chatRoomId as string,
+        user_id: userId,
+      },
+      (stale) => {
+        if (stale) {
+          return { ...stale, new_message: text };
+        }
+      },
+    );
+  };
+
+  const setImgUrls = (img_urls: string[]) => {
+    console.log("setting img urls", img_urls);
+    // ctx.chat.get.user_chatrooms.setData(
+    //   userId,
+    //   (stale) =>
+    //     stale?.map((x) =>
+    //       x.chatroom_id === chatRoomId ? { ...x, img_urls } : x,
+    //     ),
+    // );
+    ctx.chat.get.currentChatRoom.setData(
+      { chatroom_id: chatRoomId as string, user_id: userId },
+      (stale) => {
+        if (stale) {
+          return { ...stale, img_urls };
+        }
+      },
+    );
+  };
+
+  // useEffect(() => {
+  //   if (!currentChatroom) return;
+  //   setMessage(currentChatroom?.new_message);
+  //   setIsTyping(currentChatroom?.new_message.length > 0);
+  // }, [currentChatroom]);
 
   useEffect(() => {
+    if (!socket) return;
+
     socket.emit(
       "typing",
       isTyping
-        ? { userId: userData?.id, chatroom_id: currentChatroom?.chatroom_id }
-        : { userId: "", chatroom_id: currentChatroom?.chatroom_id },
+        ? { userId: userData?.id, chatroom_id }
+        : { userId: "", chatroom_id },
     );
   }, [isTyping]);
 
+  const handleSelectEmoji = (e: Skin) => {
+    setMessage(`${new_message}${e.native}`);
+  };
+
   const removeFileFromArray = (id: number) => {
+    if (!img_urls) return;
+
     const currentFile = selectedImageFiles.find((_, i) => i === id);
     const newFormData = new FormData();
 
@@ -55,10 +102,12 @@ const useChat = ({ socket, scrollToStart }: TUseChatProps) => {
         newFormData.append("images", x);
       }
     });
-    setFormdata(newFormData);
 
+    setFormdata(newFormData);
     removeSelectedFile(id);
-    setImgUrls((prevState) => prevState?.filter((_, index) => index !== id));
+
+    const filteredData = img_urls?.filter((_, index) => index !== id);
+    setImgUrls(filteredData);
   };
 
   const createNewMessage = (data: {
@@ -72,66 +121,69 @@ const useChat = ({ socket, scrollToStart }: TUseChatProps) => {
     return {
       id: id || uuidv4(),
       sender_id: userId,
-      chatroom_id,
       created_at: getCurrentDate(),
-      content,
       isImage: isImage || false,
+      chatroom_id,
+      content,
     };
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileSetter = (newFile: File) => {
     if (!currentChatroom) return;
-    const fileImage = e.target.files?.[0];
+    formData.append("images", newFile);
+    setFormdata(formData);
 
-    if (fileImage) {
-      const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const filename = uniquePrefix + "-" + fileImage.name;
-      const newFile = new File([fileImage], filename, { type: fileImage.type });
+    const blob = URL.createObjectURL(newFile);
 
-      formData.append("images", newFile);
-      setFormdata(formData);
-
-      const blob = URL.createObjectURL(newFile);
-
-      setImgUrls((prev) => [...prev, blob]);
-      addSelectedFile(newFile);
-    }
-
-    e.target.value = "";
+    console.log("new blolb", blob);
+    setImgUrls([...currentChatroom.img_urls, blob]);
+    addSelectedFile(newFile);
   };
 
-  useEffect(() => {
-    setIsEmpty(imgUrls.length === 0);
-  }, [imgUrls]);
+  const renameFile = (fileImage: File, cb?: (file: File) => void) => {
+    // const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniquePrefix = nanoid();
+    const chatroomPrefix = currentChatroom?.chatroom_id.split("-")[0];
+
+    const filename = `${chatroomPrefix}-${uniquePrefix}-${fileImage.name}`;
+    const newFile = new File([fileImage], filename, { type: fileImage.type });
+
+    if (cb) cb(newFile);
+    return newFile;
+  };
+
+  const sendTextMessage = async (new_message: string, chatroom_id: string) => {
+    const messageData = createNewMessage({
+      content: new_message,
+      isImage: false,
+      chatroom_id,
+    });
+    addNewMessageToChatCache(messageData);
+    setMessage("");
+    if (messageData) await trpcVanilla.chat.messages.send.mutate(messageData);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    scrollToStart();
+    if (scrollToStart) scrollToStart();
 
     if (!currentChatroom) return;
-    const { chatroom_id } = currentChatroom;
+    const { chatroom_id, new_message, img_urls } = currentChatroom;
 
-    if (newMessage.length > 0) {
-      const messageData = createNewMessage({
-        content: newMessage,
-        isImage: false,
-        chatroom_id,
-      });
-
-      addNewMessageToChatCache(messageData);
-      setNewMessage("");
-      if (messageData) await trpcVanilla.chat.messages.send.mutate(messageData);
+    if (new_message.length > 0) {
+      await sendTextMessage(new_message, chatroom_id);
     }
 
-    if (selectedImageFiles.length > 0 && imgUrls?.length > 0) {
-      await sendImageMessages(chatroom_id);
+    if (selectedImageFiles.length > 0 && img_urls?.length > 0) {
+      await sendImageMessage(chatroom_id);
     }
   };
 
-  const sendImageMessages = async (chatroom_id: string) => {
+  const sendImageMessage = async (chatroom_id: string) => {
+    if (!img_urls || !socket) return;
     const arrayOfCreatedIds: string[] = [];
 
-    for (const fileUrl of imgUrls) {
+    for (const fileUrl of img_urls) {
       const id = uuidv4();
       arrayOfCreatedIds.push(id);
 
@@ -141,60 +193,47 @@ const useChat = ({ socket, scrollToStart }: TUseChatProps) => {
         isImage: true,
         chatroom_id,
       });
+
       messageData.content = fileUrl;
       addNewMessageToChatCache(messageData);
     }
 
     setImgUrls([]);
-    await uploadImages(arrayOfCreatedIds, chatroom_id);
-  };
+    const uploadedImages = await uploadImage(
+      "/api/image-upload/message",
+      formData,
+    );
 
-  const uploadImages = async (
-    arrayOfCreatedIds: string[],
-    chatroom_id: string,
-  ) => {
-    try {
-      const data: {
-        data: {
-          message: string;
-          urls: { key: string; size: number; type: string }[];
-        };
-      } = await axios.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+    for (let i = 0; i < uploadedImages.length; i++) {
+      const currentId = arrayOfCreatedIds[i];
+
+      const messageData = createNewMessage({
+        content: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[i],
+        id: currentId,
+        chatroom_id,
+        isImage: true,
       });
-      const uploadedImages = data.data.urls.map((x) => x.key);
 
-      for (let i = 0; i < uploadedImages.length; i++) {
-        const currentId = arrayOfCreatedIds[i];
-
-        const messageData = createNewMessage({
-          content: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[i],
-          id: currentId,
-          chatroom_id,
-          isImage: true,
-        });
-
-        socket.emit("new-message", messageData);
-        await trpcVanilla.chat.messages.send.mutate(messageData);
-      }
-
-      formData.delete("images");
-      clearSelectedFiles();
-    } catch (error) {
-      console.log(error);
-      return [];
+      socket.emit("new-message", messageData);
+      await trpcVanilla.chat.messages.send.mutate(messageData);
     }
+
+    formData.delete("images");
+    clearSelectedFiles();
   };
 
   return {
-    isEmpty,
     handleSubmit,
-    handleFileChange,
-    imgUrls,
+    renameFile,
+    setMessage,
     setImgUrls,
     removeFileFromArray,
+    handleSelectEmoji,
+    img_urls,
+    fileSetter,
+    new_message,
+    currentChatroom,
+    sendTextMessage,
   };
 };
 

@@ -2,8 +2,8 @@ import { z } from "zod";
 import { t } from "../../trpc";
 import {
   addUserToChatHistory,
-  deleteAllChats,
-  deleteChat,
+  deleteAllSearchedChats,
+  deleteSearchChat,
   getSearchedHistory,
 } from "../../utils/supabase/chatroom";
 
@@ -24,11 +24,11 @@ export const chatHistoryRouter = t.router({
       await addUserToChatHistory({ main_user_id, user_id });
     }),
   removeUser: t.procedure.input(z.string()).mutation(async ({ input }) => {
-    await deleteChat(input);
+    await deleteSearchChat(input);
   }),
   clearChatHistory: t.procedure
     .input(z.string())
     .mutation(async ({ input: id }) => {
-      await deleteAllChats(id);
+      await deleteAllSearchedChats(id);
     }),
 });

@@ -6,7 +6,9 @@ import { appRouter } from "./routers";
 import { initSocket } from "./config/initSocket";
 import { Server } from "socket.io";
 import "dotenv/config";
-import upload from "./middleware/multer";
+import { uploadMessageImage, uploadAvatar } from "./middleware/multer";
+import { createContext } from "./context";
+import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
 
 const { CLIENT_URL } = process.env;
 
@@ -26,17 +28,36 @@ const io = new Server(server, {
 });
 initSocket(io);
 
+// app.get("/api/verifyToken", decodeAndVerifyToken, (req: any, res: any, next: any) => {
+//   res.status(200).send({ hello: "World" });
+// });
+
 // Routes
-app.use("/trpc", createExpressMiddleware({ router: appRouter }));
+app.use(
+  "/trpc",
+  createExpressMiddleware({
+    router: appRouter,
+    createContext: createContext,
+  })
+);
 
-app.post("/api/upload", upload.array("images"), (req, res) => {
-  console.log(req.files);
+app.post("/api/image-upload/avatar", uploadAvatar.array("images"), (req, res) => {
   res.send({
-    message: "Uploaded!",
-    urls: (req.files as Express.Multer.File[])?.map((file) => {
+    urls: (req.files as Express.Multer.File[]).map((file) => {
       const { originalname, size, mimetype } = file;
-      console.log(file);
+      return {
+        key: originalname,
+        type: mimetype,
+        size,
+      };
+    }),
+  });
+});
 
+app.post("/api/image-upload/message", uploadMessageImage.array("images"), (req, res) => {
+  res.send({
+    urls: (req.files as Express.Multer.File[]).map((file) => {
+      const { originalname, size, mimetype } = file;
       return {
         key: originalname,
         type: mimetype,

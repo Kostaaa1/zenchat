@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import Search from "./Search";
 import useStore from "../../../../utils/stores/store";
 import { useState } from "react";
-import ChatList from "../../../../components/ChatList";
+import ChatList from "../../../../components/List";
 import { useNavigate } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
@@ -28,9 +28,10 @@ const SideSearch = () => {
     id: string;
   }) => {
     try {
+      console.log("called", username, id);
       if (!username && !id) return;
-      navigateToUserDashboard(username);
 
+      navigateToUserDashboard(username);
       await trpcVanilla.chat.history.addUser.mutate({
         main_user_id: userData?.id as string,
         user_id: id,
@@ -42,14 +43,14 @@ const SideSearch = () => {
 
   return (
     <motion.div
-      className="fixed left-[80px] top-0 z-10 flex h-full w-full max-w-[400px] flex-col border-r border-[#262626] bg-black"
+      className="fixed left-[80px] top-0 z-40 flex h-full w-full max-w-[400px] flex-col border-r border-[#262626] bg-black"
       initial={{ x: "-100%" }}
       animate={{ x: 0 }}
       exit={{ x: "-100%" }}
       transition={{ type: "spring", damping: 45, stiffness: 280 }}
     >
       <div className="flex h-full max-h-[140px] w-full flex-col justify-between border-b border-[#262626] p-6">
-        <h1 className="text-3xl font-bold">Search</h1>
+        <h1 className="text-2xl font-bold">Search</h1>
         <Search setLoading={setLoading} />
       </div>
       <div
@@ -72,10 +73,9 @@ const SideSearch = () => {
                       <ChatList
                         title={user?.username}
                         key={user?.id}
-                        image_url={user?.image_url}
+                        image_url={[user?.image_url]}
                         hover="darker"
                         subtitle={`${user?.first_name} ${user?.last_name}`}
-                        avatarSize="md"
                         onClick={() => {
                           const { username, id } = user;
                           handleListClick({

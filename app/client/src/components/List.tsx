@@ -2,7 +2,6 @@ import { cn } from "../utils/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import { motion } from "framer-motion";
-import Avatar from "./avatar/Avatar";
 import RenderAvatar from "./avatar/RenderAvatar";
 
 export const listVariants = cva(
@@ -30,11 +29,10 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   onClick?: () => void;
   isHoverDisabled?: boolean;
   icon?: ReactNode;
-  avatarSize: "sm" | "md" | "lg" | "xl";
   onIconClick?: () => void;
 }
 
-const ChatList: FC<ListProps> = ({
+const List: FC<ListProps> = ({
   onClick,
   onIconClick,
   title,
@@ -44,7 +42,6 @@ const ChatList: FC<ListProps> = ({
   className,
   children,
   isHoverDisabled,
-  avatarSize,
   icon,
   ...props
 }) => {
@@ -56,7 +53,7 @@ const ChatList: FC<ListProps> = ({
   };
 
   return (
-    <div
+    <li
       onMouseEnter={handleHoverList}
       onMouseLeave={handleHoverList}
       className={cn(
@@ -74,11 +71,9 @@ const ChatList: FC<ListProps> = ({
           }}
           avatarSize="lg"
         />
-        <div className="ml-4 flex h-full flex-col items-start">
+        <div className="ml-3 flex w-full flex-col text-start">
           <h1 className="font-semibold"> {title} </h1>
-          <h4 className="text-sm font-semibold text-neutral-400">
-            {subtitle || null}
-          </h4>
+          <h4 className="text-sm font-semibold text-neutral-400">{subtitle}</h4>
         </div>
       </div>
       {icon ? (
@@ -92,8 +87,8 @@ const ChatList: FC<ListProps> = ({
           {icon}
         </motion.div>
       ) : null}
-    </div>
+    </li>
   );
 };
 
-export default ChatList;
+export default List;

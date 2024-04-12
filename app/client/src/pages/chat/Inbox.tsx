@@ -15,73 +15,55 @@ const { VITE_SERVER_URL } = import.meta.env;
 import io from "socket.io-client";
 import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
+import ChatDetails from "./components/ChatDetails";
 const socket = io(VITE_SERVER_URL);
 
 const Inbox = () => {
-  const {
-    handleSelectEmoji,
-    setShowEmojiPicker,
-    showEmojiPicker,
-    // currentChatroom,
-    // setCurrentChatroom,
-  } = useChatStore();
+  const { setShowEmojiPicker, showDetails, showEmojiPicker } = useChatStore();
   const location = useLocation();
   const { userId } = useUser();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const params = useParams<{ chatRoomId: string }>();
+  const { chatRoomId } = useParams<{ chatRoomId: string }>();
+  const { setCurrentChatroom, currentChatroom } = useChatStore();
+  // const { currentChatroom } = useChat();
+
   useOutsideClick([emojiRef, iconRef], "click", () =>
     setShowEmojiPicker(false),
   );
-
   const scrollToStart = () => {
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
   const { data: userChats, isLoading: isUserChatsLoading } =
-    trpc.chat.getUserChatrooms.useQuery(userId, {
+    trpc.chat.get.user_chatrooms.useQuery(userId, {
       enabled: !!userId,
+      refetchOnMount: "always",
     });
 
-  const { data: currentChatroom } = trpc.chat.getCurrentChatroom.useQuery(
-    { chatroom_id: params.chatRoomId as string, user_id: userId },
-    { enabled: !!params.chatRoomId },
-  );
-
-  // useEffect(() => {
-  // if (!userChats) return;
-  // const chatRoomData = userChats?.find(
-  //   (chat) => chat.chatroom_id === params.chatRoomId,
-  // );
-  // if (chatRoomData) setCurrentChatroom(chatRoomData);
-  // }, [userChats, params.chatRoomId]);
+  useEffect(() => {
+    if (!userChats) return;
+    const currentChat = userChats?.find((x) => x.chatroom_id === chatRoomId);
+    if (currentChat) setCurrentChatroom(currentChat);
+  }, [userChats, chatRoomId]);
 
   const { recieveNewSocketMessage } = useChatCache();
   useChatSocket({ socket, userId, recieveNewSocketMessage });
 
-  useEffect(() => {
-    console.log(userChats);
-  }, [userChats]);
-
-  // useEffect(() => {
-  //   console.log(current);
-  // }, [current]);
-
   return (
     <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>
       <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
-      {location.pathname !== "/inbox" &&
-      currentChatroom &&
-      params.chatRoomId ? (
+      {location.pathname !== "/inbox" && currentChatroom && chatRoomId && (
         <div className="w-full">
           <div className="relative flex h-full w-full flex-col justify-between pb-4">
             <ChatHeader />
-            <Chat chatRoomId={params.chatRoomId} scrollRef={scrollRef} />
+            <Chat chatRoomId={chatRoomId} scrollRef={scrollRef} />
             <MessageInput scrollToStart={scrollToStart} iconRef={iconRef} />
           </div>
         </div>
-      ) : null}
+      )}
+      {showDetails && currentChatroom && <ChatDetails />}
       {location.pathname === "/inbox" ? (
         <div className="flex w-full flex-col items-center justify-center ">
           <Icon
@@ -94,13 +76,14 @@ const Inbox = () => {
             <p className="py-3 pt-1 text-neutral-400">
               Send private photos and messages to a friend
             </p>
-            <Button buttonColor="blue">Send message</Button>
+            <Button buttonColor="blue" className="text-sm">
+              Send message
+            </Button>
           </div>
         </div>
       ) : null}
       <EmojiPickerContainer
         emojiRef={emojiRef}
-        handleSelectEmoji={handleSelectEmoji}
         showEmojiPicker={showEmojiPicker}
       />
     </div>

@@ -6,13 +6,14 @@ import getCurrentDate from "../utils/getCurrentDate";
 import { trpc } from "../utils/trpcClient";
 import useChatStore from "../utils/stores/chatStore";
 import useUser from "./useUser";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const useChatCache = () => {
   const ctx = trpc.useContext();
-  const { setTypingUser } = useChatStore();
+  const { setTypingUser, setCurrentChatroom } = useChatStore();
   const { userId } = useUser();
   const params = useParams<{ chatRoomId: string }>();
+  const navigate = useNavigate();
 
   const addNewMessageToChatCache = useCallback(
     (messageData: TMessage) => {
@@ -39,6 +40,15 @@ const useChatCache = () => {
     });
   };
 
+  const removeChatFromUserChats = (chatroom_id: string) => {
+    ctx.chat.get.user_chatrooms.setData(userId, (state) => {
+      return state?.filter((x) => x.chatroom_id !== chatroom_id);
+    });
+
+    setCurrentChatroom(null);
+    navigate("/inbox");
+  };
+
   const replacePreviewImage = useCallback(
     (messageData: TMessage) => {
       ctx.chat.messages.get.setData(
@@ -59,14 +69,14 @@ const useChatCache = () => {
 
   const updateUserChatLastMessageCache = useCallback(
     (msg: TMessage) => {
-      console.log("SKRT CALLEDDDSDASKODKasok", msg);
+      console.log("Message from socket: ", msg);
       const last_message = msg.isImage
         ? "Photo"
         : msg.content.length > 40
         ? msg.content.slice(0, 40) + "..."
         : msg.content;
 
-      ctx.chat.getCurrentChatRooms.setData(userId, (oldData) => {
+      ctx.chat.get.user_chatrooms.setData(userId, (oldData) => {
         const data = oldData
           ?.map((chat) =>
             chat.chatroom_id === msg.chatroom_id
@@ -87,13 +97,12 @@ const useChatCache = () => {
         return data;
       });
     },
-    [ctx.chat.getCurrentChatRooms, userId],
+    [ctx.chat.get.user_chatrooms, userId],
   );
 
   const recieveNewSocketMessage = useCallback(
     (socketData: TRecieveNewSocketMessageType) => {
       const { channel, data } = socketData;
-
       if (channel === "typing" && params?.chatRoomId === data.chatroom_id) {
         setTypingUser(data.userId);
         return;
@@ -119,6 +128,7 @@ const useChatCache = () => {
   );
 
   return {
+    removeChatFromUserChats,
     removeMessageCache,
     recieveNewSocketMessage,
     addNewMessageToChatCache,

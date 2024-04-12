@@ -24,7 +24,7 @@ export const listVariants = cva(
   },
 );
 
-export interface ListProps extends VariantProps<typeof listVariants> {
+export interface NavListProps extends VariantProps<typeof listVariants> {
   children: ReactElement;
   title?: string;
   head?: string;
@@ -32,7 +32,7 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   onClick?: () => void;
 }
 
-const ListItem: FC<ListProps> = ({
+const NavListItem: FC<NavListProps> = ({
   onClick,
   title,
   head,
@@ -71,4 +71,4 @@ const ListItem: FC<ListProps> = ({
   );
 };
 
-export default ListItem;
+export default NavListItem;

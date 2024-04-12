@@ -2,29 +2,25 @@ import { TRPCError } from "@trpc/server";
 import { purgeImageCache } from "../../config/imagekit";
 import supabase from "../../config/supabase";
 import { deleteImageFromS3 } from "../../middleware/multer";
-import {
-  TChatHistory,
-  TMessage,
-  TPopulatedChat,
-  TPopulatedChatResponse,
-} from "../../types/types";
+import { TChatHistory, TMessage, TPopulatedChat, TChatroom } from "../../types/types";
 import "dotenv/config";
 
-export const getUserIdFromChatroom = async (
-  chatroom_id: string
-): Promise<{ user_id: string }[]> => {
-  const { data: chatroomData, error } = await supabase
-    .from("chatroom_users")
-    .select("user_id")
-    .eq("chatroom_id", chatroom_id);
+// Not being used:
+// export const getUserIdFromChatroom = async (
+//   chatroom_id: string
+// ): Promise<{ user_id: string }[]> => {
+//   const { data: chatroomData, error } = await supabase
+//     .from("chatroom_users")
+//     .select("user_id")
+//     .eq("chatroom_id", chatroom_id);
 
-  if (!chatroomData || error) {
-    console.log("Error: ", error);
-    throw new Error(error.message);
-  }
+//   if (!chatroomData || error) {
+//     console.log("Error: ", error);
+//     throw new Error(error.message);
+//   }
 
-  return chatroomData;
-};
+//   return chatroomData;
+// };
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -43,6 +39,28 @@ export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   return data;
 };
 
+export const getMoreMessages = async (
+  chatroom_id: string,
+  lastMessageDate: string
+): Promise<TMessage[]> => {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("chatroom_id", chatroom_id)
+    .lt("created_at", lastMessageDate)
+    .order("created_at", { ascending: false })
+    .limit(22);
+
+  if (!data) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Error when fetching all messages: ${error.message}`,
+    });
+  }
+
+  return data;
+};
+
 export const unsendMessage = async ({
   id,
   imageUrl,
@@ -51,10 +69,7 @@ export const unsendMessage = async ({
   imageUrl: string | null;
 }) => {
   try {
-    const { data, error } = await supabase
-      .from("messages")
-      .delete()
-      .eq("id", id);
+    const { data, error } = await supabase.from("messages").delete().eq("id", id);
 
     if (!data) {
       console.log(error);
@@ -67,41 +82,62 @@ export const unsendMessage = async ({
       );
 
       await purgeImageCache(process.env.IMAGEKIT_URL_ENDPOINT + imageUrl);
-      await deleteImageFromS3(imageUrl);
+      await deleteImageFromS3({ folder: "messages", file: imageUrl });
     }
   } catch (error) {
     console.log(error);
   }
 };
 
-export const getMoreMessages = async (
-  chatroom_id: string,
-  lastMessageDate: string
-): Promise<TMessage[]> => {
-  const { data, error } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("chatroom_id", chatroom_id)
-    .lt("created_at", lastMessageDate)
-    .order("created_at", { ascending: false })
-    .limit(15);
+export const deleteConversation = async (chatroom_id: string) => {
+  try {
+    const { data: images } = await supabase
+      .from("messages")
+      .select("content")
+      .eq("chatroom_id", chatroom_id)
+      .eq("isImage", true);
 
-  if (!data) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Error when fetching all messages: ${error.message}`,
-    });
+    if (images && images.length > 0) {
+      for (const img of images) {
+        await deleteImageFromS3({
+          folder: "messages",
+          file: img.content.split(process.env.IMAGEKIT_URL_ENDPOINT)[1],
+        });
+      }
+    }
+
+    const { error: usersError } = await supabase
+      .from("chatroom_users")
+      .delete()
+      .eq("chatroom_id", chatroom_id);
+
+    if (usersError) {
+      console.error("Error deleting chatroom_users: ", usersError);
+    }
+
+    const { error: chatroomsError } = await supabase
+      .from("chatrooms")
+      .delete()
+      .eq("chatroom_id", chatroom_id);
+
+    if (chatroomsError) {
+      console.error("Error while deleting chat from chatrooms table", chatroomsError);
+    }
+
+    const { error } = await supabase.from("messages").delete().eq("chatroom_id", chatroom_id);
+
+    if (error) {
+      console.error("Error deleting messages: ", error);
+    }
+  } catch (error) {
+    console.log(error);
   }
-
-  return data;
 };
 
 // Create new message:
 export const sendMessage = async (messageData: TMessage) => {
   const { chatroom_id, content, created_at } = messageData;
-  const { error: newMessageError } = await supabase
-    .from("messages")
-    .insert(messageData);
+  const { error: newMessageError } = await supabase.from("messages").insert(messageData);
 
   if (messageData.isImage) return;
   const { error: lastMessageUpdateError } = await supabase
@@ -130,21 +166,16 @@ export const sendMessage = async (messageData: TMessage) => {
 export const populateForeignColumns = async (
   chatroom_id: string,
   currentUser_id: string
-): Promise<TPopulatedChatResponse> => {
+): Promise<TChatroom> => {
   const { data, error } = await supabase
     .from("chatroom_users")
-    .select(
-      "*, users(username, image_url), chatrooms(last_message, created_at, is_group)"
-    )
+    .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)")
     .neq("user_id", currentUser_id)
     .eq("chatroom_id", chatroom_id);
 
-  //  UPDATEEEEEEEEE //
   if (!data) {
     throw new Error(
-      `Error fetching chat data for chatroom ${chatroom_id}: ${
-        error?.message || "No data"
-      }`
+      `Error fetching chat data for chatroom ${chatroom_id}: ${error?.message || "No data"}`
     );
   }
 
@@ -154,7 +185,6 @@ export const populateForeignColumns = async (
     image_url: string;
     user_id: string;
   }[];
-
   for (const item of populatedData) {
     const { users, user_id } = item;
     const { image_url, username } = users;
@@ -162,7 +192,7 @@ export const populateForeignColumns = async (
   }
 
   const { id, chatrooms } = populatedData[0];
-  const { last_message, created_at, is_group } = chatrooms;
+  const { last_message, created_at, is_group, admin } = chatrooms;
 
   const groupedData = {
     id,
@@ -170,45 +200,45 @@ export const populateForeignColumns = async (
     last_message,
     created_at,
     is_group,
+    admin,
+    new_message: "",
+    img_urls: [],
     users: newUsers,
   };
 
-  console.log("groupedData", groupedData);
   return groupedData;
 };
 
-export const getCurrentChatRoom = async (
-  chatroom_id: string,
-  user_id: string
-) => {
+export const getCurrentChatroom = async ({
+  chatroom_id,
+  user_id,
+}: {
+  chatroom_id: string;
+  user_id: string;
+}): Promise<TChatroom | undefined> => {
   try {
     const chatData = await populateForeignColumns(chatroom_id, user_id);
-
-    return { ...chatData, imgUrls: [], newMessage: "" };
+    return chatData;
   } catch (error) {
     console.log(error);
   }
 };
 
-export const getUserChatRooms = async (
-  userId: string
-): Promise<TPopulatedChatResponse[]> => {
+export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => {
   try {
     const { data: chatData, error } = await supabase
       .from("chatroom_users")
       .select("chatroom_id")
       .eq("user_id", userId);
+    // .or(`sender_id.eq.${userId},messages`);
 
     if (!chatData) {
-      throw new Error("Yoo");
+      throw new Error(`Error while getting user chatrooms: ${error}`);
     }
 
     const conversations = await Promise.all(
       chatData.map(async (chatroom) => {
-        const chatData = await populateForeignColumns(
-          chatroom.chatroom_id,
-          userId
-        );
+        const chatData = await populateForeignColumns(chatroom.chatroom_id, userId);
 
         return chatData;
       })
@@ -228,9 +258,7 @@ export const getUserChatRooms = async (
   }
 };
 
-export const getSearchedHistory = async (
-  id: string
-): Promise<TChatHistory[]> => {
+export const getSearchedHistory = async (id: string): Promise<TChatHistory[]> => {
   try {
     const { data, error } = await supabase
       .from("searched_users")
@@ -248,22 +276,16 @@ export const getSearchedHistory = async (
   }
 };
 
-export const deleteChat = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from("searched_users")
-    .delete()
-    .eq("user_id", id);
+export const deleteSearchChat = async (id: string): Promise<void> => {
+  const { error } = await supabase.from("searched_users").delete().eq("user_id", id);
 
   if (error) {
     throw new Error(error?.message);
   }
 };
 
-export const deleteAllChats = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from("searched_users")
-    .delete()
-    .eq("main_user_id", id);
+export const deleteAllSearchedChats = async (id: string): Promise<void> => {
+  const { error } = await supabase.from("searched_users").delete().eq("main_user_id", id);
 
   if (error) {
     console.log(error);
@@ -299,8 +321,33 @@ export const addUserToChatHistory = async ({
   }
 };
 
+const createChatRoom = async (is_group: boolean, admin: string): Promise<string> => {
+  const { data, error } = await supabase
+    .from("chatrooms")
+    .insert({ last_message: "", is_group, admin })
+    .select("id");
+
+  if (!data) {
+    console.log(error.message);
+  }
+
+  return data?.[0].id;
+};
+
+const inserUserChatroom = async (chatroomId: string, userId: string): Promise<void> => {
+  const { error } = await supabase.from("chatroom_users").insert({
+    chatroom_id: chatroomId,
+    user_id: userId,
+  });
+
+  if (error) {
+    console.error("Failed inserting chatroom for user!", error);
+  }
+};
+
 export const getChatroomId = async (
-  userIds: string[]
+  userIds: string[],
+  admin: string
 ): Promise<string | undefined> => {
   try {
     const { data, error } = await supabase.rpc("get_chatroom_id", {
@@ -308,19 +355,18 @@ export const getChatroomId = async (
     });
 
     if (error) {
-      throw new Error(
-        `Error executing SQL Procedure: ${JSON.stringify(error)}`
-      );
+      throw new Error(`Error executing SQL Procedure: ${JSON.stringify(error)}`);
     }
 
     if (!data || data.length === 0) {
       const isGroupChat = userIds.length > 2;
-      const chatroomId = await createChatRoom(isGroupChat);
+      const chatroomId = await createChatRoom(isGroupChat, admin);
 
       if (chatroomId) {
         for (const user of userIds) {
-          await insertChatroomUser(chatroomId, user);
+          await inserUserChatroom(chatroomId, user);
         }
+
         return chatroomId;
       }
     } else {
@@ -329,27 +375,4 @@ export const getChatroomId = async (
   } catch (error) {
     console.error(error);
   }
-};
-
-export const insertChatroomUser = async (
-  chatroomId: string,
-  userId: string
-): Promise<void> => {
-  await supabase.from("chatroom_users").insert({
-    chatroom_id: chatroomId,
-    user_id: userId,
-  });
-};
-
-export const createChatRoom = async (is_group: boolean): Promise<string> => {
-  const { data, error } = await supabase
-    .from("chatrooms")
-    .insert({ last_message: "", is_group })
-    .select("id");
-
-  if (!data) {
-    console.log(error.message);
-  }
-
-  return data?.[0].id;
 };

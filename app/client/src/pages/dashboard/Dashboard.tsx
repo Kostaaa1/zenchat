@@ -1,6 +1,5 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button";
-import { FaUser } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
 import { trpc, trpcVanilla } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
@@ -8,6 +7,9 @@ import { useEffect, useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
+import useModalStore from "../../utils/stores/modalStore";
+import { cn } from "../../utils/utils";
+import Icon from "../main/components/Icon";
 
 const UserBoarddash = ({
   userData,
@@ -19,16 +21,21 @@ const UserBoarddash = ({
   const navigate = useNavigate();
   const { userData: inspectedUser } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const {
+    setIsEditProfileModalOpen,
+    isAvatarUpdating,
+    showImageModal,
+    setImageModalSource,
+  } = useModalStore();
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
-
     if (!userData || !inspectedUser) return;
 
-    const path = await trpcVanilla.chat.getChatroomId.query([
-      userData.id,
-      inspectedUser?.id,
-    ]);
+    const path = await trpcVanilla.chat.get.chatroom_id.query({
+      userIds: [userData.id, inspectedUser?.id],
+      admin: userData.id,
+    });
 
     if (path) {
       setIsLoading(false);
@@ -36,24 +43,34 @@ const UserBoarddash = ({
     }
   };
 
+  const handleClick = () => {
+    if (isAvatarUpdating) return;
+
+    setImageModalSource(userData?.image_url as string);
+    showImageModal(userData?.image_url as string);
+  };
+
   return (
-    <div className="mx-16 my-8 flex h-full max-h-[160px]">
-      {/* <div>
-        {userData?.image_url === "" ? (
-          <FaUser className="h-full w-[160px] rounded-full bg-[#c24425] p-4" />
-        ) : (
-          <img
-            src={userData?.image_url}
-            className="h-full w-full max-w-[160px] rounded-full"
-            alt="user-image"
-          />
+    <div className="mx-16 my-8 flex min-h-[160px] border-b border-[#262626] px-10 pb-10">
+      <div className="relative" onClick={handleClick}>
+        {isAvatarUpdating && (
+          <div className="absolute h-full w-full animate-spin">
+            <Loader2
+              strokeWidth="1.2"
+              className="absolute right-1/2 top-1/2 h-12 w-12 -translate-y-1/2 translate-x-1/2 "
+            />
+          </div>
         )}
-      </div> */}
-      <div>
-        <Avatar image_url={userData?.image_url} size="xl" />
+        <div
+          className={cn(
+            "absolute h-full w-full cursor-pointer bg-black opacity-0 transition-all duration-200 hover:opacity-20",
+            isAvatarUpdating && "opacity-20",
+          )}
+        ></div>
+        <Avatar image_url={userData?.image_url} size="xxl" />
       </div>
-      <div className="ml-16 flex w-full flex-col">
-        <div className="flex h-20 flex-wrap items-start justify-start">
+      <div className="ml-16 flex w-full flex-col py-4">
+        <div className="flex h-14 items-start justify-start">
           <h1 className="pr-8 text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
             <>
@@ -62,12 +79,17 @@ const UserBoarddash = ({
               </Button>
             </>
           ) : (
-            <Button className="text-sm"> Edit Profile</Button>
+            <Button
+              onClick={() => setIsEditProfileModalOpen(true)}
+              className="text-sm"
+            >
+              Edit Profile
+            </Button>
           )}
         </div>
         <div>
           <h4 className="font-semibold">
-            {userData?.first_name} {userData?.last_name}
+            {`${userData?.first_name} ${userData?.last_name}`}
           </h4>
           <span>Lorem ipsum dolor sit amet.</span>
         </div>
@@ -97,7 +119,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="ml-80 flex h-full w-full max-w-[900px] flex-col px-4">
+      <div className="ml-80 flex h-full w-full max-w-[1000px] flex-col px-4">
         {inspectedUserData === null ? (
           <ErrorPage />
         ) : (
@@ -116,7 +138,16 @@ const Dashboard = () => {
                       : inspectedUserData
                   }
                 />
-                <div className="h-full border-t border-[#262626]"></div>
+                <div className="flex w-full items-center justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-neutral-600">
+                    <Icon
+                      name="Camera"
+                      className="text-neutral-600"
+                      size="40px"
+                      strokeWidth="1.2"
+                    />
+                  </div>
+                </div>
               </>
             )}
           </>

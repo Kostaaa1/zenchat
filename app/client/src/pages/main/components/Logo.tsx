@@ -1,5 +1,5 @@
 import { SiZend } from "react-icons/si";
-import ListItem from "./ListItem";
+import NavList from "./NavList";
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 import useStore from "../../../utils/stores/store";
@@ -17,7 +17,7 @@ const Logo: FC<LogoProps> = ({ variant }) => {
 
   return (
     <div>
-      <ListItem
+      <NavList
         onClick={() => navigate(`/${userData?.username}`)}
         head={variant === "default" ? "" : "Zenchat"}
         hover="blank"
@@ -31,7 +31,7 @@ const Logo: FC<LogoProps> = ({ variant }) => {
         >
           <SiZend className="h-[28px] w-[28px] rotate-90" />
         </motion.div>
-      </ListItem>
+      </NavList>
     </div>
   );
 };

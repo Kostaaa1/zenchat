@@ -12,12 +12,6 @@ type CommonFields = {
   user_id: string;
 };
 
-export type TChatRoomData = CommonFields & {
-  last_message: string;
-  image_url: string;
-  username: string;
-};
-
 export type TChatHistory = CommonFields & {
   users: TUserData;
   last_message: string;
@@ -29,15 +23,18 @@ export type TPopulatedChat = CommonFields & {
     is_group: boolean;
     last_message: string;
     created_at: string;
+    admin: string;
   };
 };
 
-export type TPopulatedChatResponse = {
+export type TChatroom = {
   id: string;
   last_message: string;
   chatroom_id: string;
   created_at: string;
   is_group: boolean;
+  new_message: string;
+  img_urls: string[];
   users: {
     user_id: string;
     username: string;

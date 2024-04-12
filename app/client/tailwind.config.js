@@ -4,7 +4,11 @@ import scrollBarPlugin from "tailwind-scrollbar";
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        lightBlue: "#3797F0",
+      },
+    },
   },
   plugins: [scrollBarPlugin],
 };

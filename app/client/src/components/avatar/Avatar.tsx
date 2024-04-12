@@ -11,7 +11,10 @@ const avatarVariance = cva(
         sm: "h-7 w-7 p-1",
         md: "h-10 w-10 p-2",
         lg: "h-14 w-14 p-3",
+        semiLg: "h-16 w-16 p-3",
+        semiXl: "h-24 w-24 p-4",
         xl: "h-32 w-32 p-4",
+        xxl: "h-40 w-40 p-4",
       },
     },
     defaultVariants: {

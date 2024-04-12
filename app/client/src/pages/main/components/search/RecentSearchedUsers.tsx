@@ -1,6 +1,6 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import useUser from "../../../../hooks/useUser";
-import ChatList from "../../../../components/ChatList";
+import List from "../../../../components/List";
 import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
 import { trpc, trpcVanilla } from "../../../../utils/trpcClient";
@@ -18,7 +18,8 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(
     userId,
     {
-      enabled: !!userData && !!userId,
+      enabled: !!userId,
+      refetchOnMount: "always",
     },
   );
 
@@ -32,7 +33,6 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   const handleDeleteAll = async () => {
     try {
       ctx.chat.history.getAll.setData(userId, []);
-
       if (!userData?.id) return;
       trpcVanilla.chat.history.clearChatHistory.mutate(userData?.id);
     } catch (error) {
@@ -62,15 +62,14 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
           {searchedChats && searchedChats.length > 0 ? (
             <>
               {searchedChats?.map((chat) => (
-                <ChatList
+                <List
                   key={chat.id}
                   isHoverDisabled={true}
-                  image_url={chat.users.image_url}
+                  image_url={[chat.users.image_url]}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}
                   onClick={() => navigateToUserDashboard(chat.users.username)}
                   hover="darker"
                   title={chat.users.username}
-                  avatarSize="md"
                   icon={<Icon name="X" size="28px" />}
                   subtitle={`${chat.users.first_name} ${chat.users.last_name}`}
                 />

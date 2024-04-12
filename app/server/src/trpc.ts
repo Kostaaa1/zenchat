@@ -1,8 +1,9 @@
-import { initTRPC } from "@trpc/server";
+import { TRPCError, inferAsyncReturnType, initTRPC } from "@trpc/server";
 import { ZodError } from "zod";
-export const t = initTRPC.context().create({
+import { createContext } from "./context";
+
+export const t = initTRPC.context<inferAsyncReturnType<typeof createContext>>().create({
   errorFormatter(opts) {
-    console.log("OPTS LOG", opts);
     const { shape, error } = opts;
     return {
       ...shape,

@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
-import Icon from "../pages/main/components/Icon";
-import { cn } from "../utils/utils";
-import useModalStore from "../utils/stores/modalStore";
-import useOutsideClick from "../hooks/useOutsideClick";
+import Icon from "../../pages/main/components/Icon";
+import { cn } from "../../utils/utils";
+import useModalStore from "../../utils/stores/modalStore";
+import useOutsideClick from "../../hooks/useOutsideClick";
 
 const ImageModal = () => {
   const [loading, setLoading] = useState(true);

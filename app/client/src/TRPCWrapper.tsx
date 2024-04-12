@@ -3,6 +3,11 @@ import { trpc } from "./utils/trpcClient";
 import { httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+interface IError {
+  code: string;
+  message: string;
+}
+
 const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = useState(
     () =>
@@ -10,6 +15,7 @@ const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
+            staleTime: Infinity,
           },
         },
       }),

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import Avatar from "./Avatar";
 import { cn } from "../../utils/utils";
 
@@ -14,7 +14,7 @@ const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
   const { image_url_1, image_url_2 } = image_urls;
 
   return (
-    <div className="flex h-full w-max">
+    <div className="flex h-full">
       {image_url_2 === undefined ? (
         <Avatar image_url={image_url_1} size={avatarSize} />
       ) : (

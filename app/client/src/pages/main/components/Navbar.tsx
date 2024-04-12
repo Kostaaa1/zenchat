@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import Icon from "./Icon";
-import ListItem from "./ListItem";
+import NavList from "./NavList";
 import { AnimatePresence, motion } from "framer-motion";
 import Logo from "./Logo";
 import useStore, { ActiveList } from "../../../utils/stores/store";
@@ -8,6 +8,7 @@ import UserDropdown from "./UserDropdown";
 import { useLocation } from "react-router-dom";
 import { cn } from "../../../utils/utils";
 import Avatar from "../../../components/avatar/Avatar";
+import useUser from "../../../hooks/useUser";
 
 interface NavbarProps {
   handleActivateSearch: () => void;
@@ -31,6 +32,7 @@ const Navbar: FC<NavbarProps> = ({
   const location = useLocation();
   const [isResponsive, setIsResponsive] = useState<boolean>(false);
   const [list, setList] = useState<"list" | "default">("default");
+  const { userData } = useUser();
 
   useEffect(() => {
     setIsResponsive(isSearchActive || location.pathname.includes("/inbox"));
@@ -46,7 +48,7 @@ const Navbar: FC<NavbarProps> = ({
     setIsResponsive(isSearchActive);
   };
 
-  type ListItems = {
+  type NavListItems = {
     iconName?: "MessageCircle" | "Search" | undefined;
     iconStrokeWidth?: string;
     title?: string;
@@ -54,7 +56,7 @@ const Navbar: FC<NavbarProps> = ({
     className?: string;
   };
 
-  const listItems: ListItems[] = [
+  const NavListItems: NavListItems[] = [
     {
       iconName: "MessageCircle",
       iconStrokeWidth: currentActiveNavList === "inbox" ? "3" : "",
@@ -93,10 +95,10 @@ const Navbar: FC<NavbarProps> = ({
               !isResponsive && "flex flex-col",
             )}
           >
-            {listItems.map((li, id) => (
+            {NavListItems.map((li, id) => (
               <div key={id}>
-                {id !== listItems.length - 1 && li.iconName ? (
-                  <ListItem
+                {id !== NavListItems.length - 1 && li.iconName ? (
+                  <NavList
                     variant={list}
                     onClick={li.onClick}
                     title={li.title}
@@ -108,18 +110,18 @@ const Navbar: FC<NavbarProps> = ({
                       color="white"
                       size="28px"
                     />
-                  </ListItem>
+                  </NavList>
                 ) : (
-                  <ListItem
+                  <NavList
                     variant={list}
                     title={li.title}
                     className="mb-2"
                     onClick={() => handleClick("user")}
                   >
                     <div>
-                      <Avatar size="sm" />
+                      <Avatar image_url={userData?.image_url} size="sm" />
                     </div>
-                  </ListItem>
+                  </NavList>
                 )}
               </div>
             ))}
@@ -129,9 +131,9 @@ const Navbar: FC<NavbarProps> = ({
             ref={iconRef}
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            <ListItem variant={list} title={isResponsive ? "" : "Menu"}>
+            <NavList variant={list} title={isResponsive ? "" : "Menu"}>
               <Icon name="Menu" color="white" size="28px" />
-            </ListItem>
+            </NavList>
             <AnimatePresence>
               {showDropdown && <UserDropdown dropdownRef={dropdownRef} />}
             </AnimatePresence>

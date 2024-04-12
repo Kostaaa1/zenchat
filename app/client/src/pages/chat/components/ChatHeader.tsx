@@ -1,12 +1,37 @@
+import { Info } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import useChatStore from "../../../utils/stores/chatStore";
-import Icon from "../../main/components/Icon";
+
+const InfoIcon = () => {
+  const { setShowDetails, showDetails } = useChatStore();
+
+  const handleIconClick = () => {
+    setShowDetails(!showDetails);
+  };
+
+  const iconSize = showDetails ? 34 : 30;
+  const fillColor = showDetails ? "white" : "";
+  const color = showDetails ? "black" : "white";
+
+  return (
+    <Info
+      onClick={handleIconClick}
+      width={iconSize}
+      height={iconSize}
+      fill={fillColor}
+      color={color}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      className="cursor-pointer"
+    />
+  );
+};
 
 const ChatHeader = () => {
   const { currentChatroom } = useChatStore();
 
   return (
-    <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
+    <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6 px-4">
       <div className="flex items-center">
         <RenderAvatar
           image_urls={{
@@ -18,10 +43,10 @@ const ChatHeader = () => {
           avatarSize="md"
         />
         <h1 className="ml-2 text-lg font-medium">
-          {currentChatroom?.users[0].username}
+          {currentChatroom?.users.map((x) => x.username).join(", ")}
         </h1>
       </div>
-      <Icon name="Info" size="28px" />
+      <InfoIcon />
     </div>
   );
 };

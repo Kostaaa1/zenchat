@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import useStore, { ActiveList } from "../../utils/stores/store";
 import { useRef } from "react";
-import { useUser } from "@clerk/clerk-react";
 import useOutsideClick from "../../hooks/useOutsideClick";
+import useUser from "../../hooks/useUser";
 
 const Header = () => {
   const {
@@ -15,7 +15,7 @@ const Header = () => {
     setIsSearchActive,
   } = useStore();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { userData } = useUser();
   const iconRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   useOutsideClick([iconRef, dropdownRef], "click", () =>
@@ -31,7 +31,7 @@ const Header = () => {
     setCurrentActiveNavList(list);
 
     if (list === "user") {
-      navigate(`/${user?.username}`);
+      navigate(`/${userData?.username}`);
     } else if (list === "inbox") {
       navigate(`/inbox`);
     }

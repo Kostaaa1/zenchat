@@ -1,5 +1,7 @@
+import { TRPCError } from "@trpc/server";
 import supabase from "../../config/supabase";
 import { TCreateUserInput, TUserData } from "../../types/types";
+import { deleteImageFromS3 } from "../../middleware/multer";
 
 export const getUser = async ({
   data,
@@ -20,6 +22,56 @@ export const getUser = async ({
   }
 
   return userData && userData.length > 0 ? userData[0] : null;
+};
+
+export const updateUserAvatar = async ({
+  userId,
+  image_url,
+}: {
+  userId: string;
+  image_url: string;
+}) => {
+  const { data: imageUrl } = await supabase
+    .from("users")
+    .select("image_url")
+    .eq("id", userId);
+
+  if (imageUrl && imageUrl.length > 0) {
+    deleteImageFromS3({ folder: "avatars", file: imageUrl[0].image_url });
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .update({ image_url })
+    .eq("id", userId)
+    .select("image_url");
+
+  if (error) return { error };
+  return { data: data[0].image_url };
+};
+
+export const updateUserData = async (
+  userId: string,
+  userData: {
+    username?: string | null | undefined;
+    last_name?: string | null | undefined;
+    first_name?: string | null | undefined;
+  }
+) => {
+  console.log(userId, userData);
+  const { error } = await supabase
+    .from("users")
+    .update({ ...userData })
+    .eq("id", userId);
+
+  if (error) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `User Image update Error: ${error}`,
+    });
+  }
+
+  return { success: true };
 };
 
 export const getSeachedUsers = async (

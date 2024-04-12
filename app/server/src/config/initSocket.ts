@@ -7,8 +7,9 @@ interface TCustomSocketType extends Socket {
 
 export const initSocket = (io: Server) => {
   io.on("connection", (socket: TCustomSocketType) => {
+    const rooms = io.sockets.adapter.rooms;
     socket.on("join-room", async (userId: string) => {
-      if (!userId) return;
+      if (!userId || rooms.has(socket.id)) return;
       console.log("Joined room: ", userId);
       socket.join(userId);
     });

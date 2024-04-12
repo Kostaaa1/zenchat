@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, useStore } from "zustand";
 
 export type ActiveList = "inbox" | "user" | "";
 type TOpenMessageDropdown = {
@@ -12,23 +12,48 @@ type Store = {
   setImageModalSource: (src: string) => void;
   showImageModal: (messageContent: string) => void;
   closeImageModal: () => void;
+  messageDropdownData: { id: string; imageUrl: string | null } | null;
+  setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
+  // Modals:
   showUnsendMsgModal: boolean;
   setShowUnsendMsgModal: (val: boolean) => void;
   isMessageDropdownActive: boolean;
   setIsMessageDropdownActive: (isOpen: boolean) => void;
-  messageDropdownData: { id: string; imageUrl: string | null } | null;
-  setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
-  isSendMessageModalActive: boolean;
-  setIsSendMessageModalActive: (isOpen: boolean) => void;
+  isCreateGroupChatModalOpen: boolean;
+  setIsCreateGroupChatModalOpen: (isOpen: boolean) => void;
+  isEditProfileModalOpen: boolean;
+  setIsEditProfileModalOpen: (isOpen: boolean) => void;
+  isAvatarUpdating: boolean;
+  setIsAvatarUpdating: (isUpdating: boolean) => void;
+  isDeleteChatOpen: boolean;
+  setIsDeleteChatOpen: (isUpdating: boolean) => void;
 };
 
 const useModalStore = create<Store>(
   (set): Store => ({
-    isSendMessageModalActive: false,
-    setIsSendMessageModalActive: (open: boolean) =>
+    isDeleteChatOpen: false,
+    setIsDeleteChatOpen: (isUpdaing: boolean) =>
       set((state) => ({
         ...state,
-        isSendMessageModalActive: open,
+        isDeleteChatOpen: isUpdaing,
+      })),
+    isAvatarUpdating: false,
+    setIsAvatarUpdating: (isUpdaing: boolean) =>
+      set((state) => ({
+        ...state,
+        isAvatarUpdating: isUpdaing,
+      })),
+    isEditProfileModalOpen: false,
+    setIsEditProfileModalOpen: (isOpen: boolean) =>
+      set((state) => ({
+        ...state,
+        isEditProfileModalOpen: isOpen,
+      })),
+    isCreateGroupChatModalOpen: false,
+    setIsCreateGroupChatModalOpen: (open: boolean) =>
+      set((state) => ({
+        ...state,
+        isCreateGroupChatModalOpen: open,
       })),
     // Message dropdown (show more, copy...) // UnsendModal data..
     messageDropdownData: null,

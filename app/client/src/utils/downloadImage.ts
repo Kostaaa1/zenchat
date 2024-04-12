@@ -13,7 +13,6 @@ export const downloadImage = (imgUrl: string) => {
       link.setAttribute("download", newImgName);
 
       document.body.appendChild(link);
-
       link.click();
 
       window.URL.revokeObjectURL(url);
