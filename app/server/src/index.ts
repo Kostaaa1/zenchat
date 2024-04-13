@@ -28,44 +28,50 @@ const io = new Server(server, {
 });
 initSocket(io);
 
-// app.get("/api/verifyToken", decodeAndVerifyToken, (req: any, res: any, next: any) => {
-//   res.status(200).send({ hello: "World" });
-// });
-
 // Routes
 app.use(
-  "/trpc",
+  "/api/trpc",
   createExpressMiddleware({
     router: appRouter,
-    createContext: createContext,
+    createContext,
   })
 );
 
-app.post("/api/image-upload/avatar", uploadAvatar.array("images"), (req, res) => {
-  res.send({
-    urls: (req.files as Express.Multer.File[]).map((file) => {
-      const { originalname, size, mimetype } = file;
-      return {
-        key: originalname,
-        type: mimetype,
-        size,
-      };
-    }),
-  });
-});
+app.post(
+  "/api/image-upload/avatar",
+  decodeAndVerifyToken,
+  uploadAvatar.array("images"),
+  (req, res) => {
+    res.send({
+      urls: (req.files as Express.Multer.File[]).map((file) => {
+        const { originalname, size, mimetype } = file;
+        return {
+          key: originalname,
+          type: mimetype,
+          size,
+        };
+      }),
+    });
+  }
+);
 
-app.post("/api/image-upload/message", uploadMessageImage.array("images"), (req, res) => {
-  res.send({
-    urls: (req.files as Express.Multer.File[]).map((file) => {
-      const { originalname, size, mimetype } = file;
-      return {
-        key: originalname,
-        type: mimetype,
-        size,
-      };
-    }),
-  });
-});
+app.post(
+  "/api/image-upload/message",
+  decodeAndVerifyToken,
+  uploadMessageImage.array("images"),
+  (req, res) => {
+    res.send({
+      urls: (req.files as Express.Multer.File[]).map((file) => {
+        const { originalname, size, mimetype } = file;
+        return {
+          key: originalname,
+          type: mimetype,
+          size,
+        };
+      }),
+    });
+  }
+);
 
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {

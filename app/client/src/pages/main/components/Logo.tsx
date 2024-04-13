@@ -2,7 +2,7 @@ import { SiZend } from "react-icons/si";
 import NavList from "./NavList";
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
-import useStore from "../../../utils/stores/store";
+import useStore from "../../../utils/stores/generalStore";
 import { motion } from "framer-motion";
 import useUser from "../../../hooks/useUser";
 

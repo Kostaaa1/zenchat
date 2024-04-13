@@ -14,30 +14,31 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import LoadingPage from "./pages/LoadingPage";
 import Modals from "./components/modals/Modals";
 import { trpc } from "./utils/trpcClient";
-import useStore from "./utils/stores/store";
+import useGeneralStore from "./utils/stores/generalStore";
 import { useEffect } from "react";
-import axios from "axios";
+import { updateAuthToken } from "./TRPCWrapper";
 
 function App() {
   const { getToken } = useAuth();
   const { user } = useUser();
-  const { email, setEmail, setUserId } = useStore();
+  const email = useGeneralStore((state) => state.email);
+  const { setEmail, setUserId } = useGeneralStore((state) => state.actions);
   const ctx = trpc.useContext();
 
-  const tokenGetter = async () => {
-    const res = await axios.get("/api/verifyToken");
-
-    console.log(res.data);
-    // const cookie = document.cookie
+  const refreshAuthToken = async () => {
+    if (user) {
+      const newToken = await getToken();
+      if (newToken) updateAuthToken(newToken);
+    }
   };
 
   useEffect(() => {
-    tokenGetter();
-  }, []);
+    refreshAuthToken();
+  }, [user]);
 
   const { data: userData, isFetched } = trpc.user.get.useQuery(
     { data: email, type: "email" },
-    { enabled: !!email },
+    { enabled: !!email && !!getToken() },
   );
 
   const createUserMutation = trpc.user.create.useMutation({
@@ -45,9 +46,7 @@ function App() {
     onSuccess: (data) => {
       ctx.user.get.setData({ data: email, type: "email" }, data);
     },
-    onError: () => {
-      //handle error
-    },
+    onError: () => {},
   });
 
   const createUser = async () => {

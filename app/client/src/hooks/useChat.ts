@@ -9,7 +9,7 @@ import useChatCache from "./useChatCache";
 import { trpc, trpcVanilla } from "../utils/trpcClient";
 import { useParams } from "react-router-dom";
 import { Skin } from "@emoji-mart/data";
-import { uploadImage } from "../utils/utils";
+import {  uploadMultipartForm } from "../utils/utils";
 import { nanoid } from "nanoid";
 
 const useChat = (socket?: Socket, scrollToStart?: () => void) => {
@@ -199,7 +199,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     }
 
     setImgUrls([]);
-    const uploadedImages = await uploadImage(
+    const uploadedImages = await uploadMultipartForm(
       "/api/image-upload/message",
       formData,
     );

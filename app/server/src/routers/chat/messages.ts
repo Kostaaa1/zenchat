@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "../../trpc";
+import { protectedProcedure, t } from "../../trpc";
 import {
   getMessages,
   getMoreMessages,
@@ -9,7 +9,7 @@ import {
 import { messageSchema, userSchema } from "../../types/zodSchemas";
 
 export const messageRouter = t.router({
-  get: t.procedure
+  get: protectedProcedure
     .input(
       z.object({
         chatroom_id: z.string(),
@@ -22,7 +22,7 @@ export const messageRouter = t.router({
       const messages = await getMessages(chatroom_id);
       return messages;
     }),
-  getMore: t.procedure
+  getMore: protectedProcedure
     .input(
       z.object({
         chatroom_id: z.string(),
@@ -36,24 +36,20 @@ export const messageRouter = t.router({
 
       return messages;
     }),
-  send: t.procedure
-    .input(messageSchema)
-    .mutation(async ({ input: messageData }) => {
-      try {
-        await sendMessage(messageData);
-      } catch (error) {
-        console.log(error);
-      }
-    }),
-  unsend: t.procedure
+  send: protectedProcedure.input(messageSchema).mutation(async ({ input: messageData }) => {
+    try {
+      await sendMessage(messageData);
+    } catch (error) {
+      console.log(error);
+    }
+  }),
+  unsend: protectedProcedure
     .input(z.object({ id: z.string(), imageUrl: z.string().nullable() }))
     .mutation(async ({ input }) => {
       console.log(input);
       await unsendMessage(input);
     }),
-  sendGroupMessage: t.procedure
-    .input(z.array(userSchema))
-    .mutation(({ input }) => {
-      console.log(input);
-    }),
+  sendGroupMessage: protectedProcedure.input(z.array(userSchema)).mutation(({ input }) => {
+    console.log(input);
+  }),
 });

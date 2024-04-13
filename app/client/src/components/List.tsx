@@ -46,7 +46,6 @@ const List: FC<ListProps> = ({
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
-
   const handleHoverList = () => {
     if (isHoverDisabled) return;
     setIsHovered(!isHovered);

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "../../trpc";
+import { t, protectedProcedure } from "../../trpc";
 import {
   addUserToChatHistory,
   deleteAllSearchedChats,
@@ -8,11 +8,11 @@ import {
 } from "../../utils/supabase/chatroom";
 
 export const chatHistoryRouter = t.router({
-  getAll: t.procedure.input(z.string()).query(async ({ input: id }) => {
+  getAll: protectedProcedure.input(z.string()).query(async ({ input: id }) => {
     const userChatHistory = await getSearchedHistory(id);
     return userChatHistory;
   }),
-  addUser: t.procedure
+  addUser: protectedProcedure
     .input(
       z.object({
         main_user_id: z.string(),
@@ -23,12 +23,10 @@ export const chatHistoryRouter = t.router({
       const { main_user_id, user_id } = input;
       await addUserToChatHistory({ main_user_id, user_id });
     }),
-  removeUser: t.procedure.input(z.string()).mutation(async ({ input }) => {
+  removeUser: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
     await deleteSearchChat(input);
   }),
-  clearChatHistory: t.procedure
-    .input(z.string())
-    .mutation(async ({ input: id }) => {
-      await deleteAllSearchedChats(id);
-    }),
+  clearChatHistory: protectedProcedure.input(z.string()).mutation(async ({ input: id }) => {
+    await deleteAllSearchedChats(id);
+  }),
 });

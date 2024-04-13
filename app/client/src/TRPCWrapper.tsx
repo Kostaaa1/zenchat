@@ -3,10 +3,10 @@ import { trpc } from "./utils/trpcClient";
 import { httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-interface IError {
-  code: string;
-  message: string;
-}
+let token: string;
+export const updateAuthToken = (newToken: string) => {
+  token = newToken;
+};
 
 const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = useState(
@@ -25,7 +25,12 @@ const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: "http://localhost:3000/trpc",
+          url: "http://localhost:3000/api/trpc",
+          headers() {
+            return {
+              Authorization: `Bearer ${token}`,
+            };
+          },
         }),
       ],
     }),

@@ -2,18 +2,15 @@ import Navbar from "./components/Navbar";
 import SideSearch from "./components/search/SideSearch";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import useStore, { ActiveList } from "../../utils/stores/store";
+import useGeneralStore, { ActiveList } from "../../utils/stores/generalStore";
 import { useRef } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import useUser from "../../hooks/useUser";
 
 const Header = () => {
-  const {
-    setCurrentActiveNavList,
-    isSearchActive,
-    setShowDropdown,
-    setIsSearchActive,
-  } = useStore();
+  const isSearchActive = useGeneralStore((state) => state.isSearchActive);
+  const { setIsSearchActive, setShowDropdown, setCurrentActiveNavList } =
+    useGeneralStore((state) => state.actions);
   const navigate = useNavigate();
   const { userData } = useUser();
   const iconRef = useRef<HTMLDivElement>(null);
@@ -21,11 +18,9 @@ const Header = () => {
   useOutsideClick([iconRef, dropdownRef], "click", () =>
     setShowDropdown(false),
   );
-
   const handleActivateSearch = () => {
     setIsSearchActive(!isSearchActive);
   };
-
   const handleActiveElement = (list: ActiveList) => {
     setIsSearchActive(false);
     setCurrentActiveNavList(list);

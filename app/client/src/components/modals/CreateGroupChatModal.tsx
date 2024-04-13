@@ -53,7 +53,6 @@ const CreateGroupChatModal = () => {
       return;
     }
     debounceEmit();
-
     return () => {
       debounceEmit.cancel();
     };

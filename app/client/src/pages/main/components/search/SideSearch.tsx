@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import Search from "./Search";
-import useStore from "../../../../utils/stores/store";
 import { useState } from "react";
 import ChatList from "../../../../components/List";
 import { useNavigate } from "react-router-dom";
@@ -8,11 +7,14 @@ import useUser from "../../../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
 import { cn } from "../../../../utils/utils";
 import { trpcVanilla } from "../../../../utils/trpcClient";
+import useGeneralStore from "../../../../utils/stores/generalStore";
 
 const SideSearch = () => {
-  const { search, setIsSearchActive, searchedUsers } = useStore();
-  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+  const search = useGeneralStore((state) => state.search);
+  const searchedUsers = useGeneralStore((state) => state.searchedUsers);
+  const { setIsSearchActive } = useGeneralStore((state) => state.actions);
+  const [loading, setLoading] = useState<boolean>(false);
   const { userData } = useUser();
 
   const navigateToUserDashboard = (username: string) => {

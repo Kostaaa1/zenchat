@@ -8,7 +8,7 @@ import useChat from "../../hooks/useChat";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { trpcVanilla } from "../../utils/trpcClient";
 import { useNavigate } from "react-router-dom";
-import { uploadImage } from "../../utils/utils";
+import { uploadMultipartForm } from "../../utils/utils";
 // import { loadSingleImage } from "../utils/loadImages";
 
 export type CommonInput = {
@@ -50,7 +50,7 @@ const EditProfileModal = () => {
       const formData = new FormData();
       formData.append("images", renamedFile);
 
-      const uploadedImages = await uploadImage(
+      const uploadedImages = await uploadMultipartForm(
         "/api/image-upload/avatar",
         formData,
       );

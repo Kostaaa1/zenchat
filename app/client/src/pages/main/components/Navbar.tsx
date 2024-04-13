@@ -3,12 +3,14 @@ import Icon from "./Icon";
 import NavList from "./NavList";
 import { AnimatePresence, motion } from "framer-motion";
 import Logo from "./Logo";
-import useStore, { ActiveList } from "../../../utils/stores/store";
 import UserDropdown from "./UserDropdown";
 import { useLocation } from "react-router-dom";
 import { cn } from "../../../utils/utils";
 import Avatar from "../../../components/avatar/Avatar";
 import useUser from "../../../hooks/useUser";
+import useGeneralStore, {
+  ActiveList,
+} from "../../../utils/stores/generalStore";
 
 interface NavbarProps {
   handleActivateSearch: () => void;
@@ -23,12 +25,13 @@ const Navbar: FC<NavbarProps> = ({
   iconRef,
   dropdownRef,
 }) => {
-  const {
-    currentActiveNavList,
-    setShowDropdown,
-    showDropdown,
-    isSearchActive,
-  } = useStore();
+  const currentActiveNavList = useGeneralStore(
+    (state) => state.currentActiveNavList,
+  );
+  const showDropdown = useGeneralStore((state) => state.showDropdown);
+  const isSearchActive = useGeneralStore((state) => state.isSearchActive);
+  const { setShowDropdown } = useGeneralStore((state) => state.actions);
+
   const location = useLocation();
   const [isResponsive, setIsResponsive] = useState<boolean>(false);
   const [list, setList] = useState<"list" | "default">("default");

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "../trpc";
+import { protectedProcedure, t } from "../trpc";
 import {
   createUser,
   getSeachedUsers,
@@ -11,7 +11,7 @@ import { createUserSchema } from "../types/zodSchemas";
 import { TRPCError, initTRPC } from "@trpc/server";
 
 export const userRouter = t.router({
-  get: t.procedure
+  get: protectedProcedure
     .input(
       z.object({
         data: z.string(),
@@ -26,7 +26,7 @@ export const userRouter = t.router({
       console.log("Return user data", userData);
       return userData;
     }),
-  search: t.procedure
+  search: protectedProcedure
     .input(z.object({ username: z.string(), searchValue: z.string() }))
     .query(async ({ input }) => {
       const { searchValue, username } = input;
@@ -34,7 +34,7 @@ export const userRouter = t.router({
       const searchedUsers = await getSeachedUsers(username, searchValue);
       return searchedUsers;
     }),
-  updateAvatar: t.procedure
+  updateAvatar: protectedProcedure
     .input(z.object({ userId: z.string(), image_url: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const req = await updateUserAvatar(input);
@@ -48,7 +48,7 @@ export const userRouter = t.router({
 
       return req.data;
     }),
-  updateUserData: t.procedure
+  updateUserData: protectedProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -65,7 +65,7 @@ export const userRouter = t.router({
       await updateUserData(userId, userData);
       return true;
     }),
-  create: t.procedure.input(createUserSchema).mutation(async ({ input }) => {
+  create: protectedProcedure.input(createUserSchema).mutation(async ({ input }) => {
     try {
       const { email, firstName, lastName, username } = input;
       console.log(email, firstName, lastName, username);

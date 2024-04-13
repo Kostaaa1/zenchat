@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 import Icon from "../Icon";
-import useStore from "../../../../utils/stores/store";
+import useGeneralStore from "../../../../utils/stores/generalStore";
 import UseUser from "../../../../hooks/useUser";
 import { debounce } from "lodash";
 import useOutsideClick from "../../../../hooks/useOutsideClick";
@@ -12,9 +12,12 @@ type SearchProps = {
 
 const Search: FC<SearchProps> = ({ setLoading }) => {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const { search, setSearch, setSearchedUsers } = useStore();
   const { userData } = UseUser();
+  const searchRef = useRef<HTMLDivElement>(null);
+  const search = useGeneralStore((state) => state.search);
+  const { setSearchedUsers, setSearch } = useGeneralStore(
+    (state) => state.actions,
+  );
   useOutsideClick([searchRef], "click", () => setIsSearchFocused(false));
 
   const debounceEmit = debounce(

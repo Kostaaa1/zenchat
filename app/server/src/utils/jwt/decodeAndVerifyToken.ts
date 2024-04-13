@@ -17,7 +17,7 @@ export const decodeAndVerifyToken = (req: Request, res: Response) => {
 
   const token = req.headers["authorization"];
   if (token === undefined && sessionToken === undefined) {
-    res.status(401).json({ error: "Not signed in" });
+    console.log("No token nor session TOkken");
     return;
   }
 
@@ -30,10 +30,7 @@ export const decodeAndVerifyToken = (req: Request, res: Response) => {
     }
     return decoded;
   } catch (err) {
-    console.log(err);
-    res.status(400).json({
-      error: "Invalid Token",
-    });
+    console.log("Error while decoding and veryfing token", err);
     return;
   }
 };
