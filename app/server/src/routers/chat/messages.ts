@@ -46,7 +46,7 @@ export const messageRouter = t.router({
   unsend: protectedProcedure
     .input(z.object({ id: z.string(), imageUrl: z.string().nullable() }))
     .mutation(async ({ input }) => {
-      console.log(input);
+      console.log("unsend", input);
       await unsendMessage(input);
     }),
   sendGroupMessage: protectedProcedure.input(z.array(userSchema)).mutation(({ input }) => {

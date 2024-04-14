@@ -1,9 +1,9 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import useUser from "../../../../hooks/useUser";
 import List from "../../../../components/List";
 import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
-import { trpc, trpcVanilla } from "../../../../utils/trpcClient";
+import { trpc } from "../../../../utils/trpcClient";
 
 interface RecentSearchedUsersProps {
   navigateToUserDashboard: (username: string) => void;
@@ -12,8 +12,11 @@ interface RecentSearchedUsersProps {
 const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   navigateToUserDashboard,
 }) => {
-  const ctx = trpc.useContext();
+  const { chat } = trpc.useUtils();
   const { userData, userId } = useUser();
+  const removeUserMutation = trpc.chat.history.removeUser.useMutation();
+  const clearChatHistoryMutation =
+    trpc.chat.history.clearChatHistory.useMutation();
 
   const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(
     userId,
@@ -24,17 +27,17 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   );
 
   const handleDeleteSingleChat = async (user_id: string) => {
-    ctx.chat.history.getAll.setData(userId, (prevData) => {
+    chat.history.getAll.setData(userId, (prevData) => {
       return prevData?.filter((data) => data.user_id !== user_id);
     });
-    trpcVanilla.chat.history.removeUser.mutate(user_id);
+    await removeUserMutation.mutateAsync(user_id);
   };
 
   const handleDeleteAll = async () => {
     try {
-      ctx.chat.history.getAll.setData(userId, []);
+      chat.history.getAll.setData(userId, []);
       if (!userData?.id) return;
-      trpcVanilla.chat.history.clearChatHistory.mutate(userData?.id);
+      clearChatHistoryMutation.mutate(userData?.id);
     } catch (error) {
       console.log(error);
     }

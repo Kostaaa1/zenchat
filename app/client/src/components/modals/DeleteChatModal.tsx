@@ -2,14 +2,15 @@ import { useRef } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import useModalStore from "../../utils/stores/modalStore";
 import useChatStore from "../../utils/stores/chatStore";
-import { trpcVanilla } from "../../utils/trpcClient";
 import useChatCache from "../../hooks/useChatCache";
+import { trpc } from "../../utils/trpcClient";
 
 const DeleteChatModal = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const { currentChatroom } = useChatStore();
-  const { setIsDeleteChatOpen } = useModalStore();
+  const { setIsDeleteChatOpen } = useModalStore(state => state.actions);
   const { removeChatFromUserChats } = useChatCache();
+  const deleteChatMutation = trpc.chat.delete.useMutation();
   useOutsideClick([modalRef], "mousedown", () => setIsDeleteChatOpen(false));
 
   const handleDeleteConversation = async () => {
@@ -18,8 +19,7 @@ const DeleteChatModal = () => {
 
     setIsDeleteChatOpen(false);
     removeChatFromUserChats(chatroom_id);
-
-    await trpcVanilla.chat.delete.mutate(chatroom_id);
+    await deleteChatMutation.mutateAsync(chatroom_id);
   };
 
   return (

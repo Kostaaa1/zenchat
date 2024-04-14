@@ -11,7 +11,7 @@ const useUser = () => {
   const email = useStore((state) => state.email);
   const ctx = trpc.useContext();
   const userData = ctx.user.get.getData({ data: email, type: "email" });
-  const { setIsAvatarUpdating } = useModalStore();
+  const { setIsAvatarUpdating } = useModalStore((state) => state.actions);
 
   type TUserDataMutation = TUserData & {
     [key: string]: string | undefined;

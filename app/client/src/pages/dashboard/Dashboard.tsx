@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button";
 import { Loader2 } from "lucide-react";
-import { trpc, trpcVanilla } from "../../utils/trpcClient";
+import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
 import { useEffect, useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
@@ -21,19 +21,17 @@ const UserBoarddash = ({
   const navigate = useNavigate();
   const { userData: inspectedUser } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const {
-    setIsEditProfileModalOpen,
-    isAvatarUpdating,
-    showImageModal,
-    setImageModalSource,
-  } = useModalStore();
+  const { setIsEditProfileModalOpen, showImageModal, setImageModalSource } =
+    useModalStore((state) => state.actions);
+  const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
+  const { chat } = trpc.useUtils();
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
     if (!userData || !inspectedUser) return;
 
-    const path = await trpcVanilla.chat.get.chatroom_id.query({
-      userIds: [userData.id, inspectedUser?.id],
+    const path = await chat.get.chatroom_id.fetch({
+      userIds: [userData.id, inspectedUser.id],
       admin: userData.id,
     });
 
@@ -45,7 +43,6 @@ const UserBoarddash = ({
 
   const handleClick = () => {
     if (isAvatarUpdating) return;
-
     setImageModalSource(userData?.image_url as string);
     showImageModal(userData?.image_url as string);
   };

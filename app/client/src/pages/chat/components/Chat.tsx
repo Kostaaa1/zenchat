@@ -21,14 +21,14 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const { typingUser, currentChatroom } = useChatStore();
   const { userData } = useUser();
-  const ctx = trpc.useContext();
-  const {
-    shouldFetchMoreMessages,
-    setShouldFetchMoreMessages,
-    setIsMessagesLoading,
-    isMessagesLoading,
-  } = useChatStore();
-
+  const ctx = trpc.useUtils();
+  const isMessagesLoading = useChatStore((state) => state.isMessagesLoading);
+  const shouldFetchMoreMessages = useChatStore(
+    (state) => state.shouldFetchMoreMessages,
+  );
+  const { setShouldFetchMoreMessages, setIsMessagesLoading } = useChatStore(
+    (state) => state.actions,
+  );
   const { mutateAsync: getMoreMutation, isSuccess } =
     trpc.chat.messages.getMore.useMutation({
       mutationKey: [

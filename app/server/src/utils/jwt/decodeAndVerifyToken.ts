@@ -5,7 +5,7 @@ import { Request, Response } from "express";
 import "dotenv/config";
 import fs from "fs";
 
-export const decodeAndVerifyToken = (req: Request, res: Response) => {
+export const decodeAndVerifyToken = (req: Request, res: Response, next?: () => void) => {
   const PUBLIC_KEY = fs.readFileSync("./public_key.pem");
   if (!PUBLIC_KEY)
     throw new Error(
@@ -15,10 +15,17 @@ export const decodeAndVerifyToken = (req: Request, res: Response) => {
   const cookies = new Cookies(req, res);
   const sessionToken = cookies.get("__session");
 
+  const handleError = (status: number, error: any) => {
+    if (next) {
+      res.status(status).send(error);
+    } else {
+      return;
+    }
+  };
+
   const token = req.headers["authorization"];
   if (token === undefined && sessionToken === undefined) {
-    console.log("No token nor session TOkken");
-    return;
+    handleError(400, "Access token/session not provided.");
   }
 
   try {
@@ -28,9 +35,13 @@ export const decodeAndVerifyToken = (req: Request, res: Response) => {
     } else {
       decoded = jwt.verify(sessionToken, PUBLIC_KEY, { algorithms: ["RS256"] });
     }
-    return decoded;
+
+    if (next) {
+      next();
+    } else {
+      return decoded;
+    }
   } catch (err) {
-    console.log("Error while decoding and veryfing token", err);
-    return;
+    handleError(500, err);
   }
 };

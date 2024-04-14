@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import Button from "../../../components/Button";
 import List from "../../../components/List";
 import { Link } from "react-router-dom";
@@ -9,19 +9,18 @@ import useChatStore from "../../../utils/stores/chatStore";
 interface ChatDetailsProps {}
 
 const ChatDetails: FC<ChatDetailsProps> = () => {
-  const { currentChatroom } = useChatStore();
+  const currentChatroom = useChatStore((state) => state.currentChatroom);
   const [isMuteActive, setIsMuteActive] = useState<boolean>(false);
-  const { setIsDeleteChatOpen } = useModalStore();
-
+  const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
   const componentLists = [
     { list: "Delete", id: 0, fn: () => setIsDeleteChatOpen(true) },
   ];
 
   return (
     <div className="flex w-full max-w-[270px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
-      <div className="p-6">
-        <h2 className="mb-6 text-xl">Details</h2>
-        <div className="my-2 flex w-full items-center justify-between pb-6">
+      <div className="flex h-full max-h-[140px] flex-col justify-evenly px-4">
+        <h2 className="text-xl">Details</h2>
+        <div className="flex w-full items-center justify-between">
           <p className="text-sm">Mute conversation</p>
           <div
             onClick={() => setIsMuteActive(!isMuteActive)}

@@ -4,7 +4,7 @@ import useGeneralStore from "../../../../utils/stores/generalStore";
 import UseUser from "../../../../hooks/useUser";
 import { debounce } from "lodash";
 import useOutsideClick from "../../../../hooks/useOutsideClick";
-import { trpcVanilla } from "../../../../utils/trpcClient";
+import { trpc } from "../../../../utils/trpcClient";
 
 type SearchProps = {
   setLoading: (bool: boolean) => void;
@@ -18,6 +18,7 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
   const { setSearchedUsers, setSearch } = useGeneralStore(
     (state) => state.actions,
   );
+  const { user } = trpc.useUtils();
   useOutsideClick([searchRef], "click", () => setIsSearchFocused(false));
 
   const debounceEmit = debounce(
@@ -27,7 +28,7 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
         return null;
       }
 
-      const searchedUsers = await trpcVanilla.user.search.query({
+      const searchedUsers = await user.search.fetch({
         username: userData?.username,
         searchValue: search,
       });

@@ -70,17 +70,12 @@ export const unsendMessage = async ({
 }) => {
   try {
     const { data, error } = await supabase.from("messages").delete().eq("id", id);
-
-    if (!data) {
-      console.log(error);
-    }
-
+    if (!data) console.log(error);
     if (imageUrl) {
       console.log(
         "This si iamgekit link for purifying: ",
         process.env.IMAGEKIT_URL_ENDPOINT + imageUrl
       );
-
       await purgeImageCache(process.env.IMAGEKIT_URL_ENDPOINT + imageUrl);
       await deleteImageFromS3({ folder: "messages", file: imageUrl });
     }
@@ -205,7 +200,6 @@ export const populateForeignColumns = async (
     img_urls: [],
     users: newUsers,
   };
-
   return groupedData;
 };
 
@@ -238,16 +232,15 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
 
     const conversations = await Promise.all(
       chatData.map(async (chatroom) => {
-        const chatData = await populateForeignColumns(chatroom.chatroom_id, userId);
-
-        return chatData;
+        const s = await populateForeignColumns(chatroom.chatroom_id, userId);
+        return s;
       })
     );
 
+    console.log("conversations", conversations);
     conversations.sort((a, b) => {
       const dateA = new Date(a.created_at).getTime();
       const dateB = new Date(b.created_at).getTime();
-
       return dateB - dateA;
     });
 

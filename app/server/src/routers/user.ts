@@ -60,7 +60,6 @@ export const userRouter = t.router({
       })
     )
     .mutation(async ({ input }) => {
-      console.log("iDSADKASODOSKAODKonput", input);
       const { userData, userId } = input;
       await updateUserData(userId, userData);
       return true;

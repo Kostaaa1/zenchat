@@ -12,7 +12,8 @@ interface MessageInputProps {
 }
 
 const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
-  const { showEmojiPicker, setShowEmojiPicker } = useChatStore();
+  const { setShowEmojiPicker } = useChatStore((state) => state.actions);
+  const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { currentChatroom } = useChat();
   const {
     renameFile,

@@ -6,7 +6,8 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 
 const ImageModal = () => {
   const [loading, setLoading] = useState(true);
-  const { imageModalSource, closeImageModal } = useModalStore();
+  const { closeImageModal } = useModalStore((state) => state.actions);
+  const imageModalSource = useModalStore((state) => state.imageModalSource);
   const imageModalRef = useRef<HTMLDivElement>(null);
   useOutsideClick([imageModalRef], "mousedown", closeImageModal);
 

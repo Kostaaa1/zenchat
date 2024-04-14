@@ -21,7 +21,6 @@ export const chatRouter = t.router({
       .input(z.string().nullish())
       .query(async ({ input: userId }) => {
         if (!userId) return;
-
         const chatrooms = await getUserChatRooms(userId);
         return chatrooms;
       }),
@@ -33,9 +32,7 @@ export const chatRouter = t.router({
       }),
   }),
   delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
-    console.log("DSADJISJAIDJISAJIDSA IDDD", input);
     await deleteConversation(input);
-    return "yooo";
   }),
   messages: messageRouter,
   history: chatHistoryRouter,

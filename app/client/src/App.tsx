@@ -16,25 +16,13 @@ import Modals from "./components/modals/Modals";
 import { trpc } from "./utils/trpcClient";
 import useGeneralStore from "./utils/stores/generalStore";
 import { useEffect } from "react";
-import { updateAuthToken } from "./TRPCWrapper";
 
 function App() {
   const { getToken } = useAuth();
   const { user } = useUser();
   const email = useGeneralStore((state) => state.email);
   const { setEmail, setUserId } = useGeneralStore((state) => state.actions);
-  const ctx = trpc.useContext();
-
-  const refreshAuthToken = async () => {
-    if (user) {
-      const newToken = await getToken();
-      if (newToken) updateAuthToken(newToken);
-    }
-  };
-
-  useEffect(() => {
-    refreshAuthToken();
-  }, [user]);
+  const ctx = trpc.useUtils();
 
   const { data: userData, isFetched } = trpc.user.get.useQuery(
     { data: email, type: "email" },

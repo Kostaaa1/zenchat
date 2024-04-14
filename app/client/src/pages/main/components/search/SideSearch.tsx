@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
 import { cn } from "../../../../utils/utils";
-import { trpcVanilla } from "../../../../utils/trpcClient";
 import useGeneralStore from "../../../../utils/stores/generalStore";
+import { trpc } from "../../../../utils/trpcClient";
 
 const SideSearch = () => {
   const navigate = useNavigate();
@@ -16,6 +16,8 @@ const SideSearch = () => {
   const { setIsSearchActive } = useGeneralStore((state) => state.actions);
   const [loading, setLoading] = useState<boolean>(false);
   const { userData } = useUser();
+
+  const addToHistoryMutation = trpc.chat.history.addUser.useMutation();
 
   const navigateToUserDashboard = (username: string) => {
     navigate(`/${username}`);
@@ -34,7 +36,7 @@ const SideSearch = () => {
       if (!username && !id) return;
 
       navigateToUserDashboard(username);
-      await trpcVanilla.chat.history.addUser.mutate({
+      addToHistoryMutation.mutate({
         main_user_id: userData?.id as string,
         user_id: id,
       });

@@ -19,13 +19,7 @@ const s3 = new S3Client({
   },
 });
 
-export const deleteImageFromS3 = async ({
-  folder,
-  file,
-}: {
-  folder: string;
-  file: string;
-}) => {
+export const deleteImageFromS3 = async ({ folder, file }: { folder: string; file: string }) => {
   try {
     const removePrefixer = file.split(IMAGEKIT_URL_ENDPOINT as string);
     console.log("file for deletion from S3: ", removePrefixer);
@@ -45,7 +39,7 @@ export const deleteImageFromS3 = async ({
 
 const uploadAvatar = multer({
   storage: multerS3({
-    s3: s3,
+    s3,
     bucket: AWS_S3_BUCKETNAME,
     key: (req, file, cb) => {
       const fullPath = "avatars/" + file.originalname;
@@ -56,7 +50,7 @@ const uploadAvatar = multer({
 
 const uploadMessageImage = multer({
   storage: multerS3({
-    s3: s3,
+    s3,
     bucket: AWS_S3_BUCKETNAME,
     key: (req, file, cb) => {
       const fullPath = "messages/" + file.originalname;

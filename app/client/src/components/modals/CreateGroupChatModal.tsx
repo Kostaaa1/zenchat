@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Icon from "../../pages/main/components/Icon";
 import Button from "../Button";
 import useModalStore from "../../utils/stores/modalStore";
-import { trpc, trpcVanilla } from "../../utils/trpcClient";
+import { trpc } from "../../utils/trpcClient";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import { debounce } from "lodash";
@@ -12,7 +12,9 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
 
 const CreateGroupChatModal = () => {
-  const { setIsCreateGroupChatModalOpen } = useModalStore();
+  const { setIsCreateGroupChatModalOpen } = useModalStore(
+    (state) => state.actions,
+  );
   const [search, setSearch] = useState<string>("");
   const [searchedUsers, setSearchedUsers] = useState<TUserData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -20,6 +22,8 @@ const CreateGroupChatModal = () => {
   const [selectedUsers, setSelectedUsers] = useState<TUserData[]>([]);
   const sendMessageModal = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { user, chat } = trpc.useUtils();
+
   useOutsideClick([sendMessageModal], "mousedown", () =>
     setIsCreateGroupChatModalOpen(false),
   );
@@ -32,7 +36,7 @@ const CreateGroupChatModal = () => {
     async () => {
       if (!userData) return null;
 
-      const searchedUsers = await trpcVanilla.user.search.query({
+      const searchedUsers = await user.search.fetch({
         username: userData?.username,
         searchValue: search,
       });
@@ -69,22 +73,22 @@ const CreateGroupChatModal = () => {
     setSelectedUsers((state) => state.filter((x) => x.id !== id));
   };
 
-  const ctx = trpc.useContext();
+  // const ctx = trpc.useContext();
   const handleClickChat = async () => {
     setLoading(true);
     const userIds = selectedUsers.map((x) => x.id);
-    const newChatroomId = await trpcVanilla.chat.get.chatroom_id.query({
+    const newChatroomId = await chat.get.chatroom_id.fetch({
       userIds: [...userIds, userId],
       admin: userId,
     });
 
-    const newChat = await trpcVanilla.chat.get.currentChatRoom.query({
+    const newChat = await chat.get.currentChatRoom.fetch({
       chatroom_id: newChatroomId as string,
       user_id: userId,
     });
 
     if (newChat) {
-      ctx.chat.get.user_chatrooms.setData(userId, (stale) => {
+      chat.get.user_chatrooms.setData(userId, (stale) => {
         if (stale) {
           return [newChat, ...stale];
         }
@@ -106,7 +110,7 @@ const CreateGroupChatModal = () => {
       >
         <div className="relative flex w-full items-center justify-between p-3">
           <span></span>
-          <p className="font-semibold">Create Group Chat</p>
+          <p className="font-semibold">New Message</p>
           <Icon
             className="absolute right-0 top-0 -translate-y-1/2"
             name="X"

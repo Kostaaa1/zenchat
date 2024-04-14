@@ -11,12 +11,11 @@ interface MessageProps {
 }
 
 const Message: FC<MessageProps> = ({ message }) => {
-  const {
-    messageDropdownData,
-    setMessageDropdownData,
-    setShowUnsendMsgModal,
-    showImageModal,
-  } = useModalStore();
+  const { setMessageDropdownData, setShowUnsendMsgModal, showImageModal } =
+    useModalStore((state) => state.actions);
+  const messageDropdownData = useModalStore(
+    (state) => state.messageDropdownData,
+  );
   const { userId } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { content, id, sender_id, isImage } = message;

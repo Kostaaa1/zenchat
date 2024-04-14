@@ -1,25 +1,29 @@
 import { useRef } from "react";
 import useModalStore from "../../utils/stores/modalStore";
 import useOutsideClick from "../../hooks/useOutsideClick";
-import { trpcVanilla } from "../../utils/trpcClient";
 import useChatCache from "../../hooks/useChatCache";
 import useChatStore from "../../utils/stores/chatStore";
+import { trpc } from "../../utils/trpcClient";
 
 const UnsendMessageModal = () => {
-  const { setShowUnsendMsgModal, messageDropdownData } = useModalStore();
-  const { currentChatroom } = useChatStore();
+  const { setShowUnsendMsgModal } = useModalStore((state) => state.actions);
+  const messageDropdownData = useModalStore(
+    (state) => state.messageDropdownData,
+  );
+  const currentChatroom = useChatStore((state) => state.currentChatroom);
   const { removeMessageCache } = useChatCache();
   const unsendMsgModalRef = useRef<HTMLDivElement>(null);
+  const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
 
   useOutsideClick([unsendMsgModalRef], "mousedown", () =>
     setShowUnsendMsgModal(false),
   );
 
-  const handleUnsendMessage = () => {
+  const handleUnsendMessage = async () => {
     if (messageDropdownData && currentChatroom) {
       removeMessageCache(messageDropdownData.id, currentChatroom.chatroom_id);
       setShowUnsendMsgModal(false);
-      trpcVanilla.chat.messages.unsend.mutate(messageDropdownData);
+      await unsendMessageMutation.mutateAsync(messageDropdownData);
     }
   };
 

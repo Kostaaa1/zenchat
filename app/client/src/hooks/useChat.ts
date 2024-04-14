@@ -6,39 +6,36 @@ import { v4 as uuidv4 } from "uuid";
 import { TMessage } from "../../../server/src/types/types";
 import getCurrentDate from "../utils/getCurrentDate";
 import useChatCache from "./useChatCache";
-import { trpc, trpcVanilla } from "../utils/trpcClient";
+import { trpc } from "../utils/trpcClient";
 import { useParams } from "react-router-dom";
 import { Skin } from "@emoji-mart/data";
-import {  uploadMultipartForm } from "../utils/utils";
+import { uploadMultipartForm } from "../utils/utils";
 import { nanoid } from "nanoid";
+import { useAuth } from "@clerk/clerk-react";
 
 const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   const { userData, userId } = useUser();
   const [formData, setFormdata] = useState<FormData>(new FormData());
   const { chatRoomId } = useParams();
-  const ctx = trpc.useContext();
+  const { chat } = trpc.useUtils();
+  const { getToken } = useAuth();
+  const isTyping = useChatStore((state) => state.isTyping);
+  const selectedImageFiles = useChatStore((state) => state.selectedImageFiles);
+  const { addSelectedFile, removeSelectedFile, clearSelectedFiles } =
+    useChatStore((state) => state.actions);
 
-  const {
-    selectedImageFiles,
-    addSelectedFile,
-    removeSelectedFile,
-    clearSelectedFiles,
-    isTyping,
-    setIsTyping,
-  } = useChatStore();
   const { addNewMessageToChatCache } = useChatCache();
-
-  const { data: currentChatroom, isLoading } =
-    trpc.chat.get.currentChatRoom.useQuery(
-      { chatroom_id: chatRoomId as string, user_id: userId },
-      {
-        enabled: !!chatRoomId && !!userId,
-      },
-    );
+  const { data: currentChatroom } = trpc.chat.get.currentChatRoom.useQuery(
+    { chatroom_id: chatRoomId as string, user_id: userId },
+    {
+      enabled: !!chatRoomId && !!userId,
+    },
+  );
   const { new_message, img_urls, chatroom_id } = currentChatroom || {};
+  const sendMessageMutation = trpc.chat.messages.send.useMutation();
 
   const setMessage = (text: string) => {
-    ctx.chat.get.currentChatRoom.setData(
+    chat.get.currentChatRoom.setData(
       {
         chatroom_id: chatRoomId as string,
         user_id: userId,
@@ -52,15 +49,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   };
 
   const setImgUrls = (img_urls: string[]) => {
-    console.log("setting img urls", img_urls);
-    // ctx.chat.get.user_chatrooms.setData(
-    //   userId,
-    //   (stale) =>
-    //     stale?.map((x) =>
-    //       x.chatroom_id === chatRoomId ? { ...x, img_urls } : x,
-    //     ),
-    // );
-    ctx.chat.get.currentChatRoom.setData(
+    chat.get.currentChatRoom.setData(
       { chatroom_id: chatRoomId as string, user_id: userId },
       (stale) => {
         if (stale) {
@@ -70,15 +59,8 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     );
   };
 
-  // useEffect(() => {
-  //   if (!currentChatroom) return;
-  //   setMessage(currentChatroom?.new_message);
-  //   setIsTyping(currentChatroom?.new_message.length > 0);
-  // }, [currentChatroom]);
-
   useEffect(() => {
     if (!socket) return;
-
     socket.emit(
       "typing",
       isTyping
@@ -160,7 +142,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     });
     addNewMessageToChatCache(messageData);
     setMessage("");
-    if (messageData) await trpcVanilla.chat.messages.send.mutate(messageData);
+    if (messageData) await sendMessageMutation.mutateAsync(messageData);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -202,6 +184,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     const uploadedImages = await uploadMultipartForm(
       "/api/image-upload/message",
       formData,
+      getToken,
     );
 
     for (let i = 0; i < uploadedImages.length; i++) {
@@ -215,7 +198,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
       });
 
       socket.emit("new-message", messageData);
-      await trpcVanilla.chat.messages.send.mutate(messageData);
+      await sendMessageMutation.mutateAsync(messageData);
     }
 
     formData.delete("images");

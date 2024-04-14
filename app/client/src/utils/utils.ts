@@ -1,3 +1,4 @@
+import { GetTokenOptions } from "@clerk/types";
 import axios from "axios";
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -24,12 +25,14 @@ export const loadImage = async (url: string) => {
 export const uploadMultipartForm = async (
   apiUrl: string,
   formData: FormData,
+  getToken: (options?: GetTokenOptions | undefined) => Promise<string | null>,
 ): Promise<string[]> => {
   try {
     const newImages = await axios.post(apiUrl, formData, {
       withCredentials: true,
       headers: {
         "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${await getToken()}`,
       },
     });
     const uploadedImages = newImages.data.urls.map(

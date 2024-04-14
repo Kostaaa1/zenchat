@@ -15,11 +15,15 @@ const { CLIENT_URL } = process.env;
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Init Socket:
 const io = new Server(server, {
   cors: {
     origin: CLIENT_URL,
@@ -28,7 +32,6 @@ const io = new Server(server, {
 });
 initSocket(io);
 
-// Routes
 app.use(
   "/api/trpc",
   createExpressMiddleware({

@@ -16,18 +16,30 @@ import io from "socket.io-client";
 import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
+import useModalStore from "../../utils/stores/modalStore";
 const socket = io(VITE_SERVER_URL);
 
 const Inbox = () => {
-  const { setShowEmojiPicker, showDetails, showEmojiPicker } = useChatStore();
   const location = useLocation();
   const { userId } = useUser();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
-  const { setCurrentChatroom, currentChatroom } = useChatStore();
-  // const { currentChatroom } = useChat();
+  const currentChatroom = useChatStore((state) => state.currentChatroom);
+  const showDetails = useChatStore((state) => state.showDetails);
+  const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
+  const { setIsCreateGroupChatModalOpen } = useModalStore(
+    (state) => state.actions,
+  );
+  const { setShowEmojiPicker, setCurrentChatroom, setShowDetails } =
+    useChatStore((state) => state.actions);
+
+  useEffect(() => {
+    return () => {
+      setShowDetails(false);
+    };
+  }, []);
 
   useOutsideClick([emojiRef, iconRef], "click", () =>
     setShowEmojiPicker(false),
@@ -76,7 +88,11 @@ const Inbox = () => {
             <p className="py-3 pt-1 text-neutral-400">
               Send private photos and messages to a friend
             </p>
-            <Button buttonColor="blue" className="text-sm">
+            <Button
+              buttonColor="blue"
+              onClick={() => setIsCreateGroupChatModalOpen(true)}
+              className="text-sm"
+            >
               Send message
             </Button>
           </div>

@@ -9,8 +9,10 @@ import useUser from "./useUser";
 import { useNavigate, useParams } from "react-router-dom";
 
 const useChatCache = () => {
-  const ctx = trpc.useContext();
-  const { setTypingUser, setCurrentChatroom } = useChatStore();
+  const ctx = trpc.useUtils();
+  const { setTypingUser, setCurrentChatroom } = useChatStore(
+    (state) => state.actions,
+  );
   const { userId } = useUser();
   const params = useParams<{ chatRoomId: string }>();
   const navigate = useNavigate();
@@ -73,8 +75,8 @@ const useChatCache = () => {
       const last_message = msg.isImage
         ? "Photo"
         : msg.content.length > 40
-        ? msg.content.slice(0, 40) + "..."
-        : msg.content;
+          ? msg.content.slice(0, 40) + "..."
+          : msg.content;
 
       ctx.chat.get.user_chatrooms.setData(userId, (oldData) => {
         const data = oldData

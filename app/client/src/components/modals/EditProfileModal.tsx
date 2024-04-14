@@ -6,10 +6,10 @@ import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import useChat from "../../hooks/useChat";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { trpcVanilla } from "../../utils/trpcClient";
 import { useNavigate } from "react-router-dom";
 import { uploadMultipartForm } from "../../utils/utils";
-// import { loadSingleImage } from "../utils/loadImages";
+import { useAuth } from "@clerk/clerk-react";
+import { trpc } from "../../utils/trpcClient";
 
 export type CommonInput = {
   first_name?: string;
@@ -25,11 +25,22 @@ export type Inputs = CommonInput & {
 
 const EditProfileModal = () => {
   const editUserRef = useRef<HTMLFormElement>(null);
-  const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore();
+  const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
+    (state) => state.actions,
+  );
   const [file, setFile] = useState<string>("");
   const { userData, userId, updateUserCache } = useUser();
   const { renameFile } = useChat();
   const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
+    onSuccess: (updatedAvater: string) => {
+      console.log("updated avatar", updatedAvater);
+      updateUserCache({ image_url: updatedAvater });
+    },
+  });
+
+  const updateUserDataMutation = trpc.user.updateUserData.useMutation();
 
   useOutsideClick([editUserRef], "mousedown", () =>
     setIsEditProfileModalOpen(false),
@@ -46,21 +57,19 @@ const EditProfileModal = () => {
     try {
       setIsAvatarUpdating(true);
       const renamedFile = renameFile(newFile);
-
       const formData = new FormData();
       formData.append("images", renamedFile);
 
       const uploadedImages = await uploadMultipartForm(
         "/api/image-upload/avatar",
         formData,
+        getToken,
       );
 
-      const updatedAvatar = await trpcVanilla.user.updateAvatar.mutate({
+      updateAvatarMutation.mutate({
         userId,
         image_url: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[0],
       });
-
-      updateUserCache({ image_url: updatedAvatar });
     } catch (error) {
       console.log(error);
     }
@@ -81,11 +90,9 @@ const EditProfileModal = () => {
       }, {} as CommonInput);
 
     updateUserCache(extractedData);
-
     const { username } = extractedData;
     if (username && username.length > 0) navigate(`/${username}`);
-
-    await trpcVanilla.user.updateUserData.mutate({
+    await updateUserDataMutation.mutateAsync({
       userId,
       userData: extractedData,
     });

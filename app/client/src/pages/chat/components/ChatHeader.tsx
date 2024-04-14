@@ -3,7 +3,8 @@ import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import useChatStore from "../../../utils/stores/chatStore";
 
 const InfoIcon = () => {
-  const { setShowDetails, showDetails } = useChatStore();
+  const { setShowDetails } = useChatStore((state) => state.actions);
+  const showDetails = useChatStore((state) => state.showDetails);
 
   const handleIconClick = () => {
     setShowDetails(!showDetails);
@@ -28,7 +29,7 @@ const InfoIcon = () => {
 };
 
 const ChatHeader = () => {
-  const { currentChatroom } = useChatStore();
+  const currentChatroom = useChatStore((state) => state.currentChatroom);
 
   return (
     <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6 px-4">
