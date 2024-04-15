@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Search from "./Search";
 import { useState } from "react";
-import ChatList from "../../../../components/List";
+import List from "../../../../components/List";
 import { useNavigate } from "react-router-dom";
 import useUser from "../../../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
@@ -32,9 +32,7 @@ const SideSearch = () => {
     id: string;
   }) => {
     try {
-      console.log("called", username, id);
       if (!username && !id) return;
-
       navigateToUserDashboard(username);
       addToHistoryMutation.mutate({
         main_user_id: userData?.id as string,
@@ -74,7 +72,7 @@ const SideSearch = () => {
                 {searchedUsers.length !== 0 ? (
                   <div>
                     {searchedUsers.map((user) => (
-                      <ChatList
+                      <List
                         title={user?.username}
                         key={user?.id}
                         image_url={[user?.image_url]}
@@ -101,20 +99,7 @@ const SideSearch = () => {
         ) : (
           Array(12)
             .fill("")
-            .map((_, id) => (
-              <div
-                key={id}
-                className="flex animate-pulse items-center px-6 py-2"
-              >
-                <div className="block h-16 w-16 rounded-full bg-neutral-800"></div>
-                <div className="ml-4 flex h-full flex-col justify-between py-[6px]">
-                  <div className="mb-2 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
-                  <div className="h-4 w-[80px] rounded-lg bg-neutral-800">
-                    {" "}
-                  </div>
-                </div>
-              </div>
-            ))
+            .map((_, id) => <List key={id} isLoading={true} />)
         )}
       </div>
     </motion.div>

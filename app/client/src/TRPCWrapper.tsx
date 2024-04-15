@@ -23,17 +23,17 @@ const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
       links: [
         httpBatchLink({
           url: `${import.meta.env.VITE_BACKEND_URL}/api/trpc`,
-          fetch(url, opts) {
-            return fetch(url, {
-              ...opts,
-              credentials: "include",
-            });
-          },
           async headers() {
             return {
               Authorization: `Bearer ${await getToken()}`,
             };
           },
+          // fetch(url, opts) {
+          //   return fetch(url, {
+          //     ...opts,
+          //     credentials: "include",
+          //   });
+          // },
         }),
       ],
     }),

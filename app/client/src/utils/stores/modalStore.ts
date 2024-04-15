@@ -16,8 +16,10 @@ type Store = {
   isEditProfileModalOpen: boolean;
   isAvatarUpdating: boolean;
   isDeleteChatOpen: boolean;
+  isDndUploadModalOpen: boolean;
   actions: {
     setImageModalSource: (src: string) => void;
+    setIsDndUploadModalOpen: (isOpen: boolean) => void;
     setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
     showImageModal: (messageContent: string) => void;
     closeImageModal: () => void;
@@ -41,7 +43,9 @@ const useModalStore = create<Store>(
     showUnsendMsgModal: false,
     imageModalSource: "",
     isImageModalOpen: false,
+    isDndUploadModalOpen: false,
     actions: {
+      setIsDndUploadModalOpen: (v: boolean) => set({ isDndUploadModalOpen: v }),
       setIsDeleteChatOpen: (isUpdaing: boolean) =>
         set({ isDeleteChatOpen: isUpdaing }),
       setIsAvatarUpdating: (isUpdaing: boolean) =>

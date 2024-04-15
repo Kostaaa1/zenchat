@@ -3,7 +3,7 @@ import Button from "../../components/Button";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
@@ -11,7 +11,15 @@ import useModalStore from "../../utils/stores/modalStore";
 import { cn } from "../../utils/utils";
 import Icon from "../main/components/Icon";
 
-const UserBoarddash = ({
+type SeparatorProps = {
+  className?: string;
+};
+
+const Separator: FC<SeparatorProps> = ({ className }) => {
+  return <div className={cn("h-[2px] w-full bg-[#262626]", className)}></div>;
+};
+
+const DashboardHeader = ({
   userData,
   username,
 }: {
@@ -48,7 +56,8 @@ const UserBoarddash = ({
   };
 
   return (
-    <div className="mx-16 my-8 flex min-h-[160px] border-b border-[#262626] px-10 pb-10">
+    // <div className="mx-16 my-4 flex h-max border-b border-[#262626] px-10 pb-10 outline">
+    <div className="flex h-full max-h-[200px] items-center px-16">
       <div className="relative" onClick={handleClick}>
         {isAvatarUpdating && (
           <div className="absolute h-full w-full animate-spin">
@@ -66,7 +75,7 @@ const UserBoarddash = ({
         ></div>
         <Avatar image_url={userData?.image_url} size="xxl" />
       </div>
-      <div className="ml-16 flex w-full flex-col py-4">
+      <div className="flex w-full flex-col pl-16">
         <div className="flex h-14 items-start justify-start">
           <h1 className="pr-8 text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
@@ -96,18 +105,18 @@ const UserBoarddash = ({
 };
 
 const Dashboard = () => {
-  const params = useParams<{ username: string }>();
-  const { username } = params;
+  const { username } = useParams<{ username: string }>();
   const location = useLocation();
   const { userData } = useUser();
   const [isIndexRoute, setIsIndexRoute] = useState<boolean>(true);
+  const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
 
   useEffect(() => {
-    location.pathname === "/" ? setIsIndexRoute(true) : setIsIndexRoute(false);
+    setIsIndexRoute(location.pathname === "/");
   }, [location.pathname]);
 
   const { data: inspectedUserData, isFetching } = trpc.user.get.useQuery(
-    { data: username as string, type: "username" },
+    { data: username!, type: "username" },
     {
       enabled: !!userData && !!username && userData.username !== username,
       refetchOnWindowFocus: false,
@@ -115,42 +124,52 @@ const Dashboard = () => {
   );
 
   return (
-    <>
-      <div className="ml-80 flex h-full w-full max-w-[1000px] flex-col px-4">
-        {inspectedUserData === null ? (
-          <ErrorPage />
-        ) : (
-          <>
-            {isFetching ? (
-              <div className="mt-10 flex items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin" />
-              </div>
-            ) : (
-              <>
-                <UserBoarddash
-                  username={userData?.username}
-                  userData={
-                    userData?.username === username || isIndexRoute
-                      ? userData
-                      : inspectedUserData
-                  }
-                />
-                <div className="flex w-full items-center justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-neutral-600">
-                    <Icon
-                      name="Camera"
-                      className="text-neutral-600"
-                      size="40px"
-                      strokeWidth="1.2"
-                    />
+    <div className="ml-80 flex min-h-screen w-full max-w-[1000px] flex-col px-4">
+      {inspectedUserData === null ? (
+        <ErrorPage />
+      ) : (
+        <>
+          {isFetching ? (
+            <div className="mt-10 flex items-center justify-center">
+              <Loader2 className="h-10 w-10 animate-spin" />
+            </div>
+          ) : (
+            <>
+              <DashboardHeader
+                username={userData?.username}
+                userData={
+                  userData?.username === username || isIndexRoute
+                    ? userData
+                    : inspectedUserData
+                }
+              />
+              <Separator className="my-4" />
+              <div className="flex h-full justify-center">
+                <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
+                  <Icon
+                    name="Camera"
+                    className="rounded-full p-3 text-neutral-600 ring ring-inset ring-neutral-600"
+                    size="78px"
+                    strokeWidth="1"
+                    onClick={() => setIsDndUploadModalOpen(true)}
+                  />
+                  <div className="space-y-2 text-center">
+                    <h2 className="text-3xl font-extrabold">Your Gallery</h2>
+                    <p>The photos from gallery will appear on your profile.</p>
+                    <p
+                      className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+                      onClick={() => setIsDndUploadModalOpen(true)}
+                    >
+                      Upload the photo
+                    </p>
                   </div>
                 </div>
-              </>
-            )}
-          </>
-        )}
-      </div>
-    </>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 

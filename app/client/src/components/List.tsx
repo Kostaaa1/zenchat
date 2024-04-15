@@ -1,8 +1,8 @@
 import { cn } from "../utils/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
-import { motion } from "framer-motion";
 import RenderAvatar from "./avatar/RenderAvatar";
+import {motion} from 'framer-motion'
 
 export const listVariants = cva(
   "flex cursor-pointer w-full justify-between px-6 py-2 items-center",
@@ -29,6 +29,7 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   onClick?: () => void;
   isHoverDisabled?: boolean;
   icon?: ReactNode;
+  isLoading?: boolean;
   onIconClick?: () => void;
 }
 
@@ -43,6 +44,7 @@ const List: FC<ListProps> = ({
   children,
   isHoverDisabled,
   icon,
+  isLoading = false,
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
@@ -61,20 +63,34 @@ const List: FC<ListProps> = ({
       )}
       {...props}
     >
-      <div className={cn("flex w-full items-center")} onClick={onClick}>
-        {children}
-        <RenderAvatar
-          image_urls={{
-            image_url_1: image_url?.[0] as string,
-            image_url_2: image_url?.[1],
-          }}
-          avatarSize="lg"
-        />
-        <div className="ml-3 flex w-full flex-col text-start">
-          <h1 className="font-semibold"> {title} </h1>
-          <h4 className="text-sm font-semibold text-neutral-400">{subtitle}</h4>
+      {!isLoading ? (
+        <div className={cn("flex w-full items-center")} onClick={onClick}>
+          {children}
+          <RenderAvatar
+            image_urls={{
+              image_url_1: image_url?.[0] as string,
+              image_url_2: image_url?.[1],
+            }}
+            avatarSize="lg"
+          />
+          <div className="ml-3 flex w-full flex-col text-start">
+            <h1 className="font-semibold"> {title} </h1>
+            <h4 className="text-sm font-semibold text-neutral-400">
+              {subtitle}
+            </h4>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <div className="flex h-14 w-full animate-pulse items-center">
+            <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
+            <div className="ml-3 flex h-full flex-col justify-center">
+              <div className="mb-2 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
+              <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
+            </div>
+          </div>
+        </div>
+      )}
       {icon ? (
         <motion.div
           initial={{ opacity: 0, x: 20, y: "50%" }}

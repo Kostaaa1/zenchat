@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import Button from "../../../components/Button";
 import List from "../../../components/List";
 import { Link } from "react-router-dom";
@@ -15,6 +15,8 @@ const ChatDetails: FC<ChatDetailsProps> = () => {
   const componentLists = [
     { list: "Delete", id: 0, fn: () => setIsDeleteChatOpen(true) },
   ];
+  // "start": "concurrently \"npm run server\" \"npm run client\"",
+  // "install": "concurrently \"cd frontend && npm run install\" \"cd backend && npm run install\""
 
   return (
     <div className="flex w-full max-w-[270px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">

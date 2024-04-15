@@ -55,18 +55,19 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
           Array(2)
             .fill("")
             .map((_, id) => (
-              <div
-                key={id}
-                className="relative flex w-full cursor-pointer items-center justify-between px-6 py-2"
-              >
-                <div className="flex h-16 w-full animate-pulse items-center">
-                  <div className="h-full w-16 overflow-hidden rounded-full bg-neutral-800"></div>
-                  <div className="ml-4 flex h-full flex-col justify-center">
-                    <div className="mb-3 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
-                    <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
-                  </div>
-                </div>
-              </div>
+              // <div
+              //   key={id}
+              //   className="relative flex w-full cursor-pointer items-center justify-between px-6 py-2"
+              // >
+              //   <div className="flex h-14 w-full animate-pulse items-center">
+              //     <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
+              //     <div className="ml-4 flex h-full flex-col justify-center">
+              //       <div className="mb-3 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
+              //       <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
+              //     </div>
+              //   </div>
+              // </div>
+              <List key={id} isLoading={isLoading} />
             ))
         ) : (
           <>

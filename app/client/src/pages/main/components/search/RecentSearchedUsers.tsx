@@ -50,7 +50,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
         {searchedChats && searchedChats?.length > 0 ? (
           <p
             onClick={handleDeleteAll}
-            className="cursor-pointer text-sm text-[#538dd8] hover:text-blue-200"
+            className="cursor-pointer text-sm text-blue-500 hover:text-blue-300"
           >
             Clear All
           </p>
@@ -73,8 +73,8 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                   onClick={() => navigateToUserDashboard(chat.users.username)}
                   hover="darker"
                   title={chat.users.username}
-                  icon={<Icon name="X" size="28px" />}
                   subtitle={`${chat.users.first_name} ${chat.users.last_name}`}
+                  icon={<Icon name="X" size="28px" />}
                 />
               ))}
             </>

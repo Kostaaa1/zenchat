@@ -106,9 +106,9 @@ const CreateGroupChatModal = () => {
     <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
       <div
         ref={sendMessageModal}
-        className="flex h-[620px] w-[520px] flex-col items-start rounded-xl bg-[#2d2d2d] pb-0 text-center"
+        className="flex h-[620px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
       >
-        <div className="relative flex w-full items-center justify-between p-3">
+        <div className="relative flex w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
           <span></span>
           <p className="font-semibold">New Message</p>
           <Icon
