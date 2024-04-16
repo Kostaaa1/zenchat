@@ -7,7 +7,7 @@ import useUser from "../../hooks/useUser";
 import useChat from "../../hooks/useChat";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { uploadMultipartForm } from "../../utils/utils";
+import { renameFile, uploadMultipartForm } from "../../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 
@@ -25,23 +25,20 @@ export type Inputs = CommonInput & {
 
 const EditProfileModal = () => {
   const editUserRef = useRef<HTMLFormElement>(null);
-  const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
-    (state) => state.actions,
-  );
   const [file, setFile] = useState<string>("");
   const { userData, userId, updateUserCache } = useUser();
-  const { renameFile } = useChat();
+  // const { renameFile } = useChat();
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
     onSuccess: (updatedAvater: string) => {
-      console.log("updated avatar", updatedAvater);
       updateUserCache({ image_url: updatedAvater });
     },
   });
-
+  const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
+    (state) => state.actions,
+  );
   const updateUserDataMutation = trpc.user.updateUserData.useMutation();
-
   useOutsideClick([editUserRef], "mousedown", () =>
     setIsEditProfileModalOpen(false),
   );

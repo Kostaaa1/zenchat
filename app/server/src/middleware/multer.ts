@@ -37,6 +37,19 @@ export const deleteImageFromS3 = async ({ folder, file }: { folder: string; file
   }
 };
 
+export const uploadToS3 = multer({
+  storage: multerS3({
+    s3,
+    bucket: AWS_S3_BUCKETNAME,
+    key: (req, file, cb) => {
+      // @ts-ignore
+      const { s3FolderName } = req.body;
+      const fullPath = s3FolderName + "/" + file.originalname;
+      cb(null, fullPath);
+    },
+  }),
+});
+
 const uploadAvatar = multer({
   storage: multerS3({
     s3,
@@ -59,4 +72,15 @@ const uploadMessageImage = multer({
   }),
 });
 
-export { uploadAvatar, uploadMessageImage };
+const uploadPost = multer({
+  storage: multerS3({
+    s3,
+    bucket: AWS_S3_BUCKETNAME,
+    key: (req, file, cb) => {
+      const fullPath = "posts/" + file.originalname;
+      cb(null, fullPath);
+    },
+  }),
+});
+
+export { uploadAvatar, uploadMessageImage, uploadPost };

@@ -1,7 +1,7 @@
 import React, { ChangeEvent, FC } from "react";
 import Icon from "../../main/components/Icon";
 import useChatStore from "../../../utils/stores/chatStore";
-import { cn } from "../../../utils/utils";
+import { cn, renameFile } from "../../../utils/utils";
 import io from "socket.io-client";
 import useChat from "../../../hooks/useChat";
 const socket = io(import.meta.env.VITE_SERVER_URL);
@@ -16,7 +16,6 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { currentChatroom } = useChat();
   const {
-    renameFile,
     handleSubmit,
     removeFileFromArray,
     setMessage,
@@ -31,7 +30,7 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e?.target?.files?.[0];
-    if (file) renameFile(file, fileSetter);
+    if (file) renameFile(file, currentChatroom?.chatroom_id, fileSetter);
     e.target.value = "";
   };
 

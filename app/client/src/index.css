@@ -151,3 +151,7 @@ li {
 *::-webkit-scrollbar-corner {
   background-color: #2b2b2b;
 }
+
+textarea {
+  resize: none;
+}

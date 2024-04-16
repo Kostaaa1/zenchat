@@ -21,7 +21,6 @@ export const userRouter = t.router({
     .query(async ({ input }) => {
       if (!input) return;
       console.log("Fetching user started", input);
-
       const userData = await getUser(input);
       console.log("Return user data", userData);
       return userData;

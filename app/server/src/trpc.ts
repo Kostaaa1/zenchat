@@ -20,7 +20,8 @@ export const t = initTRPC.context<inferAsyncReturnType<typeof createContext>>().
 });
 
 const isAuthed = t.middleware(({ next, ctx }) => {
-  const session = decodeAndVerifyToken(ctx.req, ctx.res);
+  const { req, res } = ctx;
+  const session = decodeAndVerifyToken(req, res);
   if (!session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
@@ -30,4 +31,5 @@ const isAuthed = t.middleware(({ next, ctx }) => {
     },
   });
 });
+
 export const protectedProcedure = t.procedure.use(isAuthed);

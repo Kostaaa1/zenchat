@@ -3,7 +3,7 @@ import Button from "../../components/Button";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
@@ -27,7 +27,7 @@ const DashboardHeader = ({
   username: string | undefined;
 }) => {
   const navigate = useNavigate();
-  const { userData: inspectedUser } = useUser();
+  const { userData: loggedUser } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { setIsEditProfileModalOpen, showImageModal, setImageModalSource } =
     useModalStore((state) => state.actions);
@@ -36,10 +36,10 @@ const DashboardHeader = ({
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
-    if (!userData || !inspectedUser) return;
+    if (!userData || !loggedUser) return;
 
     const path = await chat.get.chatroom_id.fetch({
-      userIds: [userData.id, inspectedUser.id],
+      userIds: [userData.id, loggedUser.id],
       admin: userData.id,
     });
 
@@ -108,17 +108,16 @@ const Dashboard = () => {
   const { username } = useParams<{ username: string }>();
   const location = useLocation();
   const { userData } = useUser();
-  const [isIndexRoute, setIsIndexRoute] = useState<boolean>(true);
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
 
-  useEffect(() => {
-    setIsIndexRoute(location.pathname === "/");
-  }, [location.pathname]);
+  const isLoggedUserInspected = useMemo(() => {
+    return userData?.username === username;
+  }, [userData?.username, username]);
 
   const { data: inspectedUserData, isFetching } = trpc.user.get.useQuery(
     { data: username!, type: "username" },
     {
-      enabled: !!userData && !!username && userData.username !== username,
+      enabled: !!userData && !!username && !isLoggedUserInspected,
       refetchOnWindowFocus: false,
     },
   );
@@ -138,33 +137,37 @@ const Dashboard = () => {
               <DashboardHeader
                 username={userData?.username}
                 userData={
-                  userData?.username === username || isIndexRoute
+                  isLoggedUserInspected || location.pathname === "/"
                     ? userData
                     : inspectedUserData
                 }
               />
               <Separator className="my-4" />
-              <div className="flex h-full justify-center">
-                <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
-                  <Icon
-                    name="Camera"
-                    className="rounded-full p-3 text-neutral-600 ring ring-inset ring-neutral-600"
-                    size="78px"
-                    strokeWidth="1"
-                    onClick={() => setIsDndUploadModalOpen(true)}
-                  />
-                  <div className="space-y-2 text-center">
-                    <h2 className="text-3xl font-extrabold">Your Gallery</h2>
-                    <p>The photos from gallery will appear on your profile.</p>
-                    <p
-                      className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+              {userData?.username === username && (
+                <div className="flex h-full justify-center">
+                  <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
+                    <Icon
+                      name="Camera"
+                      className="rounded-full p-3 text-neutral-600 ring ring-inset ring-neutral-600"
+                      size="78px"
+                      strokeWidth="1"
                       onClick={() => setIsDndUploadModalOpen(true)}
-                    >
-                      Upload the photo
-                    </p>
+                    />
+                    <div className="space-y-2 text-center">
+                      <h2 className="text-3xl font-extrabold">Your Gallery</h2>
+                      <p>
+                        The photos from gallery will appear on your profile.
+                      </p>
+                      <p
+                        className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+                        onClick={() => setIsDndUploadModalOpen(true)}
+                      >
+                        Upload the photo
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </>

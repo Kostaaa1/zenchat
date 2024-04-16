@@ -27,6 +27,14 @@ export type TPopulatedChat = CommonFields & {
   };
 };
 
+export type Post = {
+  id: string;
+  caption: string;
+  media_url: string;
+  user_id: string;
+  created_at: string;
+};
+
 export type TChatroom = {
   id: string;
   last_message: string;

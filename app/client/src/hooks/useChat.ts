@@ -122,17 +122,17 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     addSelectedFile(newFile);
   };
 
-  const renameFile = (fileImage: File, cb?: (file: File) => void) => {
-    // const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const uniquePrefix = nanoid();
-    const chatroomPrefix = currentChatroom?.chatroom_id.split("-")[0];
+  // const renameFile = (fileImage: File, cb?: (file: File) => void) => {
+  //   // const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+  //   const uniquePrefix = nanoid();
+  //   const chatroomPrefix = currentChatroom?.chatroom_id.split("-")[0];
 
-    const filename = `${chatroomPrefix}-${uniquePrefix}-${fileImage.name}`;
-    const newFile = new File([fileImage], filename, { type: fileImage.type });
+  //   const filename = `${chatroomPrefix}-${uniquePrefix}-${fileImage.name}`;
+  //   const newFile = new File([fileImage], filename, { type: fileImage.type });
 
-    if (cb) cb(newFile);
-    return newFile;
-  };
+  //   if (cb) cb(newFile);
+  //   return newFile;
+  // };
 
   const sendTextMessage = async (new_message: string, chatroom_id: string) => {
     const messageData = createNewMessage({
@@ -207,7 +207,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
 
   return {
     handleSubmit,
-    renameFile,
+    // renameFile,
     setMessage,
     setImgUrls,
     removeFileFromArray,

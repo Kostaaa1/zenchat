@@ -1,6 +1,7 @@
 import { GetTokenOptions } from "@clerk/types";
 import axios from "axios";
 import { ClassValue, clsx } from "clsx";
+import { nanoid } from "nanoid";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -22,6 +23,23 @@ export const loadImage = async (url: string) => {
   });
 };
 
+export const renameFile = (
+  fileImage: File,
+  chatroom_id?: string,
+  cb?: (file: File) => void,
+): File => {
+  const uniquePrefix = nanoid();
+  const chatroomPrefix = chatroom_id?.split("-")[0] || null;
+
+  const filename = [chatroomPrefix, uniquePrefix, fileImage.name]
+    .filter(Boolean)
+    .join("-");
+  const newFile = new File([fileImage], filename, { type: fileImage.type });
+
+  if (cb) cb(newFile);
+  return newFile;
+};
+
 export const uploadMultipartForm = async (
   apiUrl: string,
   formData: FormData,
@@ -29,7 +47,7 @@ export const uploadMultipartForm = async (
 ): Promise<string[]> => {
   try {
     const newImages = await axios.post(apiUrl, formData, {
-      withCredentials: true,
+      // withCredentials: true,
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${await getToken()}`,
