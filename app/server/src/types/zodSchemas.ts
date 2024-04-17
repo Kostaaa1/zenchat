@@ -70,3 +70,32 @@ export const chatRoomDataSchema: ZodSchema<
   messages: z.array(messageSchema),
   is_group: z.boolean(),
 });
+
+export const InputPostSchema = z.object({
+  caption: z.string(),
+  media_name: z.string(),
+  media_url: z.string(),
+  user_id: z.string(),
+});
+
+export const OutputPostSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+});
+export const PostSchema = InputPostSchema.merge(OutputPostSchema);
+
+// export const PostSchema: ZodSchema<{
+//   id: string;
+//   caption: string;
+//   media_name: string;
+//   media_url: string;
+//   user_id: string;
+//   created_at: string;
+// }> = z.object({
+//   id: z.string(),
+//   caption: z.string(),
+//   media_name: z.string(),
+//   media_url: z.string(),
+//   user_id: z.string(),
+//   created_at: z.string(),
+// });

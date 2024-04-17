@@ -4,7 +4,6 @@ import useModalStore from "../../utils/stores/modalStore";
 import Icon from "../../pages/main/components/Icon";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
-import useChat from "../../hooks/useChat";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { renameFile, uploadMultipartForm } from "../../utils/utils";
@@ -27,7 +26,6 @@ const EditProfileModal = () => {
   const editUserRef = useRef<HTMLFormElement>(null);
   const [file, setFile] = useState<string>("");
   const { userData, userId, updateUserCache } = useUser();
-  // const { renameFile } = useChat();
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
@@ -73,8 +71,8 @@ const EditProfileModal = () => {
   };
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
-    const { file } = formData;
     setIsEditProfileModalOpen(false);
+    const { file } = formData;
 
     if (file.length > 0) await handleUpload(file[0]);
     if (Object.values(formData).every((x) => x?.length === 0)) return;

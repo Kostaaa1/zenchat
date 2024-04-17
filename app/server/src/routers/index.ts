@@ -9,4 +9,4 @@ export const appRouter = t.router({
   posts: postRouter,
 });
 
-export const postsCaller = t.createCallerFactory(postRouter);
+export const trpcCaller = t.createCallerFactory(appRouter);

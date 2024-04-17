@@ -2,20 +2,15 @@ import { z } from "zod";
 import { protectedProcedure, t } from "../../trpc";
 import { createCallerFactory } from "@trpc/server";
 import { uploadPhoto } from "../../utils/supabase/posts";
+import { InputPostSchema } from "../../types/zodSchemas";
 
 export const postRouter = t.router({
-  upload: protectedProcedure
-    .input(
-      z.object({
-        // Change input
-        data: z.string(),
-      })
-    )
-    .query(async ({ input }) => {
+  upload: protectedProcedure.input(InputPostSchema).query(async ({ input }) => {
+    try {
       if (!input) return;
-      const deserialized = JSON.parse(input.data) as { userId: string; caption: string };
-      await uploadPhoto(deserialized);
-
-      console.log("Fetching user started", deserialized);
-    }),
+      await uploadPhoto(input);
+    } catch (error) {
+      console.log("error while uploading", error);
+    }
+  }),
 });

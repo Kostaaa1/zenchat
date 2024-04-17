@@ -1,11 +1,11 @@
 import supabase from "../../config/supabase";
+import { InputPostSchema, PostSchema } from "../../types/zodSchemas";
+import { z } from "zod";
 
-export const uploadPhoto = async (uploadData: {
-  userId: string;
-  caption: string;
-}): Promise<any> => {
-  const { data, error } = await supabase.from("posts").insert(uploadData);
-  if (error || !data) throw new Error(`Error while inserting a post: ${error}`);
-  console.log("INSERTED DATA ", data);
-  return data;
+export const uploadPhoto = async (
+  uploadData: z.infer<typeof InputPostSchema>
+): Promise<z.infer<typeof PostSchema>> => {
+  const { data, error } = await supabase.from("posts").insert(uploadData).select("*");
+  if (error || data.length === 0) throw new Error(`Error while inserting a post: ${error}`);
+  return data[0];
 };
