@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import Avatar from "./Avatar";
 import { cn } from "../../utils/utils";
 
@@ -12,7 +12,6 @@ interface RenderAvatarProps {
 
 const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
   const { image_url_1, image_url_2 } = image_urls;
-
   return (
     <div className="flex h-full">
       {image_url_2 === undefined ? (
@@ -24,8 +23,8 @@ const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
             avatarSize === "md"
               ? "-m-3 scale-75"
               : avatarSize === "xl"
-              ? "my-8 scale-[2]"
-              : "",
+                ? "my-8 scale-[2]"
+                : "",
           )}
         >
           <Avatar image_url={image_url_1} className="absolute left-0 top-0" />

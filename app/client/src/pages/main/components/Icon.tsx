@@ -18,10 +18,7 @@ const Icon: FC<IconProps> = ({
   size,
 }) => {
   const LucideIcon = icons[name];
-
-  if (!LucideIcon) {
-    return null;
-  }
+  if (!LucideIcon) return null;
 
   return (
     <div

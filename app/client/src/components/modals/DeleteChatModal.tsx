@@ -4,6 +4,7 @@ import useModalStore from "../../utils/stores/modalStore";
 import useChatStore from "../../utils/stores/chatStore";
 import useChatCache from "../../hooks/useChatCache";
 import { trpc } from "../../utils/trpcClient";
+import { Modal } from "./Modals";
 
 const DeleteChatModal = () => {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -23,7 +24,7 @@ const DeleteChatModal = () => {
   };
 
   return (
-    <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
+    <Modal>
       <div
         ref={modalRef}
         className="flex h-max w-96 flex-col items-center rounded-xl bg-[#282828] px-2 py-4 pb-0 text-center"
@@ -46,7 +47,7 @@ const DeleteChatModal = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

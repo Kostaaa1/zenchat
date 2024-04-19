@@ -13,7 +13,7 @@ const useChatCache = () => {
   const { setTypingUser, setCurrentChatroom } = useChatStore(
     (state) => state.actions,
   );
-  const { userId } = useUser();
+  const { userData } = useUser();
   const params = useParams<{ chatRoomId: string }>();
   const navigate = useNavigate();
 
@@ -43,7 +43,7 @@ const useChatCache = () => {
   };
 
   const removeChatFromUserChats = (chatroom_id: string) => {
-    ctx.chat.get.user_chatrooms.setData(userId, (state) => {
+    ctx.chat.get.user_chatrooms.setData(userData!.id, (state) => {
       return state?.filter((x) => x.chatroom_id !== chatroom_id);
     });
 
@@ -78,7 +78,7 @@ const useChatCache = () => {
           ? msg.content.slice(0, 40) + "..."
           : msg.content;
 
-      ctx.chat.get.user_chatrooms.setData(userId, (oldData) => {
+      ctx.chat.get.user_chatrooms.setData(userData!.id, (oldData) => {
         const data = oldData
           ?.map((chat) =>
             chat.chatroom_id === msg.chatroom_id
@@ -99,7 +99,7 @@ const useChatCache = () => {
         return data;
       });
     },
-    [ctx.chat.get.user_chatrooms, userId],
+    [ctx.chat.get.user_chatrooms, userData],
   );
 
   const recieveNewSocketMessage = useCallback(
@@ -115,18 +115,18 @@ const useChatCache = () => {
         const { isImage, sender_id } = data;
 
         if (!isImage) {
-          if (sender_id !== userId) {
+          if (sender_id !== userData!.id) {
             addNewMessageToChatCache(data);
           }
         } else {
-          sender_id === userId
+          sender_id === userData!.id
             ? replacePreviewImage(data)
             : addNewMessageToChatCache(data);
         }
         updateUserChatLastMessageCache(data);
       }
     },
-    [addNewMessageToChatCache, updateUserChatLastMessageCache],
+    [addNewMessageToChatCache, updateUserChatLastMessageCache, userData],
   );
 
   return {

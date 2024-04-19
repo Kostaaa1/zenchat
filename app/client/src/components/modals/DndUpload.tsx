@@ -1,17 +1,20 @@
 import React, { useRef, useState } from "react";
 import Icon from "../../pages/main/components/Icon";
 import Button from "../Button";
-import { Upload } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
 import useModalStore from "../../utils/stores/modalStore";
-import { cn, renameFile } from "../../utils/utils";
+import { cn, loadImage, renameFile } from "../../utils/utils";
 import useUser from "../../hooks/useUser";
 import Avatar from "../avatar/Avatar";
 import { motion } from "framer-motion";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
+import { trpc } from "../../utils/trpcClient";
+import { TPost } from "../../../../server/src/types/types";
+import { Modal } from "./Modals";
 
 const FileDropZone = ({ onDrop }) => {
   const [{ isOver }, drop] = useDrop(() => ({
@@ -65,6 +68,11 @@ const DndUpload = () => {
   const [caption, setCaption] = useState<string>("");
   const sendMessageModal = useRef<HTMLDivElement>(null);
   const { getToken } = useAuth();
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const ctx = trpc.useUtils();
+  const [modalTitle, setModalTitle] = useState<
+    "Create new post" | "Processing" | "Post uploaded"
+  >("Create new post");
 
   useOutsideClick([sendMessageModal], "mousedown", () => clear());
 
@@ -82,9 +90,10 @@ const DndUpload = () => {
     setFile(null);
     setDisplayFile(null);
     setIsDndUploadModalOpen(false);
+    setModalTitle("Create new post");
   };
 
-  const handleCaption = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const inputValue = e.target.value;
     if (caption.length === 500) {
       if (inputValue.length < caption.length) {
@@ -95,29 +104,43 @@ const DndUpload = () => {
     setCaption(inputValue);
   };
 
-  const handleUploadFile = async () => {
+  const handleUploadPost = async () => {
     try {
       if (!file || !userData?.id) return;
+      setIsUploading(true);
+      setModalTitle("Processing");
+
       const renamed = renameFile(file);
       const formData = new FormData();
-
       const unified = {
         user_id: userData.id,
         caption,
       };
 
-      formData.append("data", JSON.stringify(unified));
-      formData.append("s3FolderName", "posts");
-      formData.append("images", renamed);
-
-      const url = "/api/imageUpload";
-      const { data } = await axios.post(url, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${await getToken()}`,
+      formData.append("serialized", JSON.stringify(unified));
+      formData.append("uploadPost", renamed);
+      const { data }: { data: TPost } = await axios.post(
+        "/api/uploadMedia/post",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${await getToken()}`,
+          },
         },
+      );
+
+      console.log("data", data);
+      await loadImage(data.media_url);
+      ctx.user.get.setData({ data: userData.email, type: "email" }, (state) => {
+        if (state) {
+          return { ...state, posts: [...state.posts, data] };
+        }
       });
-      console.log("response", data);
+
+      setIsUploading(false);
+      setModalTitle("Post uploaded");
+      // setIsDndUploadModalOpen(false);
     } catch (error) {
       console.log(error);
     }
@@ -125,7 +148,7 @@ const DndUpload = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
+      <Modal>
         <motion.div
           ref={sendMessageModal}
           initial={{ width: file ? "880px" : "640px" }}
@@ -142,11 +165,11 @@ const DndUpload = () => {
               onClick={clear}
             />
             <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-semibold">
-              Create new post
+              {modalTitle}
             </p>
-            {file ? (
+            {file && modalTitle === "Create new post" ? (
               <p
-                onClick={handleUploadFile}
+                onClick={handleUploadPost}
                 className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
               >
                 Upload
@@ -155,52 +178,67 @@ const DndUpload = () => {
               <Icon
                 className="absolute right-0 top-0 -translate-y-1/2"
                 name="X"
-                onClick={() => setIsDndUploadModalOpen(false)}
+                onClick={clear}
               />
             )}
           </div>
-          {file && displayFile ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ ease: "easeInOut", duration: 0.3 }}
-              className="flex h-full w-full"
-            >
-              <img
-                src={displayFile}
-                alt="image"
-                className="h-[640px] w-[640px]"
-              />
-              {file && (
-                <div className="w-full space-y-2 p-2">
-                  <div className="flex w-full items-center justify-start space-x-2">
-                    <Avatar image_url={userData?.image_url} size="sm" />
-                    <p className="">{userData?.username}</p>
+          {!isUploading ? (
+            <>
+              {file && displayFile ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ ease: "easeInOut", duration: 0.3 }}
+                  className="flex h-full w-full"
+                >
+                  <img
+                    src={displayFile}
+                    alt="image"
+                    className="h-[640px] w-[640px]"
+                  />
+                  <div className="w-full space-y-2 p-2">
+                    <div className="flex w-full items-center justify-start space-x-2">
+                      <Avatar image_url={userData?.image_url} size="sm" />
+                      <p className="">{userData?.username}</p>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <textarea
+                        cols={30}
+                        rows={5}
+                        maxLength={500}
+                        value={caption}
+                        placeholder="Write a caption..."
+                        onChange={(e) => handleInputChange(e)}
+                        className="text-md bg-[#282828] p-1 outline-none placeholder:text-neutral-500"
+                      >
+                        {caption}
+                      </textarea>
+                      <span className="text-xs text-neutral-500">
+                        {caption.length}/500
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <textarea
-                      cols={30}
-                      rows={5}
-                      maxLength={500}
-                      value={caption}
-                      placeholder="Write a caption..."
-                      onChange={(e) => handleCaption(e)}
-                      className="text-md bg-[#282828] p-1 outline-none placeholder:text-neutral-500"
-                    >
-                      {caption}
-                    </textarea>
-                    <span className="text-xs text-neutral-500">
-                      {caption.length}/500
-                    </span>
-                  </div>
-                </div>
+                </motion.div>
+              ) : (
+                <FileDropZone onDrop={displayImage} />
               )}
-            </motion.div>
+            </>
           ) : (
-            <FileDropZone onDrop={displayImage} />
+            <div className="absolute right-1/2 top-1/2 -translate-y-1/2 translate-x-1/2">
+              {modalTitle === "Post uploaded" ? (
+                <motion.div>div</motion.div>
+              ) : (
+                <Loader2
+                  className="animate-spin"
+                  size={60}
+                  strokeWidth={1}
+                  gradientTransform="linear-gradient(315deg, #9979d3 0%, #ff80cb 100%)"
+                />
+              )}
+            </div>
           )}
         </motion.div>
-      </div>
+      </Modal>
     </DndProvider>
   );
 };

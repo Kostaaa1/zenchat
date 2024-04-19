@@ -21,7 +21,7 @@ const socket = io(VITE_SERVER_URL);
 
 const Inbox = () => {
   const location = useLocation();
-  const { userId } = useUser();
+  const { userData } = useUser();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -49,8 +49,8 @@ const Inbox = () => {
   };
 
   const { data: userChats, isLoading: isUserChatsLoading } =
-    trpc.chat.get.user_chatrooms.useQuery(userId, {
-      enabled: !!userId,
+    trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
+      enabled: !!userData,
       refetchOnMount: "always",
     });
 
@@ -61,7 +61,7 @@ const Inbox = () => {
   }, [userChats, chatRoomId]);
 
   const { recieveNewSocketMessage } = useChatCache();
-  useChatSocket({ socket, userId, recieveNewSocketMessage });
+  useChatSocket({ socket, userId: userData!.id, recieveNewSocketMessage });
 
   return (
     <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>

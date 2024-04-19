@@ -6,7 +6,7 @@ import {
   sendMessage,
   unsendMessage,
 } from "../../utils/supabase/chatroom";
-import { messageSchema, userSchema } from "../../types/zodSchemas";
+import { MessageSchema, UserSchema } from "../../types/zodSchemas";
 
 export const messageRouter = t.router({
   get: protectedProcedure
@@ -36,7 +36,7 @@ export const messageRouter = t.router({
 
       return messages;
     }),
-  send: protectedProcedure.input(messageSchema).mutation(async ({ input: messageData }) => {
+  send: protectedProcedure.input(MessageSchema).mutation(async ({ input: messageData }) => {
     try {
       await sendMessage(messageData);
     } catch (error) {
@@ -49,7 +49,7 @@ export const messageRouter = t.router({
       console.log("unsend", input);
       await unsendMessage(input);
     }),
-  sendGroupMessage: protectedProcedure.input(z.array(userSchema)).mutation(({ input }) => {
+  sendGroupMessage: protectedProcedure.input(z.array(UserSchema)).mutation(({ input }) => {
     console.log(input);
   }),
 });

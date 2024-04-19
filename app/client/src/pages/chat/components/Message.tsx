@@ -16,7 +16,7 @@ const Message: FC<MessageProps> = ({ message }) => {
   const messageDropdownData = useModalStore(
     (state) => state.messageDropdownData,
   );
-  const { userId } = useUser();
+  const { userData } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { content, id, sender_id, isImage } = message;
   const moreDropdownRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ const Message: FC<MessageProps> = ({ message }) => {
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         "mt-1 flex w-full flex-row items-center justify-center break-words",
-        sender_id === userId
+        sender_id === userData!.id
           ? "flex-row-reverse justify-start self-start"
           : "justify-start self-start",
       )}
@@ -68,7 +68,7 @@ const Message: FC<MessageProps> = ({ message }) => {
           <div
             className={cn(
               "max-w-[300px] px-2 py-1",
-              sender_id === userId
+              sender_id === userData!.id
                 ? "rounded-xl bg-lightBlue"
                 : "rounded-xl bg-neutral-700",
             )}
@@ -82,7 +82,7 @@ const Message: FC<MessageProps> = ({ message }) => {
           ref={moreDropdownRef}
           className={cn(
             "relative flex w-14 cursor-pointer justify-around text-neutral-400",
-            sender_id === userId ? "flex-row-reverse" : "",
+            sender_id === userData!.id ? "flex-row-reverse" : "",
           )}
         >
           <Icon name="Smile" size="18px" className="hover:text-white" />
@@ -96,10 +96,10 @@ const Message: FC<MessageProps> = ({ message }) => {
             <div
               className={cn(
                 "absolute bottom-5 z-[100] flex h-max w-max select-none items-center justify-between rounded-sm bg-black p-2",
-                sender_id === userId ? "right-16" : "left-16",
+                sender_id === userData!.id ? "right-16" : "left-16",
               )}
             >
-              {sender_id === userId ? (
+              {sender_id === userData!.id ? (
                 <p
                   onClick={() => setShowUnsendMsgModal(true)}
                   className="mr-2 text-sm font-semibold text-white transition-colors duration-150 hover:text-neutral-200"

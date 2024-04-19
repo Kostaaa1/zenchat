@@ -9,9 +9,7 @@ export const downloadImage = (imgUrl: string) => {
       link.href = url;
 
       const newImgName = imgUrl.split(import.meta.env.VITE_IMAGEKIT_PREFIX)[1];
-
       link.setAttribute("download", newImgName);
-
       document.body.appendChild(link);
       link.click();
 

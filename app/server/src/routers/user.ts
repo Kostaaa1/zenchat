@@ -7,8 +7,9 @@ import {
   updateUserAvatar,
   updateUserData,
 } from "../utils/supabase/user";
-import { createUserSchema } from "../types/zodSchemas";
-import { TRPCError, initTRPC } from "@trpc/server";
+import { CreateUserSchema } from "../types/zodSchemas";
+import { TRPCError } from "@trpc/server";
+import { trpcCaller } from ".";
 
 export const userRouter = t.router({
   get: protectedProcedure
@@ -20,16 +21,13 @@ export const userRouter = t.router({
     )
     .query(async ({ input }) => {
       if (!input) return;
-      console.log("Fetching user started", input);
-      const userData = await getUser(input);
-      console.log("Return user data", userData);
+      let userData = await getUser(input);
       return userData;
     }),
   search: protectedProcedure
     .input(z.object({ username: z.string(), searchValue: z.string() }))
     .query(async ({ input }) => {
       const { searchValue, username } = input;
-
       const searchedUsers = await getSeachedUsers(username, searchValue);
       return searchedUsers;
     }),
@@ -63,7 +61,7 @@ export const userRouter = t.router({
       await updateUserData(userId, userData);
       return true;
     }),
-  create: protectedProcedure.input(createUserSchema).mutation(async ({ input }) => {
+  create: protectedProcedure.input(CreateUserSchema).mutation(async ({ input }) => {
     try {
       const { email, firstName, lastName, username } = input;
       console.log(email, firstName, lastName, username);

@@ -3,20 +3,24 @@ import Button from "../../components/Button";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
-import { FC, useEffect, useMemo, useState } from "react";
-import { TUserData } from "../../../../server/src/types/types";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { TPost, TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
 import useModalStore from "../../utils/stores/modalStore";
-import { cn } from "../../utils/utils";
+import { cn, loadImage } from "../../utils/utils";
 import Icon from "../main/components/Icon";
+import Post from "./Post";
+import useGeneralStore from "../../utils/stores/generalStore";
 
 type SeparatorProps = {
   className?: string;
 };
 
 const Separator: FC<SeparatorProps> = ({ className }) => {
-  return <div className={cn("h-[2px] w-full bg-[#262626]", className)}></div>;
+  return (
+    <div className={cn("z-50 h-[2px] w-full bg-[#262626]", className)}></div>
+  );
 };
 
 const DashboardHeader = ({
@@ -29,10 +33,10 @@ const DashboardHeader = ({
   const navigate = useNavigate();
   const { userData: loggedUser } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { setIsEditProfileModalOpen, showImageModal, setImageModalSource } =
-    useModalStore((state) => state.actions);
   const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
   const { chat } = trpc.useUtils();
+  const { setIsEditProfileModalOpen, showImageModal, setIsDndUploadModalOpen } =
+    useModalStore((state) => state.actions);
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
@@ -51,46 +55,55 @@ const DashboardHeader = ({
 
   const handleClick = () => {
     if (isAvatarUpdating) return;
-    setImageModalSource(userData?.image_url as string);
     showImageModal(userData?.image_url as string);
   };
 
   return (
-    // <div className="mx-16 my-4 flex h-max border-b border-[#262626] px-10 pb-10 outline">
-    <div className="flex h-full max-h-[200px] items-center px-16">
-      <div className="relative" onClick={handleClick}>
-        {isAvatarUpdating && (
-          <div className="absolute h-full w-full animate-spin">
-            <Loader2
-              strokeWidth="1.2"
-              className="absolute right-1/2 top-1/2 h-12 w-12 -translate-y-1/2 translate-x-1/2 "
-            />
-          </div>
-        )}
-        <div
-          className={cn(
-            "absolute h-full w-full cursor-pointer bg-black opacity-0 transition-all duration-200 hover:opacity-20",
-            isAvatarUpdating && "opacity-20",
-          )}
-        ></div>
-        <Avatar image_url={userData?.image_url} size="xxl" />
+    // <div className="flex h-56 max-w-full items-center justify-center">
+    <div className="h-max items-center justify-center py-4 pb-8 md:flex">
+      <div className="relative mb-8 flex cursor-pointer items-center justify-center md:mb-0">
+        <Avatar
+          onClick={handleClick}
+          className=""
+          image_url={userData?.image_url}
+          size="xxl"
+          enableHover={true}
+          isLoading={isAvatarUpdating}
+        />
       </div>
-      <div className="flex w-full flex-col pl-16">
-        <div className="flex h-14 items-start justify-start">
-          <h1 className="pr-8 text-2xl">{userData?.username}</h1>
+      <div className="flex flex-col space-y-4 p-0 md:pl-16">
+        <div className="flex items-start justify-between space-x-10">
+          <h1 className="text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
-            <>
-              <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
-                Message
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => setIsEditProfileModalOpen(true)}
+                className="text-sm"
+              >
+                Edit profile
               </Button>
-            </>
+              <Button
+                onClick={() => setIsDndUploadModalOpen(true)}
+                className="text-sm"
+              >
+                New post
+              </Button>
+            </div>
           ) : (
-            <Button
-              onClick={() => setIsEditProfileModalOpen(true)}
-              className="text-sm"
-            >
-              Edit Profile
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => setIsEditProfileModalOpen(true)}
+                className="text-sm"
+              >
+                Edit profile
+              </Button>
+              <Button
+                onClick={() => setIsDndUploadModalOpen(true)}
+                className="text-sm"
+              >
+                New post
+              </Button>
+            </div>
           )}
         </div>
         <div>
@@ -106,24 +119,38 @@ const DashboardHeader = ({
 
 const Dashboard = () => {
   const { username } = useParams<{ username: string }>();
-  const location = useLocation();
   const { userData } = useUser();
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
+  const isResponsive = useGeneralStore((state) => state.isResponsive);
+  const isSearchActive = useGeneralStore((state) => state.isSearchActive);
+  const [isFetching, setIsFetching] = useState<boolean>(true);
 
-  const isLoggedUserInspected = useMemo(() => {
-    return userData?.username === username;
-  }, [userData?.username, username]);
-
-  const { data: inspectedUserData, isFetching } = trpc.user.get.useQuery(
+  const { data: inspectedUserData } = trpc.user.get.useQuery(
     { data: username!, type: "username" },
     {
-      enabled: !!userData && !!username && !isLoggedUserInspected,
-      refetchOnWindowFocus: false,
+      enabled: !!userData && !!username,
+      // refetchOnWindowFocus: true,
+      refetchOnMount: true,
     },
   );
 
+  const loadImages = async (posts: TPost[]) => {
+    await Promise.all(posts.map(async (x) => await loadImage(x.media_url)));
+    setIsFetching(false);
+  };
+
+  useEffect(() => {
+    if (!inspectedUserData) return;
+    loadImages(inspectedUserData.posts);
+  }, [inspectedUserData]);
+
   return (
-    <div className="ml-80 flex min-h-screen w-full max-w-[1000px] flex-col px-4">
+    <div
+      className={cn(
+        "min-h-full w-full max-w-[1000px] px-4 py-2",
+        isSearchActive || !isResponsive ? "ml-[300px]" : "ml-[80px]",
+      )}
+    >
       {inspectedUserData === null ? (
         <ErrorPage />
       ) : (
@@ -136,38 +163,119 @@ const Dashboard = () => {
             <>
               <DashboardHeader
                 username={userData?.username}
-                userData={
-                  isLoggedUserInspected || location.pathname === "/"
-                    ? userData
-                    : inspectedUserData
-                }
+                userData={inspectedUserData || userData}
               />
-              <Separator className="my-4" />
-              {userData?.username === username && (
-                <div className="flex h-full justify-center">
-                  <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
-                    <Icon
-                      name="Camera"
-                      className="rounded-full p-3 text-neutral-600 ring ring-inset ring-neutral-600"
-                      size="78px"
-                      strokeWidth="1"
-                      onClick={() => setIsDndUploadModalOpen(true)}
-                    />
-                    <div className="space-y-2 text-center">
-                      <h2 className="text-3xl font-extrabold">Your Gallery</h2>
-                      <p>
-                        The photos from gallery will appear on your profile.
-                      </p>
-                      <p
-                        className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+              <Separator className="mb-8" />
+              {inspectedUserData?.posts.length === 0 ? (
+                <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
+                  {userData?.username === username ? (
+                    <>
+                      <Icon
+                        name="Camera"
+                        className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                        size="78px"
+                        strokeWidth="1"
                         onClick={() => setIsDndUploadModalOpen(true)}
-                      >
-                        Upload the photo
-                      </p>
-                    </div>
-                  </div>
+                      />
+                      <div className="space-y-2 text-center">
+                        <h2 className="text-3xl font-extrabold">
+                          Your Gallery
+                        </h2>
+                        <p>
+                          The photos from gallery will appear on your profile.
+                        </p>
+                        <p
+                          className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+                          onClick={() => setIsDndUploadModalOpen(true)}
+                        >
+                          Upload the photo
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Icon
+                        name="Camera"
+                        className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                        size="78px"
+                        strokeWidth="1"
+                        onClick={() => setIsDndUploadModalOpen(true)}
+                      />
+                      <div className="space-y-2 text-center">
+                        <h2 className="text-3xl font-extrabold">
+                          No Posts Yet
+                        </h2>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 flex-wrap gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {inspectedUserData?.posts.map((post) => (
+                    <Post key={post.id} post={post} />
+                  ))}
                 </div>
               )}
+              {/* {userData!.username === username || location.pathname === "/" ? (
+                <>
+                  {userData?.posts.length === 0 ? (
+                    <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
+                      <Icon
+                        name="Camera"
+                        className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                        size="78px"
+                        strokeWidth="1"
+                        onClick={() => setIsDndUploadModalOpen(true)}
+                      />
+                      <div className="space-y-2 text-center">
+                        <h2 className="text-3xl font-extrabold">
+                          Your Gallery
+                        </h2>
+                        <p>
+                          The photos from gallery will appear on your profile.
+                        </p>
+                        <p
+                          className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+                          onClick={() => setIsDndUploadModalOpen(true)}
+                        >
+                          Upload the photo
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 flex-wrap gap-1  sm:grid-cols-2 lg:grid-cols-3">
+                      {userData?.posts.map((post) => (
+                        <Post key={post.id} post={post} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {inspectedUserData?.posts.length === 0 ? (
+                    <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
+                      <Icon
+                        name="Camera"
+                        className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                        size="78px"
+                        strokeWidth="1"
+                        onClick={() => setIsDndUploadModalOpen(true)}
+                      />
+                      <div className="space-y-2 text-center">
+                        <h2 className="text-3xl font-extrabold">
+                          No Posts Yet
+                        </h2>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 flex-wrap gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                      {inspectedUserData?.posts.map((post) => (
+                        <Post key={post.id} post={post} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )} */}
             </>
           )}
         </>

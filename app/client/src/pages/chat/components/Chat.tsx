@@ -102,7 +102,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
         });
       }
     }, 250);
-
     container.addEventListener("scroll", handleScroll);
     return () => {
       container.removeEventListener("scroll", handleScroll);

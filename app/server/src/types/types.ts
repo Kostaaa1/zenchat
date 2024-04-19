@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { createUserSchema, messageSchema, userSchema } from "./zodSchemas";
+import { CreateUserSchema, MessageSchema, PostSchema, UserSchema } from "./zodSchemas";
 
-export type TMessage = z.infer<typeof messageSchema>;
-export type TCreateUserInput = z.infer<typeof createUserSchema>;
-export type TUserData = z.infer<typeof userSchema>;
+export type TMessage = z.infer<typeof MessageSchema>;
+export type TCreateUserInput = z.infer<typeof CreateUserSchema>;
+export type TUserData = z.infer<typeof UserSchema>;
 
 type CommonFields = {
   id: string;
@@ -42,13 +42,11 @@ export type TChatroom = {
   }[];
 };
 
-type PostReques = {
-  folderName: "posts";
-  data: string;
-  parsed: {
-    user_id: string;
-    caption: string;
-    media_name: string;
-    media_url: string;
-  };
+export type TPost = z.infer<typeof PostSchema>;
+
+export type UploadPostRequest = {
+  user_id: string;
+  caption: string;
+  media_name: string;
+  media_url: string;
 };

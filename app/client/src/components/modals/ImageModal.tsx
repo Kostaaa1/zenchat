@@ -3,6 +3,7 @@ import Icon from "../../pages/main/components/Icon";
 import { cn } from "../../utils/utils";
 import useModalStore from "../../utils/stores/modalStore";
 import useOutsideClick from "../../hooks/useOutsideClick";
+import { Modal } from "./Modals";
 
 const ImageModal = () => {
   const [loading, setLoading] = useState(true);
@@ -14,24 +15,21 @@ const ImageModal = () => {
   return (
     <>
       {imageModalSource ? (
-        <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
+        <Modal>
           <div
             ref={imageModalRef}
-            className={cn(
-              "relative h-auto w-auto",
-              loading ? "hidden" : "block",
-            )}
+            className={cn("relative", loading ? "hidden" : "block")}
           >
             {imageModalSource.split("blob").length > 1 ? (
               <img
-                className="max-h-[620px] max-w-[480px]"
+                className="max-h-[620px]"
                 src={imageModalSource}
                 alt={imageModalSource}
                 onLoad={() => setLoading(false)}
               />
             ) : (
               <img
-                className="max-h-[620px] max-w-[480px]"
+                className="max-h-[620px]"
                 src={imageModalSource}
                 alt={imageModalSource}
                 onLoad={() => setLoading(false)}
@@ -44,7 +42,7 @@ const ImageModal = () => {
               <Icon name="X" size="28px" />
             </div>
           </div>
-        </div>
+        </Modal>
       ) : null}
     </>
   );

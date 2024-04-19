@@ -14,33 +14,41 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import LoadingPage from "./pages/LoadingPage";
 import Modals from "./components/modals/Modals";
 import { trpc } from "./utils/trpcClient";
-import useGeneralStore from "./utils/stores/generalStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { loadImage } from "./utils/utils";
+import { TPost } from "../../server/src/types/types";
+import useModalStore from "./utils/stores/modalStore";
 
 function App() {
   const { getToken } = useAuth();
   const { user } = useUser();
-  const email = useGeneralStore((state) => state.email);
-  const { setEmail, setUserId } = useGeneralStore((state) => state.actions);
+  const [email, setEmail] = useState<string>();
   const ctx = trpc.useUtils();
+  const [isFetched, setIsFetched] = useState<boolean>(false);
+  const isModalOpen = useModalStore((state) => state.isModalOpen);
 
-  const { data: userData, isFetched } = trpc.user.get.useQuery(
-    { data: email, type: "email" },
-    { enabled: !!email && !!getToken() },
+  useEffect(() => {
+    if (!user) return;
+    const userEmailAddress = user?.emailAddresses?.[0]?.emailAddress;
+    setEmail(userEmailAddress);
+  }, [user]);
+
+  const { data: userData } = trpc.user.get.useQuery(
+    { data: email!, type: "email" },
+    { enabled: !!user && !!email && !!getToken() },
   );
 
   const createUserMutation = trpc.user.create.useMutation({
     mutationKey: [email],
     onSuccess: (data) => {
-      ctx.user.get.setData({ data: email, type: "email" }, data);
+      ctx.user.get.setData({ data: email!, type: "email" }, data);
     },
     onError: () => {},
   });
 
   const createUser = async () => {
-    if (!user) return;
+    if (!user || !email) return;
     const { firstName, lastName, username } = user;
-
     await createUserMutation
       .mutateAsync({
         firstName,
@@ -53,20 +61,15 @@ function App() {
       });
   };
 
-  useEffect(() => {
-    if (userData === null) {
-      createUser();
-      return;
-    }
+  const loadImages = async (posts: TPost[]) => {
+    await Promise.all(posts.map(async (x) => await loadImage(x.media_url)));
+    setIsFetched(true);
+  };
 
-    if (userData) setUserId(userData.id);
+  useEffect(() => {
+    if (userData === null) createUser();
+    if (userData) loadImages(userData.posts);
   }, [userData]);
-
-  useEffect(() => {
-    if (!user) return;
-    const userEmailAddress = user?.emailAddresses?.[0]?.emailAddress;
-    setEmail(userEmailAddress);
-  }, [user]);
 
   return (
     <>
@@ -74,7 +77,10 @@ function App() {
         {!isFetched ? (
           <LoadingPage />
         ) : (
-          <div className="relative flex h-screen w-screen justify-center">
+          <div
+            style={{ overflow: !isModalOpen ? "hidden" : "auto" }}
+            className="relative flex h-screen w-full justify-center"
+          >
             <Header />
             <Routes>
               <Route

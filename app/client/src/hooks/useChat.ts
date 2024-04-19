@@ -10,11 +10,10 @@ import { trpc } from "../utils/trpcClient";
 import { useParams } from "react-router-dom";
 import { Skin } from "@emoji-mart/data";
 import { uploadMultipartForm } from "../utils/utils";
-import { nanoid } from "nanoid";
 import { useAuth } from "@clerk/clerk-react";
 
 const useChat = (socket?: Socket, scrollToStart?: () => void) => {
-  const { userData, userId } = useUser();
+  const { userData } = useUser();
   const [formData, setFormdata] = useState<FormData>(new FormData());
   const { chatRoomId } = useParams();
   const { chat } = trpc.useUtils();
@@ -26,9 +25,9 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
 
   const { addNewMessageToChatCache } = useChatCache();
   const { data: currentChatroom } = trpc.chat.get.currentChatRoom.useQuery(
-    { chatroom_id: chatRoomId as string, user_id: userId },
+    { chatroom_id: chatRoomId as string, user_id: userData!.id },
     {
-      enabled: !!chatRoomId && !!userId,
+      enabled: !!chatRoomId && !!userData,
     },
   );
   const { new_message, img_urls, chatroom_id } = currentChatroom || {};
@@ -38,7 +37,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     chat.get.currentChatRoom.setData(
       {
         chatroom_id: chatRoomId as string,
-        user_id: userId,
+        user_id: userData!.id,
       },
       (stale) => {
         if (stale) {
@@ -50,7 +49,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
 
   const setImgUrls = (img_urls: string[]) => {
     chat.get.currentChatRoom.setData(
-      { chatroom_id: chatRoomId as string, user_id: userId },
+      { chatroom_id: chatRoomId as string, user_id: userData!.id },
       (stale) => {
         if (stale) {
           return { ...stale, img_urls };
@@ -102,7 +101,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
 
     return {
       id: id || uuidv4(),
-      sender_id: userId,
+      sender_id: userData!.id,
       created_at: getCurrentDate(),
       isImage: isImage || false,
       chatroom_id,
@@ -126,10 +125,8 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   //   // const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
   //   const uniquePrefix = nanoid();
   //   const chatroomPrefix = currentChatroom?.chatroom_id.split("-")[0];
-
   //   const filename = `${chatroomPrefix}-${uniquePrefix}-${fileImage.name}`;
   //   const newFile = new File([fileImage], filename, { type: fileImage.type });
-
   //   if (cb) cb(newFile);
   //   return newFile;
   // };
@@ -182,7 +179,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
 
     setImgUrls([]);
     const uploadedImages = await uploadMultipartForm(
-      "/api/image-upload/message",
+      "/api/uploadMedia/message",
       formData,
       getToken,
     );

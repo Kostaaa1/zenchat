@@ -4,6 +4,7 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import useChatCache from "../../hooks/useChatCache";
 import useChatStore from "../../utils/stores/chatStore";
 import { trpc } from "../../utils/trpcClient";
+import { Modal } from "./Modals";
 
 const UnsendMessageModal = () => {
   const { setShowUnsendMsgModal } = useModalStore((state) => state.actions);
@@ -28,7 +29,7 @@ const UnsendMessageModal = () => {
   };
 
   return (
-    <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
+    <Modal>
       <div
         ref={unsendMsgModalRef}
         className="flex h-max w-96 flex-col items-center rounded-xl bg-[#282828] px-2 py-4 pb-0 text-center"
@@ -55,7 +56,7 @@ const UnsendMessageModal = () => {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

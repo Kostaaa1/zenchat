@@ -1,6 +1,20 @@
-import { ZodSchema, string, z } from "zod";
+import { ZodSchema, z } from "zod";
 
-export const userSchema: ZodSchema<{
+export const InputPostSchema = z.object({
+  caption: z.string(),
+  media_name: z.string(),
+  media_url: z.string(),
+  user_id: z.string(),
+});
+
+export const OutputPostSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+});
+
+export const PostSchema = InputPostSchema.merge(OutputPostSchema);
+
+export const UserSchema: ZodSchema<{
   id: string;
   created_at: string;
   username: string;
@@ -8,6 +22,7 @@ export const userSchema: ZodSchema<{
   image_url: string;
   first_name: string;
   last_name: string;
+  posts: z.infer<typeof PostSchema>[];
 }> = z.object({
   id: z.string(),
   created_at: z.string(),
@@ -16,9 +31,10 @@ export const userSchema: ZodSchema<{
   image_url: z.string(),
   first_name: z.string(),
   last_name: z.string(),
+  posts: z.array(PostSchema),
 });
 
-export const createUserSchema: ZodSchema<{
+export const CreateUserSchema: ZodSchema<{
   username: string | null;
   firstName: string | null;
   lastName: string | null;
@@ -30,7 +46,7 @@ export const createUserSchema: ZodSchema<{
   email: z.string(),
 });
 
-export const messageSchema: ZodSchema<{
+export const MessageSchema: ZodSchema<{
   id: string;
   sender_id: string;
   chatroom_id: string;
@@ -46,7 +62,7 @@ export const messageSchema: ZodSchema<{
   isImage: z.boolean(),
 });
 
-export const chatRoomDataSchema: ZodSchema<
+export const ChatRoomDataSchema: ZodSchema<
   | {
       id: string;
       chatroom_id: string;
@@ -55,7 +71,7 @@ export const chatRoomDataSchema: ZodSchema<
       last_message: string;
       image_url: string;
       username: string;
-      messages: z.infer<typeof messageSchema>[];
+      messages: z.infer<typeof MessageSchema>[];
       is_group: boolean;
     }
   | undefined
@@ -67,35 +83,6 @@ export const chatRoomDataSchema: ZodSchema<
   last_message: z.string(),
   image_url: z.string(),
   username: z.string(),
-  messages: z.array(messageSchema),
+  messages: z.array(MessageSchema),
   is_group: z.boolean(),
 });
-
-export const InputPostSchema = z.object({
-  caption: z.string(),
-  media_name: z.string(),
-  media_url: z.string(),
-  user_id: z.string(),
-});
-
-export const OutputPostSchema = z.object({
-  id: z.string(),
-  created_at: z.string(),
-});
-export const PostSchema = InputPostSchema.merge(OutputPostSchema);
-
-// export const PostSchema: ZodSchema<{
-//   id: string;
-//   caption: string;
-//   media_name: string;
-//   media_url: string;
-//   user_id: string;
-//   created_at: string;
-// }> = z.object({
-//   id: z.string(),
-//   caption: z.string(),
-//   media_name: z.string(),
-//   media_url: z.string(),
-//   user_id: z.string(),
-//   created_at: z.string(),
-// });

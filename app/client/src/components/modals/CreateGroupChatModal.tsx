@@ -10,6 +10,7 @@ import List from "../List";
 import { cn } from "../../utils/utils";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
+import { Modal } from "./Modals";
 
 const CreateGroupChatModal = () => {
   const { setIsCreateGroupChatModalOpen } = useModalStore(
@@ -18,7 +19,7 @@ const CreateGroupChatModal = () => {
   const [search, setSearch] = useState<string>("");
   const [searchedUsers, setSearchedUsers] = useState<TUserData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { userData, userId } = useUser();
+  const { userData  } = useUser();
   const [selectedUsers, setSelectedUsers] = useState<TUserData[]>([]);
   const sendMessageModal = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -78,20 +79,18 @@ const CreateGroupChatModal = () => {
     setLoading(true);
     const userIds = selectedUsers.map((x) => x.id);
     const newChatroomId = await chat.get.chatroom_id.fetch({
-      userIds: [...userIds, userId],
-      admin: userId,
+      userIds: [...userIds, userData!.id],
+      admin: userData!.id,
     });
 
     const newChat = await chat.get.currentChatRoom.fetch({
       chatroom_id: newChatroomId as string,
-      user_id: userId,
+      user_id: userData!.id,
     });
 
     if (newChat) {
-      chat.get.user_chatrooms.setData(userId, (stale) => {
-        if (stale) {
-          return [newChat, ...stale];
-        }
+      chat.get.user_chatrooms.setData(userData!.id, (stale) => {
+        if (stale) return [newChat, ...stale];
       });
     }
 
@@ -103,7 +102,7 @@ const CreateGroupChatModal = () => {
   };
 
   return (
-    <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
+    <Modal>
       <div
         ref={sendMessageModal}
         className="flex h-[620px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
@@ -187,7 +186,7 @@ const CreateGroupChatModal = () => {
                 >
                   <div className="block h-12 w-12 rounded-full bg-neutral-700"></div>
                   <div className="ml-4 flex h-full flex-col justify-between py-[6px]">
-                    <div className="mb-2 h-4 w-[320px] rounded-lg bg-neutral-700"></div>
+                    <div className="mb-2 h-4 w-[300px] rounded-lg bg-neutral-700"></div>
                     <div className="h-4 w-[120px] rounded-lg bg-neutral-700"></div>
                   </div>
                 </div>
@@ -209,7 +208,7 @@ const CreateGroupChatModal = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

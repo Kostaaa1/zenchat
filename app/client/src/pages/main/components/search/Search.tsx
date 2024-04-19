@@ -49,7 +49,6 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
       return;
     }
     debounceEmit();
-
     return () => {
       debounceEmit.cancel();
     };

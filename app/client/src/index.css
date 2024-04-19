@@ -15,7 +15,6 @@
 
 body {
   background-color: #000000;
-  overflow-x: hidden;
   color: #fff;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -154,4 +153,8 @@ li {
 
 textarea {
   resize: none;
+}
+
+.no-scroll-padding {
+  padding-right: 12px;
 }

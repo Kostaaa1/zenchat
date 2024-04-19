@@ -11,6 +11,15 @@ import useUser from "../../../hooks/useUser";
 import useGeneralStore, {
   ActiveList,
 } from "../../../utils/stores/generalStore";
+import useWindowSize from "../../../hooks/useWindowSize";
+
+type NavListItems = {
+  iconName?: "MessageCircle" | "Search" | undefined;
+  iconStrokeWidth?: string;
+  title?: string;
+  onClick?: () => void;
+  className?: string;
+};
 
 interface NavbarProps {
   handleActivateSearch: () => void;
@@ -30,16 +39,22 @@ const Navbar: FC<NavbarProps> = ({
   );
   const showDropdown = useGeneralStore((state) => state.showDropdown);
   const isSearchActive = useGeneralStore((state) => state.isSearchActive);
-  const { setShowDropdown } = useGeneralStore((state) => state.actions);
-
+  const isResponsive = useGeneralStore((state) => state.isResponsive);
+  const { setShowDropdown, setIsResponsive } = useGeneralStore(
+    (state) => state.actions,
+  );
   const location = useLocation();
-  const [isResponsive, setIsResponsive] = useState<boolean>(false);
   const [list, setList] = useState<"list" | "default">("default");
   const { userData } = useUser();
+  const { width } = useWindowSize();
 
   useEffect(() => {
+    if (width <= 1024) {
+      setIsResponsive(true);
+      return;
+    }
     setIsResponsive(isSearchActive || location.pathname.includes("/inbox"));
-  }, [isSearchActive, location]);
+  }, [isSearchActive, width, location]);
 
   useEffect(() => {
     setList(isResponsive ? "default" : "list");
@@ -49,14 +64,6 @@ const Navbar: FC<NavbarProps> = ({
     handleActiveElement(title);
     if (title === "inbox") return;
     setIsResponsive(isSearchActive);
-  };
-
-  type NavListItems = {
-    iconName?: "MessageCircle" | "Search" | undefined;
-    iconStrokeWidth?: string;
-    title?: string;
-    onClick?: () => void;
-    className?: string;
   };
 
   const NavListItems: NavListItems[] = [
@@ -85,11 +92,11 @@ const Navbar: FC<NavbarProps> = ({
     <nav>
       <AnimatePresence>
         <motion.ul
-          initial={{ width: isResponsive ? "320px" : "80px" }}
-          animate={{ width: isResponsive ? "80px" : "320px" }}
-          exit={{ width: isResponsive ? "320px" : "80px" }}
-          transition={{ type: "spring", damping: 45, stiffness: 320 }}
-          className="sm:w-[80px fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black px-4 py-6"
+          initial={{ width: isResponsive ? "300px" : "80px" }}
+          animate={{ width: isResponsive ? "80px" : "300px" }}
+          exit={{ width: isResponsive ? "300px" : "80px" }}
+          transition={{ type: "spring", damping: 45, stiffness: 300 }}
+          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black px-4 py-6"
         >
           <Logo variant={isResponsive ? "default" : "list"} />
           <div

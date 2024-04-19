@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { renameFile, uploadMultipartForm } from "../../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
+import { Modal } from "./Modals";
 
 export type CommonInput = {
   first_name?: string;
@@ -25,28 +26,23 @@ export type Inputs = CommonInput & {
 const EditProfileModal = () => {
   const editUserRef = useRef<HTMLFormElement>(null);
   const [file, setFile] = useState<string>("");
-  const { userData, userId, updateUserCache } = useUser();
+  const { userData, updateUserCache } = useUser();
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
-    onSuccess: (updatedAvater: string) => {
-      updateUserCache({ image_url: updatedAvater });
+    onSuccess: async (updatedAvater: string) => {
+      await updateUserCache({ image_url: updatedAvater });
+      setIsAvatarUpdating(false);
     },
   });
   const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
     (state) => state.actions,
   );
   const updateUserDataMutation = trpc.user.updateUserData.useMutation();
+  const { register, handleSubmit, watch } = useForm<Inputs>();
   useOutsideClick([editUserRef], "mousedown", () =>
     setIsEditProfileModalOpen(false),
   );
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<Inputs>();
 
   const handleUpload = async (newFile: File) => {
     try {
@@ -56,13 +52,13 @@ const EditProfileModal = () => {
       formData.append("images", renamedFile);
 
       const uploadedImages = await uploadMultipartForm(
-        "/api/image-upload/avatar",
+        "/api/uploadMedia/avatar",
         formData,
         getToken,
       );
 
       updateAvatarMutation.mutate({
-        userId,
+        userId: userData!.id,
         image_url: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[0],
       });
     } catch (error) {
@@ -73,7 +69,6 @@ const EditProfileModal = () => {
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     setIsEditProfileModalOpen(false);
     const { file } = formData;
-
     if (file.length > 0) await handleUpload(file[0]);
     if (Object.values(formData).every((x) => x?.length === 0)) return;
 
@@ -88,7 +83,7 @@ const EditProfileModal = () => {
     const { username } = extractedData;
     if (username && username.length > 0) navigate(`/${username}`);
     await updateUserDataMutation.mutateAsync({
-      userId,
+      userId: userData!.id,
       userData: extractedData,
     });
   };
@@ -96,13 +91,12 @@ const EditProfileModal = () => {
   useEffect(() => {
     const newFile = watch("file");
     if (newFile.length === 0) return;
-
     const url = URL.createObjectURL(newFile[0]);
     setFile(url);
   }, [watch("file")]);
 
   return (
-    <div className="absolute z-[1000] flex h-full w-screen items-center justify-center overflow-hidden bg-black bg-opacity-70">
+    <Modal>
       <form
         ref={editUserRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -169,7 +163,7 @@ const EditProfileModal = () => {
           />
         </div>
       </form>
-    </div>
+    </Modal>
   );
 };
 
