@@ -2,7 +2,7 @@ import { cn } from "../utils/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
-import {motion} from 'framer-motion'
+import { motion } from "framer-motion";
 
 export const listVariants = cva(
   "flex cursor-pointer w-full justify-between px-6 py-2 items-center",

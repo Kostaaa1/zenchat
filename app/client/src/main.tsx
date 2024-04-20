@@ -2,7 +2,6 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import { BrowserRouter, useNavigate } from "react-router-dom";
-
 import { ClerkProvider } from "@clerk/clerk-react";
 import TRPCWrapper from "./TRPCWrapper";
 

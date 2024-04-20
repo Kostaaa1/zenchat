@@ -58,8 +58,8 @@ export const userRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { userData, userId } = input;
-      await updateUserData(userId, userData);
-      return true;
+      const data = await updateUserData(userId, userData);
+      return data;
     }),
   create: protectedProcedure.input(CreateUserSchema).mutation(async ({ input }) => {
     try {

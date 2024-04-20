@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { TPost } from "../../../../server/src/types/types";
 
 export type ActiveList = "inbox" | "user" | "";
 type TOpenMessageDropdown = {
@@ -18,7 +19,9 @@ type Store = {
   isDeleteChatOpen: boolean;
   isDndUploadModalOpen: boolean;
   isModalOpen: boolean;
+  modalPostData: TPost | null;
   actions: {
+    setModalPostData: (s: TPost | null) => void;
     setIsModalOpen: (v: boolean) => void;
     setIsDndUploadModalOpen: (isOpen: boolean) => void;
     setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
@@ -46,7 +49,9 @@ const useModalStore = create<Store>(
     isImageModalOpen: false,
     isDndUploadModalOpen: false,
     isModalOpen: false,
+    modalPostData: null,
     actions: {
+      setModalPostData: (modalPostData: TPost | null) => set({ modalPostData }),
       setIsModalOpen: (isModalOpen: boolean) => set({ isModalOpen }),
       setIsDndUploadModalOpen: (v: boolean) => set({ isDndUploadModalOpen: v }),
       setIsDeleteChatOpen: (isUpdaing: boolean) =>

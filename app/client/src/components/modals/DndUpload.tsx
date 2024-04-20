@@ -129,14 +129,16 @@ const DndUpload = () => {
           },
         },
       );
-
-      console.log("data", data);
       await loadImage(data.media_url);
-      ctx.user.get.setData({ data: userData.email, type: "email" }, (state) => {
-        if (state) {
-          return { ...state, posts: [...state.posts, data] };
-        }
-      });
+
+      ctx.user.get.setData(
+        { data: userData.username, type: "username" },
+        (state) => {
+          if (state) {
+            return { ...state, posts: [...state.posts, data] };
+          }
+        },
+      );
 
       setIsUploading(false);
       setModalTitle("Post uploaded");

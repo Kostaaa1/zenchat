@@ -13,11 +13,15 @@ const SideSearch = () => {
   const navigate = useNavigate();
   const search = useGeneralStore((state) => state.search);
   const searchedUsers = useGeneralStore((state) => state.searchedUsers);
-  const { setIsSearchActive } = useGeneralStore((state) => state.actions);
+  const { setIsSearchActive , setSearch} = useGeneralStore((state) => state.actions);
   const [loading, setLoading] = useState<boolean>(false);
   const { userData } = useUser();
 
-  const addToHistoryMutation = trpc.chat.history.addUser.useMutation();
+  const addToHistoryMutation = trpc.chat.history.addUser.useMutation({
+    onSuccess: (data) => {
+      console.log("Added to history, ", data);
+    },
+  });
 
   const navigateToUserDashboard = (username: string) => {
     navigate(`/${username}`);
@@ -34,6 +38,7 @@ const SideSearch = () => {
     try {
       if (!username && !id) return;
       navigateToUserDashboard(username);
+      setSearch('')
       addToHistoryMutation.mutate({
         main_user_id: userData?.id as string,
         user_id: id,

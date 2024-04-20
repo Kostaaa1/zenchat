@@ -11,16 +11,16 @@ type TUserDataMutation = TUserData & {
 
 const useUser = () => {
   const { user } = useClerkUser();
-  const email = user?.emailAddresses[0].emailAddress;
+  // const email = user?.emailAddresses[0].emailAddress;
   const ctx = trpc.useUtils();
   const userData = ctx.user.get.getData({
-    data: email!,
-    type: "email",
+    data: user!.username!,
+    type: "username",
   });
 
   const updateUserCache = async (updatedData: CommonInput) => {
     const { image_url } = updatedData;
-    ctx.user.get.setData({ data: email!, type: "email" }, (state) => {
+    ctx.user.get.setData({ data: userData!.username, type: "username" }, (state) => {
       if (state && updatedData) {
         return Object.entries(state).reduce((obj, [key, val]) => {
           // @ts-expect-error skrt

@@ -74,7 +74,7 @@ export const updateUserData = async (
     });
   }
 
-  return { success: true };
+  return data[0];
 };
 
 export const getSeachedUsers = async (

@@ -7,7 +7,6 @@ import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUpload";
 import { FC, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLocation, useParams } from "react-router-dom";
 
 type ModalProps = {
   children: React.ReactNode;

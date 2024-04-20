@@ -1,7 +1,7 @@
 const ErrorPage = () => {
   return (
-    <div className="flex w-full max-w-full flex-col flex-wrap items-center justify-center py-8 text-center">
-      <h3 className="pb-4 text-2xl font-semibold">
+    <div className="flex w-full max-w-full flex-col flex-wrap items-center justify-center space-y-1 py-8 text-center">
+      <h3 className="text-2xl font-semibold">
         Sorry, this page isn't available.
       </h3>
       <p>

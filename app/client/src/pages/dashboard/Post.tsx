@@ -13,10 +13,13 @@ type PostProps = {
 };
 
 const Post: FC<PostProps> = ({ post }) => {
-  const { showImageModal } = useModalStore((state) => state.actions);
+  const { showImageModal, setModalPostData } = useModalStore(
+    (state) => state.actions,
+  );
 
   const openModel = () => {
     showImageModal(post.media_url);
+    setModalPostData(post);
   };
 
   return (

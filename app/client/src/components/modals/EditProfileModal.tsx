@@ -10,6 +10,7 @@ import { renameFile, uploadMultipartForm } from "../../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
+import { useUser as useClerkUser } from "@clerk/clerk-react";
 
 export type CommonInput = {
   first_name?: string;
@@ -25,24 +26,44 @@ export type Inputs = CommonInput & {
 
 const EditProfileModal = () => {
   const editUserRef = useRef<HTMLFormElement>(null);
+  const { user } = useClerkUser();
   const [file, setFile] = useState<string>("");
+  const [error, setError] = useState<string>("");
   const { userData, updateUserCache } = useUser();
+  const utils = trpc.useUtils();
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
+    (state) => state.actions,
+  );
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+    watch,
+  } = useForm<Inputs>();
+  useOutsideClick([editUserRef], "mousedown", () =>
+    setIsEditProfileModalOpen(false),
+  );
+
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
     onSuccess: async (updatedAvater: string) => {
       await updateUserCache({ image_url: updatedAvater });
       setIsAvatarUpdating(false);
     },
   });
-  const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
-    (state) => state.actions,
-  );
-  const updateUserDataMutation = trpc.user.updateUserData.useMutation();
-  const { register, handleSubmit, watch } = useForm<Inputs>();
-  useOutsideClick([editUserRef], "mousedown", () =>
-    setIsEditProfileModalOpen(false),
-  );
+
+  const updateUserDataMutation = trpc.user.updateUserData.useMutation({
+    onSuccess: async (data) => {
+      console.log("Success update data", data);
+      const { username } = data;
+      await utils.user.get.invalidate({ data: username, type: "username" });
+
+      setIsEditProfileModalOpen(false);
+      setError("");
+      navigate(`/${username}`);
+    },
+  });
 
   const handleUpload = async (newFile: File) => {
     try {
@@ -67,25 +88,37 @@ const EditProfileModal = () => {
   };
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
-    setIsEditProfileModalOpen(false);
-    const { file } = formData;
-    if (file.length > 0) await handleUpload(file[0]);
-    if (Object.values(formData).every((x) => x?.length === 0)) return;
+    try {
+      if (!userData) return;
+      await user?.update({
+        username: formData.username,
+        firstName: formData.first_name,
+        lastName: formData.last_name,
+      });
 
-    const extractedData = Object.keys(formData)
-      .filter((x) => formData[x]!.length > 0 && x !== "file")
-      .reduce((obj, key) => {
-        obj[key] = formData[key];
-        return obj;
-      }, {} as CommonInput);
+      const { file } = formData;
+      if (file.length > 0) await handleUpload(file[0]);
+      if (Object.values(formData).every((x) => x?.length === 0)) return;
 
-    updateUserCache(extractedData);
-    const { username } = extractedData;
-    if (username && username.length > 0) navigate(`/${username}`);
-    await updateUserDataMutation.mutateAsync({
-      userId: userData!.id,
-      userData: extractedData,
-    });
+      const extractedData = Object.keys(formData)
+        .filter((x) => formData[x]!.length > 0 && x !== "file")
+        .reduce((obj, key) => {
+          obj[key] = formData[key];
+          return obj;
+        }, {} as CommonInput);
+
+      updateUserDataMutation.mutate({
+        userId: userData.id,
+        userData: extractedData,
+      });
+    } catch (error) {
+      // @ts-expect-error sfk
+      if (error.status === 422) {
+        setError(
+          "Failed to update since username already exists. Please try using different username.",
+        );
+      }
+    }
   };
 
   useEffect(() => {
@@ -98,9 +131,10 @@ const EditProfileModal = () => {
   return (
     <Modal>
       <form
+        autoComplete="off"
         ref={editUserRef}
         onSubmit={handleSubmit(onSubmit)}
-        className="flex h-[340px] w-[420px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
+        className="flex h-max w-[420px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
       >
         <div className="flex w-full items-center justify-between">
           <div className="relative flex items-center justify-between">
@@ -139,28 +173,39 @@ const EditProfileModal = () => {
             />
           </div>
         </div>
-        <div className="flex h-full w-full flex-col items-center justify-around">
-          <input
-            placeholder="Username"
-            type="text"
-            {...register("username")}
-            defaultValue={userData?.username}
-            className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-          />
-          <input
-            placeholder="First name"
-            defaultValue={userData?.first_name}
-            {...register("first_name")}
-            type="text"
-            className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-          />
-          <input
-            placeholder="Last name"
-            defaultValue={userData?.last_name}
-            {...register("last_name")}
-            type="text"
-            className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-          />
+        <div className="flex h-full w-full flex-col items-start justify-around space-y-2">
+          <div className="flex w-full flex-col items-start justify-start">
+            <input
+              placeholder="Username"
+              type="text"
+              {...register("username")}
+              defaultValue={userData?.username}
+              className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+            />
+            {error && (
+              <span className="break-all text-start text-xs text-red-500">
+                {error}
+              </span>
+            )}
+          </div>
+          <div className="flex w-full flex-col items-start justify-start">
+            <input
+              placeholder="First name"
+              defaultValue={userData?.first_name}
+              {...register("first_name")}
+              type="text"
+              className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+            />
+          </div>
+          <div className="flex w-full flex-col items-start justify-start">
+            <input
+              placeholder="Last name"
+              defaultValue={userData?.last_name}
+              {...register("last_name")}
+              type="text"
+              className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+            />
+          </div>
         </div>
       </form>
     </Modal>

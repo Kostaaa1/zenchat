@@ -7,7 +7,7 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Header from "./pages/main/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -22,39 +22,40 @@ import useModalStore from "./utils/stores/modalStore";
 function App() {
   const { getToken } = useAuth();
   const { user } = useUser();
-  const [email, setEmail] = useState<string>();
+  const [username, setUsername] = useState<string | null>(null);
   const ctx = trpc.useUtils();
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const isModalOpen = useModalStore((state) => state.isModalOpen);
 
   useEffect(() => {
-    if (!user) return;
-    const userEmailAddress = user?.emailAddresses?.[0]?.emailAddress;
-    setEmail(userEmailAddress);
+    if (!user || !user.username) return;
+    setUsername(user?.username);
   }, [user]);
 
   const { data: userData } = trpc.user.get.useQuery(
-    { data: email!, type: "email" },
-    { enabled: !!user && !!email && !!getToken() },
+    { data: username!, type: "username" },
+    { enabled: !!user && !!username && !!getToken() },
   );
 
   const createUserMutation = trpc.user.create.useMutation({
-    mutationKey: [email],
+    mutationKey: [username],
     onSuccess: (data) => {
-      ctx.user.get.setData({ data: email!, type: "email" }, data);
+      ctx.user.get.setData(
+        { data: userData!.username, type: "username" },
+        data,
+      );
     },
-    onError: () => {},
   });
 
   const createUser = async () => {
-    if (!user || !email) return;
-    const { firstName, lastName, username } = user;
+    if (!user) return;
+    const { firstName, lastName } = user;
     await createUserMutation
       .mutateAsync({
         firstName,
         lastName,
-        username,
-        email,
+        username: user.username,
+        email: user.emailAddresses[0].emailAddress,
       })
       .catch((err) => {
         console.log(err);
