@@ -10,7 +10,9 @@ type Store = {
   searchedUsers: TUserData[];
   search: string;
   isResponsive: boolean;
+  username: string | null;
   actions: {
+    setUsername: (s: string | null) => void;
     setIsResponsive: (isResponsive: boolean) => void;
     setIsSearchActive: (isActive: boolean) => void;
     setShowDropdown: (isShown: boolean) => void;
@@ -28,7 +30,9 @@ const useGeneralStore = create<Store>(
     showDropdown: false,
     isSearchActive: false,
     isResponsive: false,
+    username: null,
     actions: {
+      setUsername: (username: string | null) => set({ username }),
       setIsResponsive: (isResponsive: boolean) => set({ isResponsive }),
       setSearch: (search: string) => set({ search }),
       setIsSearchActive: (isActive: boolean) =>

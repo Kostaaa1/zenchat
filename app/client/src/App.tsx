@@ -18,14 +18,16 @@ import { useEffect, useState } from "react";
 import { loadImage } from "./utils/utils";
 import { TPost } from "../../server/src/types/types";
 import useModalStore from "./utils/stores/modalStore";
+import useGeneralStore from "./utils/stores/generalStore";
 
 function App() {
-  const { getToken } = useAuth();
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const [username, setUsername] = useState<string | null>(null);
   const ctx = trpc.useUtils();
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const isModalOpen = useModalStore((state) => state.isModalOpen);
+  const username = useGeneralStore((state) => state.username);
+  const { setUsername } = useGeneralStore((state) => state.actions);
 
   useEffect(() => {
     if (!user || !user.username) return;
@@ -34,7 +36,7 @@ function App() {
 
   const { data: userData } = trpc.user.get.useQuery(
     { data: username!, type: "username" },
-    { enabled: !!user && !!username && !!getToken() },
+    { enabled: !!user && !!username && !!isSignedIn },
   );
 
   const createUserMutation = trpc.user.create.useMutation({

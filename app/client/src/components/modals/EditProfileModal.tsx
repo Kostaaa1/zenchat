@@ -11,6 +11,8 @@ import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { useQueryClient } from "@tanstack/react-query";
+import useGeneralStore from "../../utils/stores/generalStore";
 
 export type CommonInput = {
   first_name?: string;
@@ -30,9 +32,10 @@ const EditProfileModal = () => {
   const [file, setFile] = useState<string>("");
   const [error, setError] = useState<string>("");
   const { userData, updateUserCache } = useUser();
-  const utils = trpc.useUtils();
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+  const { setUsername } = useGeneralStore((state) => state.actions);
   const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
     (state) => state.actions,
   );
@@ -55,18 +58,22 @@ const EditProfileModal = () => {
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
     onSuccess: async (data) => {
-      console.log("Success update data", data);
-      const { username } = data;
-      await utils.user.get.invalidate({ data: username, type: "username" });
+      await user?.update({
+        username: data.username,
+        firstName: data.first_name,
+        lastName: data.last_name,
+      });
 
-      setIsEditProfileModalOpen(false);
-      setError("");
-      navigate(`/${username}`);
+      // const name = userData!.username;
+      // removeLoggedUserQuery(name);
+      setUsername(data.username);
+      navigate(`/${data.username}`);
     },
   });
 
   const handleUpload = async (newFile: File) => {
     try {
+      setIsEditProfileModalOpen(false);
       setIsAvatarUpdating(true);
       const renamedFile = renameFile(newFile);
       const formData = new FormData();
@@ -90,11 +97,6 @@ const EditProfileModal = () => {
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
-      await user?.update({
-        username: formData.username,
-        firstName: formData.first_name,
-        lastName: formData.last_name,
-      });
 
       const { file } = formData;
       if (file.length > 0) await handleUpload(file[0]);

@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { TPost } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import useModalStore from "../../utils/stores/modalStore";
@@ -23,17 +23,18 @@ const Separator: FC<SeparatorProps> = ({ className }) => {
 };
 
 const Dashboard = () => {
-  const { username } = useParams<{ username: string }>();
+  const params = useParams<{ username: string }>();
   const { userData } = useUser();
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
   const isResponsive = useGeneralStore((state) => state.isResponsive);
   const isSearchActive = useGeneralStore((state) => state.isSearchActive);
   const [postsLoaded, setPostsLoaded] = useState<boolean>(false);
+  const username = useGeneralStore((state) => state.username);
 
   const { data: inspectedUserData, isFetched } = trpc.user.get.useQuery(
     { data: username!, type: "username" },
     {
-      enabled: !!userData && !!username,
+      enabled: !!userData && !!username && !!params.username,
     },
   );
 
@@ -72,12 +73,12 @@ const Dashboard = () => {
             <>
               <DashboardHeader
                 username={userData?.username}
-                userData={inspectedUserData || userData}
+                userData={inspectedUserData}
               />
               <Separator className="mb-8" />
               {inspectedUserData?.posts.length === 0 ? (
                 <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
-                  {userData?.username === username ? (
+                  {userData?.username === params.username ? (
                     <>
                       <Icon
                         name="Camera"
