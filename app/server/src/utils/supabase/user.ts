@@ -7,6 +7,7 @@ type UserGetter = {
   data: string;
   type: "userId" | "email" | "username";
 };
+type SupabaseResponse<T> = { success: true; data: T } | { success: false; message: string };
 
 export const getUser = async ({ data, type }: UserGetter): Promise<TUserData | null> => {
   if (!data) return null;
@@ -19,17 +20,6 @@ export const getUser = async ({ data, type }: UserGetter): Promise<TUserData | n
   return userData && userData.length > 0 ? userData[0] : null;
 };
 
-// export const getUserPosts = async ({ data, type }: UserGetter) => {
-//   const { data: userData } = await supabase.from("users").select("id").eq(type, data);
-//   if (!userData) throw new Error("error while getting the user id in getUsersPosts");
-//   console.log("userData", userData);
-
-//   const { data: posts } = await supabase.from("posts").select("*").eq("user_id", userData[0].id);
-//   if (!posts) throw new Error("Error while getting the posts");
-//   console.log("posts");
-//   return posts;
-// };
-
 export const updateUserAvatar = async ({
   userId,
   image_url,
@@ -37,18 +27,27 @@ export const updateUserAvatar = async ({
   userId: string;
   image_url: string;
 }) => {
-  const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
-  if (imageUrl && imageUrl.length > 0) {
-    deleteImageFromS3({ folder: "avatars", file: imageUrl[0].image_url });
-  }
-  const { data, error } = await supabase
-    .from("users")
-    .update({ image_url })
-    .eq("id", userId)
-    .select("image_url");
-  if (error) return { error };
+  try {
+    const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
+    if (imageUrl && imageUrl.length > 0) {
+      deleteImageFromS3({ folder: "avatars", file: imageUrl[0].image_url });
+    }
 
-  return { data: data[0].image_url };
+    const { data, error } = await supabase
+      .from("users")
+      .update({ image_url })
+      .eq("id", userId)
+      .select("image_url");
+    if (error) return { error };
+
+    return { data: data[0].image_url };
+  } catch (error) {
+    console.log("Avatar update error", error);
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `User Image update Error: ${error}`,
+    });
+  }
 };
 
 export const updateUserData = async (
@@ -59,22 +58,15 @@ export const updateUserData = async (
     first_name?: string | null | undefined;
     image_url?: string | null | undefined;
   }
-) => {
-  console.log(userId, userData);
+): Promise<SupabaseResponse<TUserData>> => {
   const { data, error } = await supabase
     .from("users")
     .update({ ...userData })
     .eq("id", userId)
     .select("*");
 
-  if (error) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `User Image update Error: ${error}`,
-    });
-  }
-
-  return data[0];
+  if (error) return { success: false, message: error.message };
+  return { success: true, data: data[0] };
 };
 
 export const getSeachedUsers = async (
@@ -86,11 +78,7 @@ export const getSeachedUsers = async (
     .select("*")
     .not("username", "eq", username)
     .ilike("username", `${searchValue}%`);
-
-  if (!users) {
-    throw new Error(error.message);
-  }
-
+  if (!users) throw new Error(error.message);
   return users;
 };
 
@@ -110,10 +98,7 @@ export const createUser = async ({
       last_name: lastName,
     })
     .select("*");
-
-  if (error) {
-    throw new Error(`Error while creating user: ${error.message}`);
-  }
+  if (error) throw new Error(`Error while creating user: ${error.message}`);
 
   if (!data || data.length === 0) {
     throw new Error("User creation failed");

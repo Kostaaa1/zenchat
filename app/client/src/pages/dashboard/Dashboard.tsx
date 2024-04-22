@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { TPost } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import useModalStore from "../../utils/stores/modalStore";
@@ -58,7 +58,7 @@ const Dashboard = () => {
     <div
       className={cn(
         "min-h-full w-full max-w-[1000px] px-4 py-2",
-        isSearchActive && !isResponsive ? "ml-[300px]" : "ml-[80px]",
+        !isResponsive ? "ml-[300px]" : "ml-[80px]",
       )}
     >
       {inspectedUserData === null ? (

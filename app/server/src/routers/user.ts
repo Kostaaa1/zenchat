@@ -35,14 +35,12 @@ export const userRouter = t.router({
     .input(z.object({ userId: z.string(), image_url: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const req = await updateUserAvatar(input);
-
       if (req.error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Updating Avatar Failed!",
         });
       }
-
       return req.data;
     }),
   updateUserData: protectedProcedure
@@ -58,8 +56,11 @@ export const userRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { userData, userId } = input;
-      const data = await updateUserData(userId, userData);
-      return data;
+      const response = await updateUserData(userId, userData);
+      if (!response.success) {
+        throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: response.message });
+      }
+      return response.data;
     }),
   create: protectedProcedure.input(CreateUserSchema).mutation(async ({ input }) => {
     try {

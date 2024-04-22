@@ -11,7 +11,6 @@ import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
-import { useQueryClient } from "@tanstack/react-query";
 import useGeneralStore from "../../utils/stores/generalStore";
 
 export type CommonInput = {
@@ -30,18 +29,18 @@ const EditProfileModal = () => {
   const editUserRef = useRef<HTMLFormElement>(null);
   const { user } = useClerkUser();
   const [file, setFile] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const { userData, updateUserCache } = useUser();
   const navigate = useNavigate();
   const { getToken } = useAuth();
-  const queryClient = useQueryClient();
   const { setUsername } = useGeneralStore((state) => state.actions);
+  const utils = trpc.useUtils();
   const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
     (state) => state.actions,
   );
   const {
     register,
     formState: { errors },
+    setError,
     handleSubmit,
     watch,
   } = useForm<Inputs>();
@@ -58,67 +57,73 @@ const EditProfileModal = () => {
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
     onSuccess: async (data) => {
+      // Invalidating here or onSubmit?
       await user?.update({
         username: data.username,
         firstName: data.first_name,
         lastName: data.last_name,
       });
-
-      // const name = userData!.username;
-      // removeLoggedUserQuery(name);
+      setIsEditProfileModalOpen(false);
       setUsername(data.username);
       navigate(`/${data.username}`);
     },
+    onError: (error) => {
+      const { data } = error;
+      if (data?.httpStatus === 422) {
+        setError("username", {
+          type: "custom",
+          message:
+            "Failed to update since username already exists. Please try using different username.",
+        });
+      }
+    },
   });
-
-  const handleUpload = async (newFile: File) => {
-    try {
-      setIsEditProfileModalOpen(false);
-      setIsAvatarUpdating(true);
-      const renamedFile = renameFile(newFile);
-      const formData = new FormData();
-      formData.append("images", renamedFile);
-
-      const uploadedImages = await uploadMultipartForm(
-        "/api/uploadMedia/avatar",
-        formData,
-        getToken,
-      );
-
-      updateAvatarMutation.mutate({
-        userId: userData!.id,
-        image_url: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[0],
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
-
       const { file } = formData;
-      if (file.length > 0) await handleUpload(file[0]);
+      utils.user.get.invalidate({
+        data: userData?.username,
+        type: "username",
+      });
+
+      if (file.length > 0) {
+        setIsAvatarUpdating(true);
+        const renamedFile = renameFile(file[0]);
+        const form = new FormData();
+        form.append("images", renamedFile);
+
+        const uploadedImages = await uploadMultipartForm(
+          "/api/uploadMedia/avatar",
+          form,
+          getToken,
+        );
+
+        updateAvatarMutation.mutate({
+          userId: userData!.id,
+          image_url: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[0],
+        });
+      }
       if (Object.values(formData).every((x) => x?.length === 0)) return;
 
-      const extractedData = Object.keys(formData)
-        .filter((x) => formData[x]!.length > 0 && x !== "file")
-        .reduce((obj, key) => {
-          obj[key] = formData[key];
-          return obj;
-        }, {} as CommonInput);
+      // @ts-expect-error dsako
+      delete formData.file;
+      delete formData.image_url;
 
       updateUserDataMutation.mutate({
         userId: userData.id,
-        userData: extractedData,
+        userData: formData,
       });
     } catch (error) {
-      // @ts-expect-error sfk
+      console.log("From server error: ", error);
+      // @ts-expect-error kdoskao
       if (error.status === 422) {
-        setError(
-          "Failed to update since username already exists. Please try using different username.",
-        );
+        setError("username", {
+          type: "custom",
+          message:
+            "Failed to update since username already exists. Please try using different username.",
+        });
       }
     }
   };
@@ -180,15 +185,35 @@ const EditProfileModal = () => {
             <input
               placeholder="Username"
               type="text"
-              {...register("username")}
+              {...register("username", {
+                pattern: {
+                  value: /^[a-z0-9]+$/,
+                  message: "Entered value does not match email format",
+                },
+                maxLength: 25,
+                minLength: 3,
+              })}
               defaultValue={userData?.username}
               className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
             />
-            {error && (
-              <span className="break-all text-start text-xs text-red-500">
-                {error}
-              </span>
-            )}
+            <div className="text-sm text-red-600">
+              {errors.username && errors.username.type === "maxLength" && (
+                <span>
+                  Exceeded the maximum number of characters for an username (25)
+                </span>
+              )}
+              {errors.username && errors.username.type === "minLength" && (
+                <span>
+                  The username needs to be at least 3 characters long.
+                </span>
+              )}
+              {errors.username && errors.username.type === "pattern" && (
+                <span>The username needs to be lower cased.</span>
+              )}
+              {errors.username && errors.username.type === "custom" && (
+                <span>The username is used. Use different username.</span>
+              )}
+            </div>
           </div>
           <div className="flex w-full flex-col items-start justify-start">
             <input
