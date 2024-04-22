@@ -10,7 +10,7 @@ interface UserDropdownProps {
 
 const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
   const { signOut } = useAuth();
-  const ctx = trpc.useContext();
+  const ctx = trpc.useUtils();
   const navigate = useNavigate();
 
   const handleLogOut = async () => {

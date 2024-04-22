@@ -4,7 +4,6 @@ import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 import useStore from "../../../utils/stores/generalStore";
 import { motion } from "framer-motion";
-import useUser from "../../../hooks/useUser";
 
 type LogoProps = {
   variant: "default" | "list";
@@ -13,12 +12,10 @@ type LogoProps = {
 const Logo: FC<LogoProps> = ({ variant }) => {
   const navigate = useNavigate();
   const { isSearchActive } = useStore();
-  const { userData } = useUser();
-
   return (
     <div>
       <NavList
-        onClick={() => navigate(`/${userData?.username}`)}
+        onClick={() => navigate("/")}
         head={variant === "default" ? "" : "Zenchat"}
         hover="blank"
         variant={variant}

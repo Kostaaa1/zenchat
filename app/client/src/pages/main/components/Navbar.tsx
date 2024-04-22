@@ -40,9 +40,8 @@ const Navbar: FC<NavbarProps> = ({
   const showDropdown = useGeneralStore((state) => state.showDropdown);
   const isSearchActive = useGeneralStore((state) => state.isSearchActive);
   const isResponsive = useGeneralStore((state) => state.isResponsive);
-  const { setShowDropdown, setIsResponsive } = useGeneralStore(
-    (state) => state.actions,
-  );
+  const { setShowDropdown, setIsSearchActive, setIsResponsive } =
+    useGeneralStore((state) => state.actions);
   const location = useLocation();
   const [list, setList] = useState<"list" | "default">("default");
   const { userData } = useUser();

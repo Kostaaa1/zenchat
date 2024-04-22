@@ -5,7 +5,7 @@ import CreateGroupChatModal from "./CreateGroupChatModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUpload";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type ModalProps = {
@@ -37,7 +37,6 @@ const Modals = () => {
   const imageModalSource = useModalStore((state) => state.imageModalSource);
   const showUnsendMsgModal = useModalStore((state) => state.showUnsendMsgModal);
   const isDeleteChatOpen = useModalStore((state) => state.isDeleteChatOpen);
-  const { setIsModalOpen } = useModalStore((state) => state.actions);
   const isCreateGroupChatModalOpen = useModalStore(
     (state) => state.isCreateGroupChatModalOpen,
   );
@@ -47,31 +46,6 @@ const Modals = () => {
   const isDndUploadModalOpen = useModalStore(
     (state) => state.isDndUploadModalOpen,
   );
-
-  useEffect(() => {
-    const arr = [
-      isImageModalOpen,
-      showUnsendMsgModal,
-      isCreateGroupChatModalOpen,
-      isEditProfileModalOpen,
-      isDeleteChatOpen,
-      isDndUploadModalOpen,
-    ];
-    const condition = arr.every((x) => !x);
-    setIsModalOpen(condition);
-    // const body = document.querySelector("body");
-    // !condition
-    //   ? body?.classList.add("no-scroll-padding")
-    //   : body?.classList.remove("no-scroll-padding");
-  }, [
-    isImageModalOpen,
-    showUnsendMsgModal,
-    isCreateGroupChatModalOpen,
-    isEditProfileModalOpen,
-    isDeleteChatOpen,
-    isDndUploadModalOpen,
-    setIsModalOpen,
-  ]);
 
   return (
     <>

@@ -6,12 +6,13 @@ import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { renameFile, uploadMultipartForm } from "../../utils/utils";
+import { cn, renameFile, uploadMultipartForm } from "../../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import useGeneralStore from "../../utils/stores/generalStore";
+import { Loader2 } from "lucide-react";
 
 export type CommonInput = {
   first_name?: string;
@@ -37,9 +38,10 @@ const EditProfileModal = () => {
   const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
     (state) => state.actions,
   );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
     register,
-    formState: { errors },
+    formState: { errors, isDirty },
     setError,
     handleSubmit,
     watch,
@@ -58,14 +60,17 @@ const EditProfileModal = () => {
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
     onSuccess: async (data) => {
       // Invalidating here or onSubmit?
-      await user?.update({
-        username: data.username,
-        firstName: data.first_name,
-        lastName: data.last_name,
-      });
       setIsEditProfileModalOpen(false);
-      setUsername(data.username);
-      navigate(`/${data.username}`);
+      setIsLoading(false);
+      const { username, last_name, first_name } = data;
+
+      await user?.update({
+        username,
+        firstName: first_name,
+        lastName: last_name,
+      });
+      setUsername(username);
+      navigate(`/${username}`);
     },
     onError: (error) => {
       const { data } = error;
@@ -82,6 +87,7 @@ const EditProfileModal = () => {
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
+      setIsLoading(true);
       const { file } = formData;
       utils.user.get.invalidate({
         data: userData?.username,
@@ -105,12 +111,9 @@ const EditProfileModal = () => {
           image_url: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[0],
         });
       }
-      if (Object.values(formData).every((x) => x?.length === 0)) return;
-
       // @ts-expect-error dsako
       delete formData.file;
       delete formData.image_url;
-
       updateUserDataMutation.mutate({
         userId: userData.id,
         userData: formData,
@@ -155,11 +158,18 @@ const EditProfileModal = () => {
               <Icon name="X" className="p-[2px]" size="26px" />
             </div>
           </div>
-          <input
-            type="submit"
-            value="Save"
-            className="w-max cursor-pointer rounded-lg bg-white px-3 py-[2px] font-bold text-black outline-none transition-all duration-200 hover:bg-opacity-80"
-          />
+          {isLoading ? (
+            <div className="flex w-16 cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-[2px] font-bold text-black text-opacity-70 outline-none transition-all duration-200 hover:bg-opacity-80">
+              <Loader2 className="animate-spin" />
+            </div>
+          ) : (
+            <input
+              disabled={!isDirty}
+              type="submit"
+              value="Save"
+              className="w-16 cursor-pointer rounded-lg bg-white px-3 py-[2px] font-bold text-black outline-none transition-all duration-200 hover:bg-opacity-80"
+            />
+          )}
         </div>
         <div className="flex w-full items-center justify-center py-8">
           <div className="relative h-max w-max">

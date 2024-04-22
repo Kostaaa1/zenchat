@@ -38,7 +38,6 @@ const ImageModal = () => {
   });
 
   const handleDeletePost = async () => {
-    // console.log("delete post");
     try {
       if (!modalPostData) return;
       await deletePostMutation.mutateAsync(modalPostData.id);
@@ -65,14 +64,6 @@ const ImageModal = () => {
                 className="max-h-[580px] max-w-[880px]"
               />
             )}
-            <div
-              onClick={() => setShowMore((state) => !state)}
-              className="absolute right-1 top-1 flex cursor-pointer -space-x-5 rounded-full p-1 text-white transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
-            >
-              <Icon name="Dot" size="28px" />
-              <Icon name="Dot" size="28px" />
-              <Icon name="Dot" size="28px" />
-            </div>
             {showMore && (
               <motion.div
                 initial={{ y: 10, opacity: 0 }}
@@ -90,17 +81,27 @@ const ImageModal = () => {
               </motion.div>
             )}
             {modalPostData && (
-              <div className="absolute bottom-0 inline-flex h-72 w-full items-end bg-gradient-to-t from-black to-transparent p-2 py-4">
-                <p> {modalPostData.caption}</p>
-              </div>
+              <>
+                <div
+                  onClick={() => setShowMore((state) => !state)}
+                  className="absolute right-1 top-1 flex cursor-pointer -space-x-5 rounded-full p-1 text-white transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
+                >
+                  <Icon name="Dot" size="28px" />
+                  <Icon name="Dot" size="28px" />
+                  <Icon name="Dot" size="28px" />
+                </div>
+                <div className="absolute bottom-0 inline-flex h-72 w-full items-end bg-gradient-to-t from-black to-transparent p-2 py-4">
+                  <p> {modalPostData.caption}</p>
+                </div>
+              </>
             )}
           </div>
-          <div
+          {/* <div
             onClick={closeImageModal}
             className="absolute right-1 top-1 cursor-pointer rounded-full p-1 text-white transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
           >
             <Icon name="X" size="28px" />
-          </div>
+          </div> */}
         </Modal>
       ) : null}
     </>

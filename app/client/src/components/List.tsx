@@ -81,13 +81,11 @@ const List: FC<ListProps> = ({
           </div>
         </div>
       ) : (
-        <div>
-          <div className="flex h-14 w-full animate-pulse items-center">
-            <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
-            <div className="ml-3 flex h-full flex-col justify-center">
-              <div className="mb-2 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
-              <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
-            </div>
+        <div className="flex h-14 w-full animate-pulse items-center">
+          <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
+          <div className="ml-3 flex h-full w-full flex-col justify-center">
+            <div className="mb-2 h-4 w-full rounded-lg bg-neutral-800"></div>
+            <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
           </div>
         </div>
       )}

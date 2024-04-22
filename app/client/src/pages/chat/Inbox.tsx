@@ -11,13 +11,13 @@ import UserChats from "./components/UserChats";
 import useChatCache from "../../hooks/useChatCache";
 import { EmojiPickerContainer } from "./components/EmojiPicker";
 import { trpc } from "../../utils/trpcClient";
-const { VITE_SERVER_URL } = import.meta.env;
-import io from "socket.io-client";
 import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
 import useModalStore from "../../utils/stores/modalStore";
-const socket = io(VITE_SERVER_URL);
+
+import io from "socket.io-client";
+const socket = io(import.meta.env.VITE_SERVER_URL);
 
 const Inbox = () => {
   const location = useLocation();
@@ -64,7 +64,7 @@ const Inbox = () => {
   useChatSocket({ socket, userId: userData!.id, recieveNewSocketMessage });
 
   return (
-    <div className="ml-20 flex h-full max-h-screen w-full" ref={scrollRef}>
+    <div className="flex h-full max-h-screen w-full pl-20" ref={scrollRef}>
       <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
       {location.pathname !== "/inbox" && currentChatroom && chatRoomId && (
         <div className="w-full">
@@ -77,13 +77,13 @@ const Inbox = () => {
       )}
       {showDetails && currentChatroom && <ChatDetails />}
       {location.pathname === "/inbox" ? (
-        <div className="flex w-full flex-col items-center justify-center ">
+        <div className="flex w-full flex-col items-center justify-center text-center ">
           <Icon
             name="MessageCircle"
             size="100px"
             className="rounded-full border-2 border-white p-6"
           />
-          <div className="mt-4 flex h-14 flex-col items-center">
+          <div className="flex h-14 flex-col items-center pt-4">
             <h3 className="text-xl">Your Messages</h3>
             <p className="py-3 pt-1 text-neutral-400">
               Send private photos and messages to a friend

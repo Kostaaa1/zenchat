@@ -3,7 +3,6 @@ import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
 import { FC, useEffect, useState } from "react";
-import { TPost } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import useModalStore from "../../utils/stores/modalStore";
 import { cn, loadImage } from "../../utils/utils";
@@ -26,26 +25,32 @@ const Dashboard = () => {
   const params = useParams<{ username: string }>();
   const { userData } = useUser();
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
-  const isResponsive = useGeneralStore((state) => state.isResponsive);
-  const isSearchActive = useGeneralStore((state) => state.isSearchActive);
   const [postsLoaded, setPostsLoaded] = useState<boolean>(false);
   const username = useGeneralStore((state) => state.username);
-
   const { data: inspectedUserData, isFetched } = trpc.user.get.useQuery(
-    { data: username!, type: "username" },
+    { data: params.username!, type: "username" },
     {
       enabled: !!userData && !!username && !!params.username,
     },
   );
 
-  const loadImages = async (posts: TPost[]) => {
-    await Promise.all(posts.map(async (x) => await loadImage(x.media_url)));
-    setPostsLoaded(true);
+  const loadImages = async (urls: string[]) => {
+    try {
+      await Promise.all(
+        urls.map(async (x) => x.length > 0 && (await loadImage(x))),
+      );
+      setPostsLoaded(true);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
     if (!inspectedUserData) return;
-    loadImages(inspectedUserData.posts);
+    loadImages([
+      inspectedUserData.image_url,
+      ...inspectedUserData.posts.map((x) => x.media_url),
+    ]);
   }, [inspectedUserData]);
 
   useEffect(() => {
@@ -55,12 +60,7 @@ const Dashboard = () => {
   }, [isFetched]);
 
   return (
-    <div
-      className={cn(
-        "min-h-full w-full max-w-[1000px] px-4 py-2",
-        !isResponsive ? "ml-[300px]" : "ml-[80px]",
-      )}
-    >
+    <div className="ml-[80px] min-h-full w-full max-w-[1000px] px-4 py-2 lg:ml-[300px]">
       {inspectedUserData === null ? (
         <ErrorPage />
       ) : (
@@ -120,7 +120,11 @@ const Dashboard = () => {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 flex-wrap gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                  className={cn(
+                    "grid grid-cols-1 flex-wrap gap-1 sm:grid-cols-2 lg:grid-cols-3",
+                  )}
+                >
                   {inspectedUserData?.posts.map((post) => (
                     <Post key={post.id} post={post} />
                   ))}

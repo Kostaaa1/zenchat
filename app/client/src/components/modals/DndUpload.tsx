@@ -73,8 +73,7 @@ const DndUpload = () => {
   const [modalTitle, setModalTitle] = useState<
     "Create new post" | "Processing" | "Post uploaded"
   >("Create new post");
-
-  useOutsideClick([sendMessageModal], "mousedown", () => clear());
+  useOutsideClick([sendMessageModal], "mousedown", () => clearAndClose());
 
   const displayImage = (droppedFile: File) => {
     const reader = new FileReader();
@@ -85,11 +84,15 @@ const DndUpload = () => {
     setFile(droppedFile);
   };
 
+  const clearAndClose = () => {
+    clear();
+    setIsDndUploadModalOpen(false);
+  };
+
   const clear = () => {
     setCaption("");
     setFile(null);
     setDisplayFile(null);
-    setIsDndUploadModalOpen(false);
     setModalTitle("Create new post");
   };
 
@@ -119,6 +122,7 @@ const DndUpload = () => {
 
       formData.append("serialized", JSON.stringify(unified));
       formData.append("uploadPost", renamed);
+
       const { data }: { data: TPost } = await axios.post(
         "/api/uploadMedia/post",
         formData,
@@ -129,8 +133,8 @@ const DndUpload = () => {
           },
         },
       );
-      await loadImage(data.media_url);
 
+      await loadImage(data.media_url);
       ctx.user.get.setData(
         { data: userData.username, type: "username" },
         (state) => {
@@ -171,8 +175,8 @@ const DndUpload = () => {
             </p>
             {file && modalTitle === "Create new post" ? (
               <p
-                onClick={handleUploadPost}
                 className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+                onClick={handleUploadPost}
               >
                 Upload
               </p>
@@ -180,7 +184,7 @@ const DndUpload = () => {
               <Icon
                 className="absolute right-0 top-0 -translate-y-1/2"
                 name="X"
-                onClick={clear}
+                onClick={clearAndClose}
               />
             )}
           </div>
@@ -198,12 +202,12 @@ const DndUpload = () => {
                     alt="image"
                     className="h-[640px] w-[640px]"
                   />
-                  <div className="w-full space-y-2 p-2">
-                    <div className="flex w-full items-center justify-start space-x-2">
+                  <div className="w-full">
+                    <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
                       <Avatar image_url={userData?.image_url} size="sm" />
                       <p className="">{userData?.username}</p>
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className="flex flex-col items-end px-2">
                       <textarea
                         cols={30}
                         rows={5}

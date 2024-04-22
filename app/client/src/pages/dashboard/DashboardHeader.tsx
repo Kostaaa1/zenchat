@@ -60,12 +60,6 @@ export const DashboardHeader = ({
           <h1 className="text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
             <div className="flex space-x-2">
-              <Button
-                onClick={() => setIsEditProfileModalOpen(true)}
-                className="text-sm"
-              >
-                Edit profile
-              </Button>
               <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
                 Message
               </Button>

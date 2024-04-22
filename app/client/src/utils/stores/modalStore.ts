@@ -18,11 +18,9 @@ type Store = {
   isAvatarUpdating: boolean;
   isDeleteChatOpen: boolean;
   isDndUploadModalOpen: boolean;
-  isModalOpen: boolean;
   modalPostData: TPost | null;
   actions: {
     setModalPostData: (s: TPost | null) => void;
-    setIsModalOpen: (v: boolean) => void;
     setIsDndUploadModalOpen: (isOpen: boolean) => void;
     setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
     showImageModal: (messageContent: string) => void;
@@ -48,11 +46,9 @@ const useModalStore = create<Store>(
     imageModalSource: "",
     isImageModalOpen: false,
     isDndUploadModalOpen: false,
-    isModalOpen: false,
     modalPostData: null,
     actions: {
       setModalPostData: (modalPostData: TPost | null) => set({ modalPostData }),
-      setIsModalOpen: (isModalOpen: boolean) => set({ isModalOpen }),
       setIsDndUploadModalOpen: (v: boolean) => set({ isDndUploadModalOpen: v }),
       setIsDeleteChatOpen: (isUpdaing: boolean) =>
         set({ isDeleteChatOpen: isUpdaing }),

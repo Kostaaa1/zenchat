@@ -54,21 +54,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
         {isLoading ? (
           Array(2)
             .fill("")
-            .map((_, id) => (
-              // <div
-              //   key={id}
-              //   className="relative flex w-full cursor-pointer items-center justify-between px-6 py-2"
-              // >
-              //   <div className="flex h-14 w-full animate-pulse items-center">
-              //     <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
-              //     <div className="ml-4 flex h-full flex-col justify-center">
-              //       <div className="mb-3 h-4 w-[240px] rounded-lg bg-neutral-800"></div>
-              //       <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
-              //     </div>
-              //   </div>
-              // </div>
-              <List key={id} isLoading={isLoading} />
-            ))
+            .map((_, id) => <List key={id} isLoading={isLoading} />)
         ) : (
           <>
             {userChats?.map((chat) => (
@@ -79,15 +65,15 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
                 title={chat.users.map((x) => x.username).join(", ")}
                 subtitle={chat.last_message}
                 onClick={() => handleChatUserClick(chat.chatroom_id)}
-                image_url={
-                  chat.is_group && chat.users.length > 1
-                    ? [chat.users[0].image_url, chat.users[1].image_url]
-                    : [chat.users[0].image_url]
-                }
                 className={
                   chatRoomId === chat.chatroom_id
                     ? "bg-white bg-opacity-10"
                     : ""
+                }
+                image_url={
+                  chat.is_group && chat.users.length > 1
+                    ? [chat.users[0].image_url, chat.users[1].image_url]
+                    : [chat.users[0].image_url]
                 }
               />
             ))}
