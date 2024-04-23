@@ -29,7 +29,7 @@ const Inbox = () => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const showDetails = useChatStore((state) => state.showDetails);
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
-  const { setIsCreateGroupChatModalOpen } = useModalStore(
+  const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
   );
   const { setShowEmojiPicker, setCurrentChatroom, setShowDetails } =
@@ -55,7 +55,8 @@ const Inbox = () => {
     });
 
   useEffect(() => {
-    if (!userChats) return;
+    if (!userChats || userChats.length === 0) return;
+    console.log("userChats", userChats);
     const currentChat = userChats?.find((x) => x.chatroom_id === chatRoomId);
     if (currentChat) setCurrentChatroom(currentChat);
   }, [userChats, chatRoomId]);
@@ -90,7 +91,7 @@ const Inbox = () => {
             </p>
             <Button
               buttonColor="blue"
-              onClick={() => setIsCreateGroupChatModalOpen(true)}
+              onClick={() => setIsNewMessageModalModalOpen(true)}
               className="text-sm"
             >
               Send message

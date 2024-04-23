@@ -31,9 +31,12 @@ export const chatRouter = t.router({
         return currentChatroom;
       }),
   }),
-  delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
-    await deleteConversation(input);
-  }),
+  delete: protectedProcedure
+    .input(z.object({ user_id: z.string(), chatroom_id: z.string() }))
+    .mutation(async ({ input }) => {
+      const { chatroom_id, user_id } = input;
+      await deleteConversation(input);
+    }),
   messages: messageRouter,
   history: chatHistoryRouter,
 });

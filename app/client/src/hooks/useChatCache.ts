@@ -46,7 +46,6 @@ const useChatCache = () => {
     ctx.chat.get.user_chatrooms.setData(userData!.id, (state) => {
       return state?.filter((x) => x.chatroom_id !== chatroom_id);
     });
-
     setCurrentChatroom(null);
     navigate("/inbox");
   };
@@ -60,7 +59,7 @@ const useChatCache = () => {
         (staleChats) => {
           if (messageData && staleChats) {
             return staleChats?.map((x) =>
-              x.isImage && x.id === messageData.id ? messageData : x,
+              x.is_image && x.id === messageData.id ? messageData : x,
             );
           }
         },
@@ -72,7 +71,7 @@ const useChatCache = () => {
   const updateUserChatLastMessageCache = useCallback(
     (msg: TMessage) => {
       console.log("Message from socket: ", msg);
-      const last_message = msg.isImage
+      const last_message = msg.is_image
         ? "Photo"
         : msg.content.length > 40
           ? msg.content.slice(0, 40) + "..."
@@ -112,9 +111,9 @@ const useChatCache = () => {
 
       if (channel === "messages-channel") {
         if (Object.keys(data).length === 0) return;
-        const { isImage, sender_id } = data;
+        const { is_image, sender_id } = data;
 
-        if (!isImage) {
+        if (!is_image) {
           if (sender_id !== userData!.id) {
             addNewMessageToChatCache(data);
           }

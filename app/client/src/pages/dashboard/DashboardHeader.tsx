@@ -25,7 +25,6 @@ export const DashboardHeader = ({
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
     if (!userData || !loggedUser) return;
-
     const path = await chat.get.chatroom_id.fetch({
       userIds: [userData.id, loggedUser.id],
       admin: userData.id,

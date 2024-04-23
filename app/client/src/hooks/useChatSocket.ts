@@ -14,8 +14,6 @@ const useChatSocket = ({
   recieveNewSocketMessage,
 }: TUseChatSocketProps) => {
   useEffect(() => {
-    if (!userId) return;
-
     socket.emit("join-room", userId);
     socket.on("join-room", recieveNewSocketMessage);
 

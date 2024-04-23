@@ -19,7 +19,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const navigate = useNavigate();
   const params = useParams<{ chatRoomId: string }>();
   const { chatRoomId } = params;
-  const { setIsCreateGroupChatModalOpen } = useModalStore(
+  const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
   );
 
@@ -41,7 +41,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
         <Icon
           name="PenSquare"
           size="28px"
-          onClick={() => setIsCreateGroupChatModalOpen(true)}
+          onClick={() => setIsNewMessageModalModalOpen(true)}
           className="active:text-zinc-500"
         />
       </div>

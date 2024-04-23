@@ -5,7 +5,7 @@ export const loadImagesAndStructureMessages = (
 ): Promise<TMessage[]> => {
   return Promise.all(
     messages.map((data) => {
-      if (!data.isImage) return data;
+      if (!data.is_image) return data;
       const src = data.content;
 
       return new Promise<TMessage>((resolve) => {

@@ -35,7 +35,7 @@ uploadRouter.post("/avatar", uploadAvatar.array("images"), (req, res) => {
   });
 });
 
-uploadRouter.post("message", uploadMessageImage.array("images"), (req, res) => {
+uploadRouter.post("/message", uploadMessageImage.array("images"), (req, res) => {
   res.send({
     urls: (req.files as Express.Multer.File[]).map((file) => {
       const { originalname, size, mimetype } = file;

@@ -5,22 +5,17 @@ import { deleteImageFromS3 } from "../../middleware/multer";
 import { TChatHistory, TMessage, TPopulatedChat, TChatroom } from "../../types/types";
 import "dotenv/config";
 
-// Not being used:
-// export const getUserIdFromChatroom = async (
-//   chatroom_id: string
-// ): Promise<{ user_id: string }[]> => {
-//   const { data: chatroomData, error } = await supabase
-//     .from("chatroom_users")
-//     .select("user_id")
-//     .eq("chatroom_id", chatroom_id);
-
-//   if (!chatroomData || error) {
-//     console.log("Error: ", error);
-//     throw new Error(error.message);
-//   }
-
-//   return chatroomData;
-// };
+const getUserIdFromChatroom = async (chatroom_id: string): Promise<{ user_id: string }[]> => {
+  const { data: chatroomData, error } = await supabase
+    .from("chatroom_users")
+    .select("user_id")
+    .eq("chatroom_id", chatroom_id);
+  if (!chatroomData || error) {
+    console.log("Error: ", error);
+    throw new Error(error.message);
+  }
+  return chatroomData;
+};
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -84,57 +79,95 @@ export const unsendMessage = async ({
   }
 };
 
-export const deleteConversation = async (chatroom_id: string) => {
+export const deleteConversation = async ({
+  chatroom_id,
+  user_id,
+}: {
+  chatroom_id: string;
+  user_id: string;
+}) => {
   try {
-    const { data: images } = await supabase
-      .from("messages")
-      .select("content")
-      .eq("chatroom_id", chatroom_id)
-      .eq("isImage", true);
+    const { data } = await supabase.from("chatroom_users").select("*").match({ chatroom_id });
+    console.log("chatroom_id: ", chatroom_id, "Id: ", user_id, "data", data);
 
-    if (images && images.length > 0) {
-      for (const img of images) {
-        await deleteImageFromS3({
-          folder: "messages",
-          file: img.content.split(process.env.IMAGEKIT_URL_ENDPOINT)[1],
-        });
+    if (data && data.length === 1) {
+      const tables = ["chatroom_users", "messages", "chatrooms"];
+      async function deleteRow(table: string) {
+        const { error } = await supabase.from(table).delete().eq("chatroom_id", chatroom_id);
+        return { error, table };
       }
-    }
+      try {
+        // get images adn delete them from s3
+        const { data: images, error } = await supabase
+          .from("messages")
+          .select("content")
+          .eq("chatroom_id", chatroom_id)
+          .eq("is_image", true);
 
-    const { error: usersError } = await supabase
-      .from("chatroom_users")
-      .delete()
-      .eq("chatroom_id", chatroom_id);
+        if (images && images.length > 0) {
+          for (const img of images) {
+            await deleteImageFromS3({
+              folder: "messages",
+              file: img.content.split(process.env.IMAGEKIT_URL_ENDPOINT)[1],
+            });
+          }
+        }
 
-    if (usersError) {
-      console.error("Error deleting chatroom_users: ", usersError);
-    }
-
-    const { error: chatroomsError } = await supabase
-      .from("chatrooms")
-      .delete()
-      .eq("chatroom_id", chatroom_id);
-
-    if (chatroomsError) {
-      console.error("Error while deleting chat from chatrooms table", chatroomsError);
-    }
-
-    const { error } = await supabase.from("messages").delete().eq("chatroom_id", chatroom_id);
-
-    if (error) {
-      console.error("Error deleting messages: ", error);
+        const res = await Promise.all(tables.map(async (table) => await deleteRow(table)));
+        const errors = res.filter((x) => x.error);
+        errors.length > 0
+          ? errors.forEach((err) => console.log(`Error deleting from ${err.table}:`, err.error))
+          : console.log("Deleted successfull", chatroom_id);
+      } catch (error) {
+        console.error("Unexpected error when deleting last field", error);
+      }
+    } else {
+      await supabase.from("chatroom_users").delete().match({ chatroom_id, user_id });
     }
   } catch (error) {
     console.log(error);
   }
 };
 
-// Create new message:
+// export const deleteConversation = async (chatroom_id: string) => {
+//   try {
+//     const { data: images } = await supabase
+//       .from("messages")
+//       .select("content")
+//       .eq("chatroom_id", chatroom_id)
+//       .eq("is_image", true);
+//     if (images && images.length > 0) {
+//       for (const img of images) {
+//         await deleteImageFromS3({
+//           folder: "messages",
+//           file: img.content.split(process.env.IMAGEKIT_URL_ENDPOINT)[1],
+//         });
+//       }
+//     }
+//     const { error: usersError } = await supabase
+//       .from("chatroom_users")
+//       .delete()
+//       .eq("chatroom_id", chatroom_id);
+//     if (usersError) console.error("Error deleting chatroom_users: ", usersError);
+//     const { error: chatroomsError } = await supabase
+//       .from("chatrooms")
+//       .delete()
+//       .eq("chatroom_id", chatroom_id);
+//     if (chatroomsError) {
+//       console.error("Error while deleting chat from chatrooms table", chatroomsError);
+//     }
+//     const { error } = await supabase.from("messages").delete().eq("chatroom_id", chatroom_id);
+//     if (error) console.error("Error deleting messages: ", error);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
+
 export const sendMessage = async (messageData: TMessage) => {
   const { chatroom_id, content, created_at } = messageData;
   const { error: newMessageError } = await supabase.from("messages").insert(messageData);
+  if (messageData.is_image) return;
 
-  if (messageData.isImage) return;
   const { error: lastMessageUpdateError } = await supabase
     .from("chatrooms")
     .update({
@@ -180,6 +213,7 @@ export const populateForeignColumns = async (
     image_url: string;
     user_id: string;
   }[];
+
   for (const item of populatedData) {
     const { users, user_id } = item;
     const { image_url, username } = users;
@@ -211,6 +245,7 @@ export const getCurrentChatroom = async ({
   user_id: string;
 }): Promise<TChatroom | undefined> => {
   try {
+    console.log("chatroom_id", chatroom_id, user_id);
     const chatData = await populateForeignColumns(chatroom_id, user_id);
     return chatData;
   } catch (error) {
@@ -237,7 +272,6 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
       })
     );
 
-    console.log("conversations", conversations);
     conversations.sort((a, b) => {
       const dateA = new Date(a.created_at).getTime();
       const dateB = new Date(b.created_at).getTime();
@@ -279,10 +313,7 @@ export const deleteSearchChat = async (id: string): Promise<void> => {
 
 export const deleteAllSearchedChats = async (id: string): Promise<void> => {
   const { error } = await supabase.from("searched_users").delete().eq("main_user_id", id);
-
-  if (error) {
-    console.log(error);
-  }
+  if (error) console.log(error);
 };
 
 export const addUserToChatHistory = async ({
@@ -314,20 +345,21 @@ export const addUserToChatHistory = async ({
   }
 };
 
-const createChatRoom = async (is_group: boolean, admin: string): Promise<string> => {
+const createChatRoom = async (
+  is_group: boolean,
+  admin: string,
+  userIds: string[]
+): Promise<string> => {
   const { data, error } = await supabase
     .from("chatrooms")
-    .insert({ last_message: "", is_group, admin })
+    .insert({ last_message: "", is_group, admin, participants: userIds })
     .select("id");
 
-  if (!data) {
-    console.log(error.message);
-  }
-
+  if (!data) console.log(error.message);
   return data?.[0].id;
 };
 
-const inserUserChatroom = async (chatroomId: string, userId: string): Promise<void> => {
+const insertUserChatroom = async (chatroomId: string, userId: string): Promise<void> => {
   const { error } = await supabase.from("chatroom_users").insert({
     chatroom_id: chatroomId,
     user_id: userId,
@@ -353,13 +385,12 @@ export const getChatroomId = async (
 
     if (!data || data.length === 0) {
       const isGroupChat = userIds.length > 2;
-      const chatroomId = await createChatRoom(isGroupChat, admin);
+      const chatroomId = await createChatRoom(isGroupChat, admin, userIds);
 
       if (chatroomId) {
         for (const user of userIds) {
-          await inserUserChatroom(chatroomId, user);
+          await insertUserChatroom(chatroomId, user);
         }
-
         return chatroomId;
       }
     } else {

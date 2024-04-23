@@ -7,7 +7,7 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Header from "./pages/main/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -27,6 +27,7 @@ function App() {
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const username = useGeneralStore((state) => state.username);
   const { setUsername } = useGeneralStore((state) => state.actions);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user || !user.username) return;
@@ -37,6 +38,10 @@ function App() {
     { data: username!, type: "username" },
     { enabled: !!user && !!username && !!isSignedIn },
   );
+
+  // useEffect(() => {
+  //   if (isSignedIn && userData) navigate(`/${userData.username}`);
+  // }, [isSignedIn, userData]);
 
   const createUserMutation = trpc.user.create.useMutation({
     mutationKey: [username],

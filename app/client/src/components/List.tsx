@@ -64,16 +64,19 @@ const List: FC<ListProps> = ({
       {...props}
     >
       {!isLoading ? (
-        <div className={cn("flex w-full items-center")} onClick={onClick}>
+        <div
+          className={cn("flex w-full items-center space-x-3")}
+          onClick={onClick}
+        >
           {children}
           <RenderAvatar
+            avatarSize="lg"
             image_urls={{
               image_url_1: image_url?.[0] as string,
               image_url_2: image_url?.[1],
             }}
-            avatarSize="lg"
           />
-          <div className="ml-3 flex w-full flex-col text-start">
+          <div className="flex w-full flex-col text-start">
             <h1 className="font-semibold"> {title} </h1>
             <h4 className="text-sm font-semibold text-neutral-400">
               {subtitle}
@@ -81,9 +84,9 @@ const List: FC<ListProps> = ({
           </div>
         </div>
       ) : (
-        <div className="flex h-14 w-full animate-pulse items-center">
+        <div className="flex h-14 w-full animate-pulse items-center space-x-2">
           <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
-          <div className="ml-3 flex h-full w-full flex-col justify-center">
+          <div className="flex h-full w-2/3 flex-col justify-center">
             <div className="mb-2 h-4 w-full rounded-lg bg-neutral-800"></div>
             <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
           </div>

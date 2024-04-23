@@ -13,7 +13,7 @@ type Store = {
   messageDropdownData: { id: string; imageUrl: string | null } | null;
   showUnsendMsgModal: boolean;
   isMessageDropdownActive: boolean;
-  isCreateGroupChatModalOpen: boolean;
+  isNewMessageModalModalOpen: boolean;
   isEditProfileModalOpen: boolean;
   isAvatarUpdating: boolean;
   isDeleteChatOpen: boolean;
@@ -27,7 +27,7 @@ type Store = {
     closeImageModal: () => void;
     setShowUnsendMsgModal: (val: boolean) => void;
     setIsMessageDropdownActive: (isOpen: boolean) => void;
-    setIsCreateGroupChatModalOpen: (isOpen: boolean) => void;
+    setIsNewMessageModalModalOpen: (isOpen: boolean) => void;
     setIsEditProfileModalOpen: (isOpen: boolean) => void;
     setIsAvatarUpdating: (isUpdating: boolean) => void;
     setIsDeleteChatOpen: (isUpdating: boolean) => void;
@@ -39,7 +39,7 @@ const useModalStore = create<Store>(
     isDeleteChatOpen: false,
     isAvatarUpdating: false,
     isEditProfileModalOpen: false,
-    isCreateGroupChatModalOpen: false,
+    isNewMessageModalModalOpen: false,
     messageDropdownData: null,
     isMessageDropdownActive: false,
     showUnsendMsgModal: false,
@@ -56,8 +56,8 @@ const useModalStore = create<Store>(
         set({ isAvatarUpdating: isUpdaing }),
       setIsEditProfileModalOpen: (isOpen: boolean) =>
         set({ isEditProfileModalOpen: isOpen }),
-      setIsCreateGroupChatModalOpen: (open: boolean) =>
-        set({ isCreateGroupChatModalOpen: open }),
+      setIsNewMessageModalModalOpen: (open: boolean) =>
+        set({ isNewMessageModalModalOpen: open }),
       setMessageDropdownData: (data: TOpenMessageDropdown | null) =>
         set({ messageDropdownData: data }),
       setIsMessageDropdownActive: (isOpen: boolean) =>

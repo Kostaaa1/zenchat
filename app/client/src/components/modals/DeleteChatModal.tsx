@@ -5,22 +5,27 @@ import useChatStore from "../../utils/stores/chatStore";
 import useChatCache from "../../hooks/useChatCache";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
+import useUser from "../../hooks/useUser";
 
 const DeleteChatModal = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const { currentChatroom } = useChatStore();
   const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
   const { removeChatFromUserChats } = useChatCache();
-  const deleteChatMutation = trpc.chat.delete.useMutation();
   useOutsideClick([modalRef], "mousedown", () => setIsDeleteChatOpen(false));
+  const deleteChatMutation = trpc.chat.delete.useMutation();
+  const { userData } = useUser();
 
   const handleDeleteConversation = async () => {
-    if (!currentChatroom) return;
+    if (!currentChatroom || !userData) return;
     const { chatroom_id } = currentChatroom;
 
     setIsDeleteChatOpen(false);
     removeChatFromUserChats(chatroom_id);
-    await deleteChatMutation.mutateAsync(chatroom_id);
+    await deleteChatMutation.mutateAsync({
+      user_id: userData.id,
+      chatroom_id,
+    });
   };
 
   return (
@@ -29,7 +34,7 @@ const DeleteChatModal = () => {
         ref={modalRef}
         className="flex h-max w-96 flex-col items-center rounded-xl bg-[#282828] px-2 py-4 pb-0 text-center"
       >
-        <h4 className="py-2 text-lg">Permantly delete conversation?</h4>
+        <h4 className="py-2 text-lg">Permanently delete conversation?</h4>
         <div className="flex w-full flex-col pt-4 text-sm font-semibold">
           <div className="-mx-2 transition-all duration-200">
             <button

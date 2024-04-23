@@ -12,25 +12,24 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "./Modals";
 
-const CreateGroupChatModal = () => {
-  const { setIsCreateGroupChatModalOpen } = useModalStore(
+const NewMessageModal = () => {
+  const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
   );
   const [search, setSearch] = useState<string>("");
   const [searchedUsers, setSearchedUsers] = useState<TUserData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { userData  } = useUser();
+  const { userData } = useUser();
   const [selectedUsers, setSelectedUsers] = useState<TUserData[]>([]);
   const sendMessageModal = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, chat } = trpc.useUtils();
-
   useOutsideClick([sendMessageModal], "mousedown", () =>
-    setIsCreateGroupChatModalOpen(false),
+    setIsNewMessageModalModalOpen(false),
   );
 
   const closeSendMessageModal = () => {
-    setIsCreateGroupChatModalOpen(false);
+    setIsNewMessageModalModalOpen(false);
   };
 
   const debounceEmit = debounce(
@@ -74,7 +73,6 @@ const CreateGroupChatModal = () => {
     setSelectedUsers((state) => state.filter((x) => x.id !== id));
   };
 
-  // const ctx = trpc.useContext();
   const handleClickChat = async () => {
     setLoading(true);
     const userIds = selectedUsers.map((x) => x.id);
@@ -212,4 +210,4 @@ const CreateGroupChatModal = () => {
   );
 };
 
-export default CreateGroupChatModal;
+export default NewMessageModal;

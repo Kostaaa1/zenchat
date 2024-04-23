@@ -22,6 +22,7 @@ export const UserSchema: ZodSchema<{
   image_url: string;
   first_name: string;
   last_name: string;
+  description: string;
   posts: z.infer<typeof PostSchema>[];
 }> = z.object({
   id: z.string(),
@@ -31,6 +32,7 @@ export const UserSchema: ZodSchema<{
   image_url: z.string(),
   first_name: z.string(),
   last_name: z.string(),
+  description: z.string(),
   posts: z.array(PostSchema),
 });
 
@@ -52,14 +54,14 @@ export const MessageSchema: ZodSchema<{
   chatroom_id: string;
   content: string;
   created_at: string;
-  isImage: boolean;
+  is_image: boolean;
 }> = z.object({
   id: z.string(),
   sender_id: z.string(),
   chatroom_id: z.string(),
   content: z.string(),
   created_at: z.string(),
-  isImage: z.boolean(),
+  is_image: z.boolean(),
 });
 
 export const ChatRoomDataSchema: ZodSchema<
@@ -73,6 +75,7 @@ export const ChatRoomDataSchema: ZodSchema<
       username: string;
       messages: z.infer<typeof MessageSchema>[];
       is_group: boolean;
+      participants: string[];
     }
   | undefined
 > = z.object({
@@ -85,4 +88,5 @@ export const ChatRoomDataSchema: ZodSchema<
   username: z.string(),
   messages: z.array(MessageSchema),
   is_group: z.boolean(),
+  participants: z.array(z.string()),
 });

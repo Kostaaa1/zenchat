@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 import { Skin } from "@emoji-mart/data";
 import { uploadMultipartForm } from "../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
+import { nanoid } from "nanoid";
 
 const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   const { userData } = useUser();
@@ -94,16 +95,16 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   const createNewMessage = (data: {
     content: string;
     chatroom_id: string;
-    isImage?: boolean;
+    is_image?: boolean;
     id?: string;
   }): TMessage => {
-    const { content, id, chatroom_id, isImage } = data;
+    const { content, id, chatroom_id, is_image } = data;
 
     return {
       id: id || uuidv4(),
       sender_id: userData!.id,
       created_at: getCurrentDate(),
-      isImage: isImage || false,
+      is_image: is_image || false,
       chatroom_id,
       content,
     };
@@ -115,26 +116,24 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     setFormdata(formData);
 
     const blob = URL.createObjectURL(newFile);
-
-    console.log("new blolb", blob);
     setImgUrls([...currentChatroom.img_urls, blob]);
     addSelectedFile(newFile);
   };
 
-  // const renameFile = (fileImage: File, cb?: (file: File) => void) => {
-  //   // const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-  //   const uniquePrefix = nanoid();
-  //   const chatroomPrefix = currentChatroom?.chatroom_id.split("-")[0];
-  //   const filename = `${chatroomPrefix}-${uniquePrefix}-${fileImage.name}`;
-  //   const newFile = new File([fileImage], filename, { type: fileImage.type });
-  //   if (cb) cb(newFile);
-  //   return newFile;
-  // };
+  const renameFile = (fileImage: File, cb?: (file: File) => void) => {
+    // const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniquePrefix = nanoid();
+    const chatroomPrefix = currentChatroom?.chatroom_id.split("-")[0];
+    const filename = `${chatroomPrefix}-${uniquePrefix}-${fileImage.name}`;
+    const newFile = new File([fileImage], filename, { type: fileImage.type });
+    if (cb) cb(newFile);
+    return newFile;
+  };
 
   const sendTextMessage = async (new_message: string, chatroom_id: string) => {
     const messageData = createNewMessage({
       content: new_message,
-      isImage: false,
+      is_image: false,
       chatroom_id,
     });
     addNewMessageToChatCache(messageData);
@@ -169,7 +168,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
       const messageData = createNewMessage({
         id,
         content: "",
-        isImage: true,
+        is_image: true,
         chatroom_id,
       });
 
@@ -191,7 +190,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
         content: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[i],
         id: currentId,
         chatroom_id,
-        isImage: true,
+        is_image: true,
       });
 
       socket.emit("new-message", messageData);

@@ -1,7 +1,7 @@
 import useModalStore from "../../utils/stores/modalStore";
 import EditProfileModal from "./EditProfileModal";
 import ImageModal from "./ImageModal";
-import CreateGroupChatModal from "./CreateGroupChatModal";
+import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUpload";
@@ -37,8 +37,8 @@ const Modals = () => {
   const imageModalSource = useModalStore((state) => state.imageModalSource);
   const showUnsendMsgModal = useModalStore((state) => state.showUnsendMsgModal);
   const isDeleteChatOpen = useModalStore((state) => state.isDeleteChatOpen);
-  const isCreateGroupChatModalOpen = useModalStore(
-    (state) => state.isCreateGroupChatModalOpen,
+  const isNewMessageModalOpen = useModalStore(
+    (state) => state.isNewMessageModalModalOpen,
   );
   const isEditProfileModalOpen = useModalStore(
     (state) => state.isEditProfileModalOpen,
@@ -51,7 +51,7 @@ const Modals = () => {
     <>
       {isImageModalOpen && imageModalSource && <ImageModal />}
       {showUnsendMsgModal && <UnsendMessageModal />}
-      {isCreateGroupChatModalOpen && <CreateGroupChatModal />}
+      {isNewMessageModalOpen && <NewMessageModal />}
       {isEditProfileModalOpen && <EditProfileModal />}
       {isDeleteChatOpen && <DeleteChatModal />}
       {isDndUploadModalOpen && <DndUpload />}

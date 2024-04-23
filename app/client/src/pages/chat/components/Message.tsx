@@ -18,7 +18,7 @@ const Message: FC<MessageProps> = ({ message }) => {
   );
   const { userData } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
-  const { content, id, sender_id, isImage } = message;
+  const { content, id, sender_id, is_image } = message;
   const moreDropdownRef = useRef<HTMLDivElement>(null);
   useOutsideClick([moreDropdownRef], "click", () =>
     setMessageDropdownData(null),
@@ -26,7 +26,7 @@ const Message: FC<MessageProps> = ({ message }) => {
 
   const handleMessageDropdownData = () => {
     const imageKitPrefix = import.meta.env.VITE_IMAGEKIT_PREFIX;
-    const imageUrl = isImage ? content.split(imageKitPrefix)[1] : null;
+    const imageUrl = is_image ? content.split(imageKitPrefix)[1] : null;
 
     const msgData = {
       id,
@@ -47,7 +47,7 @@ const Message: FC<MessageProps> = ({ message }) => {
           : "justify-start self-start",
       )}
     >
-      {isImage ? (
+      {is_image ? (
         <div
           onClick={() => {
             showImageModal(content);
