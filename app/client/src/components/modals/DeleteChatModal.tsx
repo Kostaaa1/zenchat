@@ -12,9 +12,9 @@ const DeleteChatModal = () => {
   const { currentChatroom } = useChatStore();
   const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
   const { removeChatFromUserChats } = useChatCache();
-  useOutsideClick([modalRef], "mousedown", () => setIsDeleteChatOpen(false));
   const deleteChatMutation = trpc.chat.delete.useMutation();
   const { userData } = useUser();
+  useOutsideClick([modalRef], "mousedown", () => setIsDeleteChatOpen(false));
 
   const handleDeleteConversation = async () => {
     if (!currentChatroom || !userData) return;

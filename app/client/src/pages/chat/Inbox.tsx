@@ -56,7 +56,6 @@ const Inbox = () => {
 
   useEffect(() => {
     if (!userChats || userChats.length === 0) return;
-    console.log("userChats", userChats);
     const currentChat = userChats?.find((x) => x.chatroom_id === chatRoomId);
     if (currentChat) setCurrentChatroom(currentChat);
   }, [userChats, chatRoomId]);
