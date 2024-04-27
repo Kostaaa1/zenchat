@@ -2,14 +2,12 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { appRouter, trpcCaller } from "./routers";
+import { appRouter } from "./routers";
 import { initSocket } from "./config/initSocket";
 import { Server } from "socket.io";
 import "dotenv/config";
-import { uploadMessageImage, uploadAvatar, uploadPostImage } from "./middleware/multer";
 import { createContext } from "./context";
 import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
-import { UploadPostRequest } from "./types/types";
 import uploadRouter from "./routers/upload";
 
 const { CLIENT_URL, IMAGEKIT_URL_ENDPOINT = "" } = process.env;

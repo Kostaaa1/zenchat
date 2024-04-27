@@ -1,52 +1,52 @@
 import { z } from "zod";
-import { CreateUserSchema, MessageSchema, PostSchema, UserSchema } from "./zodSchemas";
+import { CreateUserSchema, MessageSchema } from "./zodSchemas";
+import supabase from "../config/supabase";
+import { QueryData } from "@supabase/supabase-js";
+import { Tables } from "./supabase";
 
 export type TMessage = z.infer<typeof MessageSchema>;
 export type TCreateUserInput = z.infer<typeof CreateUserSchema>;
-export type TUserData = z.infer<typeof UserSchema>;
 
-type CommonFields = {
-  id: string;
-  chatroom_id: string;
-  created_at: string;
-  user_id: string;
+const chatHistory = supabase
+  .from("searched_users")
+  .select("*, users(username, image_url, first_name, last_name)");
+export type TChatHistory = QueryData<typeof chatHistory>[0];
+
+const userWithPosts = supabase.from("users").select("*, posts(*)");
+export type TUserData = QueryData<typeof userWithPosts>[0];
+export type TUserQueryParam = {
+  data: string;
+  type: "userId" | "email" | "username";
 };
 
-export type TChatHistory = CommonFields & {
-  users: TUserData;
-  last_message: string;
-};
-
-export type TPopulatedChat = CommonFields & {
-  users: { username: string; image_url: string };
-  chatrooms: {
-    is_group: boolean;
-    last_message: string;
-    created_at: string;
-    admin: string;
-  };
-};
+const populatedChat = supabase
+  .from("chatroom_users")
+  .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)");
+export type TPopulatedChat = QueryData<typeof populatedChat>[0];
 
 export type TChatroom = {
   id: string;
-  last_message: string;
   chatroom_id: string;
+  last_message: string | null;
   created_at: string;
   is_group: boolean;
-  new_message: string;
-  img_urls: string[];
+  admin: string;
   users: {
-    user_id: string;
     username: string;
-    image_url: string;
+    image_url: string | null;
+    user_id: string;
+    is_active: boolean;
   }[];
 };
 
-export type TPost = z.infer<typeof PostSchema>;
-
+export type TPost = Tables<"posts">;
 export type UploadPostRequest = {
   user_id: string;
   caption: string;
   media_name: string;
   media_url: string;
 };
+
+export type SupabaseResponse<T> =
+  | { success: true; data: T }
+  | { success: false; message: string };

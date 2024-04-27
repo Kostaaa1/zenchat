@@ -1,12 +1,12 @@
-// @ts-ignore
-import Cookies from "cookies";
-import jwt, { JwtPayload, decode } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
 import "dotenv/config";
 import fs from "fs";
+// @ts-ignore
+import Cookies from "cookies";
 
 export const decodeAndVerifyToken = (req: Request, res: Response, next?: () => void) => {
-  const PUBLIC_KEY = fs.readFileSync("./public_key.pem");
+  const PUBLIC_KEY = fs.readFileSync("./clerk_public_key.pem");
   if (!PUBLIC_KEY)
     throw new Error(
       "No PUBLIC_KEY provided. Clerk JWT PUBLIC_KEY needed in root of server directory."

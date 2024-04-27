@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { cn } from "../../../utils/utils";
 import useModalStore from "../../../utils/stores/modalStore";
 import useChatStore from "../../../utils/stores/chatStore";
+import useUser from "../../../hooks/useUser";
 
 interface ChatDetailsProps {}
 
@@ -12,11 +13,10 @@ const ChatDetails: FC<ChatDetailsProps> = () => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const [isMuteActive, setIsMuteActive] = useState<boolean>(false);
   const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
+  const { userData } = useUser();
   const componentLists = [
     { list: "Delete", id: 0, fn: () => setIsDeleteChatOpen(true) },
   ];
-  // "start": "concurrently \"npm run server\" \"npm run client\"",
-  // "install": "concurrently \"cd frontend && npm run install\" \"cd backend && npm run install\""
 
   return (
     <div className="flex w-full max-w-[270px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
@@ -51,11 +51,13 @@ const ChatDetails: FC<ChatDetailsProps> = () => {
       <div className="w-full border border-x-0 border-t-0 border-[#262626]"></div>
       <div className="flex h-full flex-col overflow-auto">
         <h4 className="p-6 font-semibold">Members</h4>
-        {currentChatroom?.users.map((user) => (
-          <Link key={user.user_id} to={`/${user.username}`}>
-            <List image_url={[user.image_url]} title={user.username} />
-          </Link>
-        ))}
+        {currentChatroom!.users
+          .filter((x) => x.username !== userData!.username)
+          .map((user) => (
+            <Link key={user.user_id} to={`/${user.username}`}>
+              <List image_url={[user.image_url]} title={user.username} />
+            </Link>
+          ))}
       </div>
       <ul className="border border-x-0 border-b-0 border-[#262626] px-6 py-1">
         {componentLists.map((list) => (

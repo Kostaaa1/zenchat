@@ -49,11 +49,16 @@ const FileDropZone = ({ onDrop }) => {
       </div>
       <p className="text-xl tracking-wide">Drag photos and videos here</p>
       <Button className="relative cursor-pointer" buttonColor="blue">
-        <input
-          type="file"
-          className="absolute cursor-pointer opacity-0"
-          onChange={(e) => onDrop(e.target.files![0])}
-        />
+        <label
+          className="absolute w-full cursor-pointer opacity-0"
+          htmlFor="fileInput"
+        >
+          <input
+            id="fileInput"
+            type="file"
+            onChange={(e) => onDrop(e.target.files![0])}
+          />
+        </label>
         Select from computer
       </Button>
     </div>

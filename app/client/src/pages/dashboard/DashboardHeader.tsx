@@ -27,9 +27,8 @@ export const DashboardHeader = ({
     if (!userData || !loggedUser) return;
     const path = await chat.get.chatroom_id.fetch({
       userIds: [userData.id, loggedUser.id],
-      admin: userData.id,
+      admin: loggedUser.id,
     });
-
     if (path) {
       setIsLoading(false);
       navigate(`/inbox/${path}`);

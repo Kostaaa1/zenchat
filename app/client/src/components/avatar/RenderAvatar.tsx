@@ -4,8 +4,8 @@ import { cn } from "../../utils/utils";
 
 interface RenderAvatarProps {
   image_urls: {
-    image_url_1: string;
-    image_url_2?: string;
+    image_url_1: string | null | undefined;
+    image_url_2?: string | null | undefined;
   };
   avatarSize: "sm" | "md" | "lg" | "xl";
 }

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../main/components/Icon";
 import List from "../../../components/List";
@@ -62,7 +62,10 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
                 key={chat.id}
                 isHoverDisabled={true}
                 hover="darker"
-                title={chat.users.map((x) => x.username).join(", ")}
+                title={chat.users
+                  .filter((x) => x.username !== userData?.username)
+                  .map((x) => x.username)
+                  .join(", ")}
                 subtitle={chat.last_message}
                 onClick={() => handleChatUserClick(chat.chatroom_id)}
                 className={
@@ -79,30 +82,6 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
             ))}
           </>
         )}
-        {/* {!isLoading && (
-          <>
-            {userChats?.map((chat) => (
-              <List
-                key={chat.id}
-                isHoverDisabled={true}
-                hover="darker"
-                title={chat.users.map((x) => x.username).join(", ")}
-                subtitle={chat.last_message}
-                onClick={() => handleChatUserClick(chat.chatroom_id)}
-                image_url={
-                  chat.is_group && chat.users.length > 1
-                    ? [chat.users[0].image_url, chat.users[1].image_url]
-                    : [chat.users[0].image_url]
-                }
-                className={
-                  chatRoomId === chat.chatroom_id
-                    ? "bg-white bg-opacity-10"
-                    : ""
-                }
-              />
-            ))}
-          </>
-        )} */}
       </ul>
     </div>
   );

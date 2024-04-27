@@ -3,6 +3,7 @@ import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
 import { motion } from "framer-motion";
+import Avatar from "./avatar/Avatar";
 
 export const listVariants = cva(
   "flex cursor-pointer w-full justify-between px-6 py-2 items-center",
@@ -21,10 +22,11 @@ export const listVariants = cva(
 );
 
 export interface ListProps extends VariantProps<typeof listVariants> {
+  // image_url?: string | string[];
   children?: ReactElement;
   title?: string;
-  subtitle?: string;
-  image_url?: string | string[];
+  subtitle?: string | null;
+  image_url?: (string | null)[];
   className?: string;
   onClick?: () => void;
   isHoverDisabled?: boolean;
@@ -72,7 +74,7 @@ const List: FC<ListProps> = ({
           <RenderAvatar
             avatarSize="lg"
             image_urls={{
-              image_url_1: image_url?.[0] as string,
+              image_url_1: image_url?.[0],
               image_url_2: image_url?.[1],
             }}
           />

@@ -18,7 +18,6 @@ export const messageRouter = t.router({
     .query(async ({ input }) => {
       const { chatroom_id } = input;
       if (!chatroom_id) return;
-
       const messages = await getMessages(chatroom_id);
       return messages;
     }),
@@ -33,7 +32,6 @@ export const messageRouter = t.router({
       const { chatroom_id, lastMessageDate } = input;
       if (!chatroom_id) return;
       const messages = await getMoreMessages(chatroom_id, lastMessageDate);
-
       return messages;
     }),
   send: protectedProcedure.input(MessageSchema).mutation(async ({ input: messageData }) => {
@@ -46,7 +44,6 @@ export const messageRouter = t.router({
   unsend: protectedProcedure
     .input(z.object({ id: z.string(), imageUrl: z.string().nullable() }))
     .mutation(async ({ input }) => {
-      console.log("unsend", input);
       await unsendMessage(input);
     }),
   sendGroupMessage: protectedProcedure.input(z.array(UserSchema)).mutation(({ input }) => {

@@ -32,6 +32,7 @@ const ImageModal = () => {
       );
     },
   });
+
   useOutsideClick([imageModalRef], "mousedown", () => {
     closeImageModal();
     setModalPostData(null);

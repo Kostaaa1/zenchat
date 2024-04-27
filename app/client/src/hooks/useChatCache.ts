@@ -1,6 +1,5 @@
 import { TMessage } from "../../../server/src/types/types";
 import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets";
-
 import { useCallback } from "react";
 import getCurrentDate from "../utils/getCurrentDate";
 import { trpc } from "../utils/trpcClient";
@@ -10,9 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const useChatCache = () => {
   const ctx = trpc.useUtils();
-  const { setTypingUser, setCurrentChatroom } = useChatStore(
-    (state) => state.actions,
-  );
+  const { setCurrentChatroom } = useChatStore((state) => state.actions);
   const { userData } = useUser();
   const params = useParams<{ chatRoomId: string }>();
   const navigate = useNavigate();
@@ -70,7 +67,6 @@ const useChatCache = () => {
 
   const updateUserChatLastMessageCache = useCallback(
     (msg: TMessage) => {
-      console.log("Message from socket: ", msg);
       const last_message = msg.is_image
         ? "Photo"
         : msg.content.length > 40
@@ -91,10 +87,8 @@ const useChatCache = () => {
           .sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
             const dateB = new Date(b.created_at).getTime();
-
             return dateB - dateA;
           });
-
         return data;
       });
     },
@@ -102,27 +96,23 @@ const useChatCache = () => {
   );
 
   const recieveNewSocketMessage = useCallback(
-    (socketData: TRecieveNewSocketMessageType) => {
+    async (socketData: TRecieveNewSocketMessageType) => {
       const { channel, data } = socketData;
-      if (channel === "typing" && params?.chatRoomId === data.chatroom_id) {
-        setTypingUser(data.userId);
-        return;
-      }
-
-      if (channel === "messages-channel") {
-        if (Object.keys(data).length === 0) return;
-        const { is_image, sender_id } = data;
-
+      if (channel === "onMessage") {
+        const { message, shouldActivate, user_id } = data;
+        if (shouldActivate) {
+          await ctx.chat.get.user_chatrooms.refetch(user_id);
+          return;
+        }
+        updateUserChatLastMessageCache(message);
+        const { is_image, sender_id } = message;
         if (!is_image) {
-          if (sender_id !== userData!.id) {
-            addNewMessageToChatCache(data);
-          }
+          if (sender_id !== userData!.id) addNewMessageToChatCache(message);
         } else {
           sender_id === userData!.id
-            ? replacePreviewImage(data)
-            : addNewMessageToChatCache(data);
+            ? replacePreviewImage(message)
+            : addNewMessageToChatCache(message);
         }
-        updateUserChatLastMessageCache(data);
       }
     },
     [addNewMessageToChatCache, updateUserChatLastMessageCache, userData],

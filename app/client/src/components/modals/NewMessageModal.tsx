@@ -12,18 +12,20 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "./Modals";
 
+type TUserDataState = Omit<TUserData, "posts">;
+
 const NewMessageModal = () => {
-  const { setIsNewMessageModalModalOpen } = useModalStore(
-    (state) => state.actions,
-  );
   const [search, setSearch] = useState<string>("");
-  const [searchedUsers, setSearchedUsers] = useState<TUserData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const { userData } = useUser();
-  const [selectedUsers, setSelectedUsers] = useState<TUserData[]>([]);
+  const [searchedUsers, setSearchedUsers] = useState<TUserDataState[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<TUserDataState[]>([]);
   const sendMessageModal = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, chat } = trpc.useUtils();
+  const { setIsNewMessageModalModalOpen } = useModalStore(
+    (state) => state.actions,
+  );
   useOutsideClick([sendMessageModal], "mousedown", () =>
     setIsNewMessageModalModalOpen(false),
   );
@@ -35,7 +37,6 @@ const NewMessageModal = () => {
   const debounceEmit = debounce(
     async () => {
       if (!userData) return null;
-
       const searchedUsers = await user.search.fetch({
         username: userData?.username,
         searchValue: search,
@@ -62,7 +63,7 @@ const NewMessageModal = () => {
     };
   }, [search, userData]);
 
-  const handleClick = (user: TUserData) => {
+  const handleClick = (user: TUserDataState) => {
     setSearch("");
     setSelectedUsers((state) => {
       return state.some((x) => x.id === user.id) ? state : [...state, user];
@@ -94,8 +95,8 @@ const NewMessageModal = () => {
 
     if (newChatroomId && newChat) {
       closeSendMessageModal();
-      navigate(`/inbox/${newChatroomId}`);
       setLoading(false);
+      navigate(`/inbox/${newChatroomId}`);
     }
   };
 

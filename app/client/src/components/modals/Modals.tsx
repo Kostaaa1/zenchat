@@ -13,22 +13,20 @@ type ModalProps = {
 };
 export const Modal: FC<ModalProps> = ({ children }) => {
   return (
-    <AnimatePresence>
+    <motion.div
+      className="fixed z-[1000] flex h-screen w-full items-center justify-center bg-black bg-opacity-75"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
       <motion.div
-        className="fixed z-[1000] flex h-screen w-full items-center justify-center bg-black bg-opacity-75"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
       >
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
-        >
-          {children}
-        </motion.div>
+        {children}
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -48,14 +46,14 @@ const Modals = () => {
   );
 
   return (
-    <>
+    <AnimatePresence>
       {isImageModalOpen && imageModalSource && <ImageModal />}
       {showUnsendMsgModal && <UnsendMessageModal />}
       {isNewMessageModalOpen && <NewMessageModal />}
       {isEditProfileModalOpen && <EditProfileModal />}
       {isDeleteChatOpen && <DeleteChatModal />}
       {isDndUploadModalOpen && <DndUpload />}
-    </>
+    </AnimatePresence>
   );
 };
 

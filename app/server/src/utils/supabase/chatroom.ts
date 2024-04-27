@@ -2,20 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { purgeImageCache } from "../../config/imagekit";
 import supabase from "../../config/supabase";
 import { deleteImageFromS3 } from "../../middleware/multer";
-import { TChatHistory, TMessage, TPopulatedChat, TChatroom } from "../../types/types";
+import { TMessage, TChatroom, TChatHistory, TPopulatedChat } from "../../types/types";
 import "dotenv/config";
+import { Database } from "../../types/supabase";
 
-const getUserIdFromChatroom = async (chatroom_id: string): Promise<{ user_id: string }[]> => {
-  const { data: chatroomData, error } = await supabase
-    .from("chatroom_users")
-    .select("user_id")
-    .eq("chatroom_id", chatroom_id);
-  if (!chatroomData || error) {
-    console.log("Error: ", error);
-    throw new Error(error.message);
-  }
-  return chatroomData;
-};
+const { IMAGEKIT_URL_ENDPOINT = "" } = process.env;
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -67,101 +58,13 @@ export const unsendMessage = async ({
     const { data, error } = await supabase.from("messages").delete().eq("id", id);
     if (!data) console.log(error);
     if (imageUrl) {
-      console.log(
-        "This si iamgekit link for purifying: ",
-        process.env.IMAGEKIT_URL_ENDPOINT + imageUrl
-      );
-      await purgeImageCache(process.env.IMAGEKIT_URL_ENDPOINT + imageUrl);
+      await purgeImageCache(IMAGEKIT_URL_ENDPOINT + imageUrl);
       await deleteImageFromS3({ folder: "messages", file: imageUrl });
     }
   } catch (error) {
     console.log(error);
   }
 };
-
-export const deleteConversation = async ({
-  chatroom_id,
-  user_id,
-}: {
-  chatroom_id: string;
-  user_id: string;
-}) => {
-  try {
-    const { data } = await supabase.from("chatroom_users").select("*").match({ chatroom_id });
-    console.log("chatroom_id: ", chatroom_id, "Id: ", user_id, "data", data);
-
-    if (data && data.length === 1) {
-      const tables = ["chatroom_users", "messages", "chatrooms"];
-      async function deleteRow(table: string) {
-        const { error } = await supabase.from(table).delete().eq("chatroom_id", chatroom_id);
-        return { error, table };
-      }
-      try {
-        // get images adn delete them from s3
-        const { data: images, error } = await supabase
-          .from("messages")
-          .select("content")
-          .eq("chatroom_id", chatroom_id)
-          .eq("is_image", true);
-
-        if (images && images.length > 0) {
-          for (const img of images) {
-            await deleteImageFromS3({
-              folder: "messages",
-              file: img.content.split(process.env.IMAGEKIT_URL_ENDPOINT)[1],
-            });
-          }
-        }
-
-        const res = await Promise.all(tables.map(async (table) => await deleteRow(table)));
-        const errors = res.filter((x) => x.error);
-        errors.length > 0
-          ? errors.forEach((err) => console.log(`Error deleting from ${err.table}:`, err.error))
-          : console.log("Deleted successfull", chatroom_id);
-      } catch (error) {
-        console.error("Unexpected error when deleting last field", error);
-      }
-    } else {
-      await supabase.from("chatroom_users").delete().match({ chatroom_id, user_id });
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-// export const deleteConversation = async (chatroom_id: string) => {
-//   try {
-//     const { data: images } = await supabase
-//       .from("messages")
-//       .select("content")
-//       .eq("chatroom_id", chatroom_id)
-//       .eq("is_image", true);
-//     if (images && images.length > 0) {
-//       for (const img of images) {
-//         await deleteImageFromS3({
-//           folder: "messages",
-//           file: img.content.split(process.env.IMAGEKIT_URL_ENDPOINT)[1],
-//         });
-//       }
-//     }
-//     const { error: usersError } = await supabase
-//       .from("chatroom_users")
-//       .delete()
-//       .eq("chatroom_id", chatroom_id);
-//     if (usersError) console.error("Error deleting chatroom_users: ", usersError);
-//     const { error: chatroomsError } = await supabase
-//       .from("chatrooms")
-//       .delete()
-//       .eq("chatroom_id", chatroom_id);
-//     if (chatroomsError) {
-//       console.error("Error while deleting chat from chatrooms table", chatroomsError);
-//     }
-//     const { error } = await supabase.from("messages").delete().eq("chatroom_id", chatroom_id);
-//     if (error) console.error("Error deleting messages: ", error);
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
 
 export const sendMessage = async (messageData: TMessage) => {
   const { chatroom_id, content, created_at } = messageData;
@@ -176,6 +79,13 @@ export const sendMessage = async (messageData: TMessage) => {
     })
     .eq("id", chatroom_id);
 
+  const { error } = await supabase
+    .from("chatroom_users")
+    .update({ is_active: true })
+    .eq("chatroom_id", chatroom_id)
+    .neq("user_id", messageData.sender_id);
+
+  if (error) console.log(error);
   if (lastMessageUpdateError) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -191,15 +101,15 @@ export const sendMessage = async (messageData: TMessage) => {
   }
 };
 
-export const populateForeignColumns = async (
+export const getChatroomData = async (
   chatroom_id: string,
   currentUser_id: string
 ): Promise<TChatroom> => {
   const { data, error } = await supabase
     .from("chatroom_users")
     .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)")
-    .neq("user_id", currentUser_id)
     .eq("chatroom_id", chatroom_id);
+  // .neq("user_id", currentUser_id)
 
   if (!data) {
     throw new Error(
@@ -207,50 +117,24 @@ export const populateForeignColumns = async (
     );
   }
 
-  const populatedData = data as TPopulatedChat[];
-  const newUsers = [] as {
-    username: string;
-    image_url: string;
-    user_id: string;
-  }[];
-
-  for (const item of populatedData) {
-    const { users, user_id } = item;
-    const { image_url, username } = users;
-    newUsers.push({ username, image_url, user_id });
+  const chatroomUsers = [];
+  for (const item of data) {
+    const { users, user_id, is_active } = item;
+    const { image_url, username } = users!;
+    chatroomUsers.push({ username, image_url, user_id, is_active });
   }
+  const { id, chatrooms } = data[0];
+  const { last_message, created_at, is_group, admin } = chatrooms!;
 
-  const { id, chatrooms } = populatedData[0];
-  const { last_message, created_at, is_group, admin } = chatrooms;
-
-  const groupedData = {
+  return {
     id,
     chatroom_id,
     last_message,
     created_at,
     is_group,
     admin,
-    new_message: "",
-    img_urls: [],
-    users: newUsers,
+    users: chatroomUsers,
   };
-  return groupedData;
-};
-
-export const getCurrentChatroom = async ({
-  chatroom_id,
-  user_id,
-}: {
-  chatroom_id: string;
-  user_id: string;
-}): Promise<TChatroom | undefined> => {
-  try {
-    console.log("chatroom_id", chatroom_id, user_id);
-    const chatData = await populateForeignColumns(chatroom_id, user_id);
-    return chatData;
-  } catch (error) {
-    console.log(error);
-  }
 };
 
 export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => {
@@ -259,26 +143,25 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
       .from("chatroom_users")
       .select("chatroom_id")
       .eq("user_id", userId);
-    // .or(`sender_id.eq.${userId},messages`);
+    // .eq("is_active", true);
 
     if (!chatData) {
       throw new Error(`Error while getting user chatrooms: ${error}`);
     }
-
-    const conversations = await Promise.all(
+    const chatrooms = await Promise.all(
       chatData.map(async (chatroom) => {
-        const s = await populateForeignColumns(chatroom.chatroom_id, userId);
+        const s = await getChatroomData(chatroom.chatroom_id, userId);
         return s;
       })
     );
 
-    conversations.sort((a, b) => {
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
+    chatrooms.sort((a, b) => {
+      const dateA = new Date(a!.created_at).getTime();
+      const dateB = new Date(b!.created_at).getTime();
       return dateB - dateA;
     });
 
-    return conversations;
+    return chatrooms;
   } catch (error) {
     console.error(error);
     return [];
@@ -292,11 +175,8 @@ export const getSearchedHistory = async (id: string): Promise<TChatHistory[]> =>
       .select("*, users(username, image_url, first_name, last_name)")
       .eq("main_user_id", id);
 
-    if (!data) {
-      console.log(error);
-    }
-
-    return data || [];
+    if (!data) throw new Error(error.message);
+    return data;
   } catch (error) {
     console.log(error);
     return [];
@@ -305,7 +185,6 @@ export const getSearchedHistory = async (id: string): Promise<TChatHistory[]> =>
 
 export const deleteSearchChat = async (id: string): Promise<void> => {
   const { error } = await supabase.from("searched_users").delete().eq("user_id", id);
-
   if (error) {
     throw new Error(error?.message);
   }
@@ -338,36 +217,31 @@ export const addUserToChatHistory = async ({
       main_user_id,
       user_id,
     });
-
-    if (error) {
-      console.log(error);
-    }
+    if (error) console.log(error);
   }
 };
 
-const createChatRoom = async (
-  is_group: boolean,
-  admin: string,
-  userIds: string[]
-): Promise<string> => {
+export const createChatRoom = async (is_group: boolean, admin: string): Promise<string> => {
   const { data, error } = await supabase
     .from("chatrooms")
-    .insert({ last_message: "", is_group, admin, participants: userIds })
+    .insert({ last_message: "", is_group, admin })
     .select("id");
-
-  if (!data) console.log(error.message);
-  return data?.[0].id;
+  const requiredId = data?.[0].id;
+  if (!data || !requiredId) throw new Error(error?.message);
+  return requiredId;
 };
 
-const insertUserChatroom = async (chatroomId: string, userId: string): Promise<void> => {
+export const insertUserChatroom = async (
+  chatroomId: string,
+  userId: string,
+  isActive: boolean
+): Promise<void> => {
   const { error } = await supabase.from("chatroom_users").insert({
     chatroom_id: chatroomId,
     user_id: userId,
+    is_active: isActive,
   });
-
-  if (error) {
-    console.error("Failed inserting chatroom for user!", error);
-  }
+  if (error) console.error("Failed inserting chatroom for user!", error);
 };
 
 export const getChatroomId = async (
@@ -385,18 +259,69 @@ export const getChatroomId = async (
 
     if (!data || data.length === 0) {
       const isGroupChat = userIds.length > 2;
-      const chatroomId = await createChatRoom(isGroupChat, admin, userIds);
-
-      if (chatroomId) {
-        for (const user of userIds) {
-          await insertUserChatroom(chatroomId, user);
-        }
-        return chatroomId;
+      const chatroomId = await createChatRoom(isGroupChat, admin);
+      for (const user of userIds) {
+        const isActive = user === admin;
+        await insertUserChatroom(chatroomId, user, isActive);
       }
+      return chatroomId;
     } else {
       return data[0].chatroom_id;
     }
   } catch (error) {
     console.error(error);
+  }
+};
+
+export const deleteConversation = async (chatroom_id: string, user_id: string) => {
+  try {
+    const { data } = await supabase.from("chatroom_users").select("*").match({ chatroom_id });
+    if (data && data.filter((x) => x.is_active).length === 1) {
+      const tables: (keyof Database["public"]["Tables"])[] = [
+        "chatroom_users",
+        "messages",
+        "chatrooms",
+      ];
+
+      async function deleteRow(table: keyof Database["public"]["Tables"]) {
+        const { error } = await supabase
+          .from(table)
+          .delete()
+          .eq(table === "chatrooms" ? "id" : "chatroom_id", chatroom_id);
+        return { error, table };
+      }
+
+      try {
+        // Delete s3 messages that blonged to room???
+        const { data: images } = await supabase
+          .from("messages")
+          .select("content")
+          .eq("chatroom_id", chatroom_id)
+          .eq("is_image", true);
+
+        if (images && images.length > 0) {
+          for (const img of images) {
+            await deleteImageFromS3({
+              folder: "messages",
+              file: img.content.split("")[1],
+            });
+          }
+        }
+
+        for (const table of tables) {
+          const res = await deleteRow(table);
+          res.error
+            ? console.log(`Error deleting from ${table}:`, res.error)
+            : console.log("Deleted successfull", chatroom_id);
+        }
+      } catch (error) {
+        console.error("Unexpected error when deleting last field", error);
+      }
+    } else {
+      // soft delete:
+      await supabase.from("chatroom_users").update({ is_active: false }).eq("user_id", user_id);
+    }
+  } catch (error) {
+    console.log(error);
   }
 };

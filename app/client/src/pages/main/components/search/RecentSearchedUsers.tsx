@@ -67,12 +67,12 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                 <List
                   key={chat.id}
                   isHoverDisabled={true}
-                  image_url={[chat.users.image_url]}
+                  image_url={[chat.users!.image_url]}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}
-                  onClick={() => navigateToUserDashboard(chat.users.username)}
+                  onClick={() => navigateToUserDashboard(chat?.users!.username)}
                   hover="darker"
-                  title={chat.users.username}
-                  subtitle={`${chat.users.first_name} ${chat.users.last_name}`}
+                  title={chat.users!.username}
+                  subtitle={`${chat.users!.first_name} ${chat.users!.last_name}`}
                   icon={<Icon name="X" size="28px" />}
                 />
               ))}

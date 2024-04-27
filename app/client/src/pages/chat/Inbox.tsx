@@ -1,26 +1,23 @@
 import Icon from "../main/components/Icon";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/Button";
 import { useLocation, useParams } from "react-router-dom";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import MessageInput from "./components/MessageInput";
 import useChatStore from "../../utils/stores/chatStore";
 import Chat from "./components/Chat";
-import useChatSocket from "../../hooks/useChatSocket";
 import UserChats from "./components/UserChats";
-import useChatCache from "../../hooks/useChatCache";
 import { EmojiPickerContainer } from "./components/EmojiPicker";
 import { trpc } from "../../utils/trpcClient";
 import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
 import useModalStore from "../../utils/stores/modalStore";
-
-import io from "socket.io-client";
-const socket = io(import.meta.env.VITE_SERVER_URL);
+import { TChatroom } from "../../../../server/src/types/types";
 
 const Inbox = () => {
   const location = useLocation();
+  const { chat } = trpc.useUtils();
   const { userData } = useUser();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -32,8 +29,13 @@ const Inbox = () => {
   const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
   );
-  const { setShowEmojiPicker, setCurrentChatroom, setShowDetails } =
-    useChatStore((state) => state.actions);
+  const {
+    setShowEmojiPicker,
+    setCurrentChatroomTitle,
+    setCurrentChatroom,
+    setShowDetails,
+  } = useChatStore((state) => state.actions);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     return () => {
@@ -44,28 +46,43 @@ const Inbox = () => {
   useOutsideClick([emojiRef, iconRef], "click", () =>
     setShowEmojiPicker(false),
   );
+
   const scrollToStart = () => {
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
-  const { data: userChats, isLoading: isUserChatsLoading } =
-    trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
-      enabled: !!userData,
-      refetchOnMount: "always",
-    });
+  const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
+    enabled: !!userData,
+    // refetchOnMount: "always",
+  });
+
+  const userChats = useMemo(() => {
+    const filteredChats = data?.filter((x) =>
+      x.users.some((y) => y.username === userData?.username && y.is_active),
+    );
+    return filteredChats;
+  }, [data, userData]);
 
   useEffect(() => {
-    if (!userChats || userChats.length === 0) return;
-    const currentChat = userChats?.find((x) => x.chatroom_id === chatRoomId);
-    if (currentChat) setCurrentChatroom(currentChat);
-  }, [userChats, chatRoomId]);
-
-  const { recieveNewSocketMessage } = useChatCache();
-  useChatSocket({ socket, userId: userData!.id, recieveNewSocketMessage });
+    if (!userChats || userChats.length === 0 || !userData) return;
+    const currentChat = userChats?.find(
+      (chat) => chat.chatroom_id === chatRoomId,
+    );
+    if (currentChat) {
+      setCurrentChatroom(currentChat);
+      setCurrentChatroomTitle(
+        currentChat.users
+          .filter((chat) => chat.username !== userData.username)
+          .map((chat) => chat.username)
+          .join(", "),
+      );
+    }
+    setIsLoading(false);
+  }, [userChats, chatRoomId, userData]);
 
   return (
     <div className="flex h-full max-h-screen w-full pl-20" ref={scrollRef}>
-      <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
+      <UserChats userChats={userChats} isLoading={isLoading} />
       {location.pathname !== "/inbox" && currentChatroom && chatRoomId && (
         <div className="w-full">
           <div className="relative flex h-full w-full flex-col justify-between pb-4">

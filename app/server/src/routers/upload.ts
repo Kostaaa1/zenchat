@@ -1,6 +1,6 @@
 import express from "express";
 import { uploadAvatar, uploadMessageImage, uploadPostImage } from "../middleware/multer";
-import { UploadPostRequest } from "../types/types";
+import { UploadPostRequest, TPost } from "../types/types";
 import { trpcCaller } from ".";
 const uploadRouter = express.Router();
 
@@ -14,7 +14,7 @@ uploadRouter.post("/post", uploadPostImage.array("uploadPost"), async (req, res)
   // @ts-expect-error idk
   const file = req.files[0] as Express.Multer.File;
 
-  const deserialized: UploadPostRequest = JSON.parse(serialized);
+  const deserialized: TPost = JSON.parse(serialized);
   deserialized["media_name"] = file.originalname;
   deserialized["media_url"] = IMAGEKIT_URL_ENDPOINT + file.originalname;
 

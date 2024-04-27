@@ -17,9 +17,14 @@ type ChatProps = {
 };
 
 const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
+  const MESSAGE_FETCH_LIMIT = 22;
   const navigate = useNavigate();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
-  const { typingUser, currentChatroom } = useChatStore();
+  const currentChatroom = useChatStore((state) => state.currentChatroom);
+  const currentChatroomTitle = useChatStore(
+    (state) => state.currentChatroomTitle,
+  );
+  const typingUser = useChatStore((state) => state.typingUser);
   const { userData } = useUser();
   const ctx = trpc.useUtils();
   const isMessagesLoading = useChatStore((state) => state.isMessagesLoading);
@@ -33,7 +38,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     trpc.chat.messages.getMore.useMutation({
       mutationKey: [
         {
-          chatroom_id: chatRoomId as string,
+          chatroom_id: chatRoomId,
         },
       ],
       onSuccess: (messages) => {
@@ -43,12 +48,10 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             chatroom_id: chatRoomId,
           },
           (staleChats) => {
-            if (staleChats && messages) {
-              return [...staleChats, ...messages];
-            }
+            if (staleChats && messages) return [...staleChats, ...messages];
           },
         );
-        if (messages.length < 22) {
+        if (messages.length < MESSAGE_FETCH_LIMIT) {
           setShouldFetchMoreMessages(false);
         }
       },
@@ -76,9 +79,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   useEffect(() => {
     if (messages) {
       fetchLoadedImages(messages);
-      if (messages.length < 22) {
+      if (messages.length < MESSAGE_FETCH_LIMIT)
         setShouldFetchMoreMessages(false);
-      }
       if (messages.length > 0) {
         setLastMessageDate(messages[messages.length - 1].created_at);
       }
@@ -88,7 +90,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-
     const handleScroll = debounce(() => {
       const { scrollTop, clientHeight, scrollHeight } = container;
       const scrollTolerance = 1;
@@ -122,15 +123,11 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
         >
           <ul className="flex flex-col-reverse p-3">
             <span>
-              {typingUser !== userData?.id && typingUser.length > 0 && (
-                <div className="typing-indicator">
-                  <div className="message-cloud rounded-2xl bg-slate-300 p-2 py-3">
-                    <Dot className="dot dot-1" color="#4285f4" size="8px" />
-                    <Dot className="dot dot-2" color="#4285f4" size="8px" />
-                    <Dot className="dot dot-3" color="#4285f4" size="8px" />
-                  </div>
-                </div>
-              )}
+              {/* {typingUser.length > 0 && (
+                <span className="absolute bottom-[72px] left-4 text-sm font-semibold text-neutral-500">
+                  {typingUser} is typing...
+                </span>
+              )} */}
             </span>
             {messages?.map((message) => (
               <Message key={message.id} message={message} />
@@ -148,15 +145,19 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             <div className="flex flex-col items-center pb-8 pt-4">
               <RenderAvatar
                 avatarSize="xl"
-                image_urls={{
-                  image_url_1: currentChatroom.users[0]?.image_url,
-                  image_url_2: currentChatroom.users[1]?.image_url,
-                }}
+                image_urls={
+                  currentChatroom.is_group
+                    ? {
+                        image_url_1: currentChatroom.users[0]?.image_url,
+                        image_url_2: currentChatroom.users[1]?.image_url,
+                      }
+                    : { image_url_1: currentChatroom.users[0]?.image_url }
+                }
               />
               <div className="flex flex-col items-center pt-4">
                 <h3 className="text-md py-1 font-semibold">
                   {currentChatroom && currentChatroom?.users.length > 1
-                    ? currentChatroom?.users.map((x) => x.username).join(", ")
+                    ? currentChatroomTitle
                     : currentChatroom?.users[0].username}
                 </h3>
                 {currentChatroom?.users.length === 1 ? (

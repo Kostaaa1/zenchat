@@ -1,20 +1,17 @@
 import { TMessage } from "./types";
 
-type TTypingData = {
-  userId: string;
-  chatroom_id: string;
-};
-
 export type MessagesChannelData = {
-  channel: "messages-channel";
-  data: TMessage;
+  channel: "onMessage";
+  data: {
+    message: TMessage;
+    shouldActivate: boolean;
+    user_id: string;
+  };
 };
 
 export type TypingChannelData = {
-  channel: "typing";
-  data: TTypingData;
+  channel: "isTyping";
+  data: boolean;
 };
 
-export type TRecieveNewSocketMessageType =
-  | MessagesChannelData
-  | TypingChannelData;
+export type TRecieveNewSocketMessageType = MessagesChannelData | TypingChannelData;

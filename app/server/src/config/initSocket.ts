@@ -1,5 +1,6 @@
 import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
+import { TMessage } from "../types/types";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -9,29 +10,54 @@ export const initSocket = (io: Server) => {
   io.on("connection", (socket: TCustomSocketType) => {
     const rooms = io.sockets.adapter.rooms;
     socket.on("join-room", async (userId: string) => {
-      if (!userId || rooms.has(socket.id)) return;
-      console.log("Joined room: ", userId);
+      if (!userId || rooms.has(userId)) return;
       socket.join(userId);
+      console.log("Joined room: ", userId, "Rooms", rooms);
     });
 
-    socket.on("typing", (data: { username: string; chatroom_id: string }) => {
-      console.log(data);
-      io.emit("join-room", { channel: "typing", data });
-    });
+    socket.on(
+      "isTyping",
+      (data: {
+        isTyping: boolean;
+        users: { id: string; isTyping: boolean; typingUser: string }[];
+      }) => {
+        for (const user of data.users) {
+          if (data.isTyping) {
+            io.to(user.id).emit("isTyping", { channel: "isTyping", data: user });
+          } else {
+            io.to(user.id).emit("isTyping", null);
+          }
+        }
+      }
+    );
 
-    socket.on("messages-channel", () => {
+    socket.on("onMessage", () => {
       try {
         supabase
-          .channel("messages-channel")
+          .channel("onMessage")
           .on(
             "postgres_changes",
             { event: "*", schema: "public", table: "messages" },
             async (payload) => {
-              const messageData = payload.new;
-              io.emit("join-room", {
-                channel: "messages-channel",
-                data: messageData,
-              });
+              const messageData = payload.new as TMessage;
+              const { data, error } = await supabase
+                .from("chatroom_users")
+                .select("user_id, is_active")
+                .eq("chatroom_id", messageData.chatroom_id);
+              // .neq("user_id", messageData.sender_id);
+
+              if (error || !data) {
+                supabase.channel("onMessage").unsubscribe();
+                return;
+              }
+
+              for (const reciever of data) {
+                const { is_active, user_id } = reciever;
+                io.to(user_id).emit("onMessage", {
+                  channel: "onMessage",
+                  data: { message: messageData, shouldActivate: !is_active, user_id },
+                });
+              }
             }
           )
           .subscribe();
@@ -42,6 +68,7 @@ export const initSocket = (io: Server) => {
 
     socket.on("disconnect", () => {
       console.log("A user disconnected");
+      supabase.channel("onMessage").unsubscribe();
     });
   });
 };

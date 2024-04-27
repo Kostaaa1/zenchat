@@ -1,9 +1,11 @@
-import React, { ChangeEvent, FC } from "react";
+import React, { ChangeEvent, FC, useEffect, useState } from "react";
 import Icon from "../../main/components/Icon";
 import useChatStore from "../../../utils/stores/chatStore";
 import { cn, renameFile } from "../../../utils/utils";
-import io from "socket.io-client";
 import useChat from "../../../hooks/useChat";
+import io from "socket.io-client";
+import { useRouteLoaderData } from "react-router-dom";
+import useUser from "../../../hooks/useUser";
 const socket = io(import.meta.env.VITE_SERVER_URL);
 
 interface MessageInputProps {
@@ -15,14 +17,40 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { setShowEmojiPicker } = useChatStore((state) => state.actions);
   const { currentChatroom } = useChat();
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const { userData } = useUser();
   const {
-    handleSubmit,
+    handleSubmitMessage,
     removeFileFromArray,
     setMessage,
     img_urls,
     fileSetter,
     new_message,
   } = useChat(socket, scrollToStart);
+
+  useEffect(() => {
+    if (!currentChatroom) return;
+    setIsTyping(currentChatroom.new_message.length > 0);
+  }, [currentChatroom]);
+
+  // useEffect(() => {
+  //   if (!currentChatroom || !userData) return;
+  //   if (isTyping) {
+  //     socket.emit("isTyping", {
+  //       isTyping: true,
+  //       users: currentChatroom.users.map((user) => ({
+  //         id: user.user_id,
+  //         isTyping: userData.id === user.user_id,
+  //         typingUser: userData.username,
+  //       })),
+  //     });
+  //   } else {
+  //     socket.emit("isTyping", {
+  //       isTyping: false,
+  //       users: currentChatroom.users.map((x) => ({ id: x.user_id })),
+  //     });
+  //   }
+  // }, [isTyping]);
 
   const showEmoji = () => {
     setShowEmojiPicker(!showEmojiPicker);
@@ -35,15 +63,14 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setMessage(val);
+    setMessage(e.target.value);
   };
 
   return (
     <>
       {img_urls && (
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmitMessage}
           className={cn(
             img_urls?.length === 0 ? "h-16" : "h-40",
             "relative flex w-full px-4",

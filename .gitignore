@@ -4,4 +4,4 @@ node_modules
 get_chatroom_id.txt
 /server/.env
 /client/.env
-public_key.pem
+clerk_public_key.pem

@@ -6,7 +6,7 @@ import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {  renameFile, uploadMultipartForm } from "../../utils/utils";
+import { renameFile, uploadMultipartForm } from "../../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
@@ -51,9 +51,11 @@ const EditProfileModal = () => {
   );
 
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
-    onSuccess: async (updatedAvater: string) => {
-      await updateUserCache({ image_url: updatedAvater });
-      setIsAvatarUpdating(false);
+    onSuccess: async (updatedAvatar) => {
+      if (updatedAvatar) {
+        await updateUserCache({ image_url: updatedAvatar });
+        setIsAvatarUpdating(false);
+      }
     },
   });
 
@@ -186,7 +188,7 @@ const EditProfileModal = () => {
             />
             <Avatar
               image_url={file.length > 0 ? file : userData?.image_url}
-              size="semiXl"
+              size="xl"
             />
           </div>
         </div>

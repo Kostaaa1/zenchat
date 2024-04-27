@@ -9,7 +9,6 @@ import {
 } from "../utils/supabase/user";
 import { CreateUserSchema } from "../types/zodSchemas";
 import { TRPCError } from "@trpc/server";
-import { trpcCaller } from ".";
 
 export const userRouter = t.router({
   get: protectedProcedure
@@ -35,23 +34,17 @@ export const userRouter = t.router({
     .input(z.object({ userId: z.string(), image_url: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const req = await updateUserAvatar(input);
-      if (req.error) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Updating Avatar Failed!",
-        });
-      }
-      return req.data;
+      return req;
     }),
   updateUserData: protectedProcedure
     .input(
       z.object({
         userId: z.string(),
         userData: z.object({
-          username: z.string().nullish(),
-          last_name: z.string().nullish(),
-          first_name: z.string().nullish(),
-          image_url: z.string().nullish(),
+          username: z.string().optional(),
+          last_name: z.string().optional(),
+          first_name: z.string().optional(),
+          image_url: z.string().optional(),
         }),
       })
     )
@@ -67,8 +60,6 @@ export const userRouter = t.router({
   create: protectedProcedure.input(CreateUserSchema).mutation(async ({ input }) => {
     try {
       const { email, firstName, lastName, username } = input;
-      console.log(email, firstName, lastName, username);
-
       const userData = await createUser({
         email,
         firstName,

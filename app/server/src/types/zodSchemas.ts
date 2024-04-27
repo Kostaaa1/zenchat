@@ -11,7 +11,6 @@ export const OutputPostSchema = z.object({
   id: z.string(),
   created_at: z.string(),
 });
-
 export const PostSchema = InputPostSchema.merge(OutputPostSchema);
 
 export const UserSchema: ZodSchema<{
@@ -37,14 +36,14 @@ export const UserSchema: ZodSchema<{
 });
 
 export const CreateUserSchema: ZodSchema<{
-  username: string | null;
-  firstName: string | null;
-  lastName: string | null;
+  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
 }> = z.object({
-  username: z.string().nullable(),
-  firstName: z.string().nullable(),
-  lastName: z.string().nullable(),
+  username: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
   email: z.string(),
 });
 
@@ -75,7 +74,6 @@ export const ChatRoomDataSchema: ZodSchema<
       username: string;
       messages: z.infer<typeof MessageSchema>[];
       is_group: boolean;
-      participants: string[];
     }
   | undefined
 > = z.object({
@@ -88,5 +86,4 @@ export const ChatRoomDataSchema: ZodSchema<
   username: z.string(),
   messages: z.array(MessageSchema),
   is_group: z.boolean(),
-  participants: z.array(z.string()),
 });

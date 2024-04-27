@@ -9,9 +9,9 @@ type ChatStore = {
   selectedImageFiles: File[];
   shouldFetchMoreMessages: boolean;
   typingUser: string;
-  isTyping: boolean;
   showDetails: boolean;
   currentChatroom: TChatroom | null;
+  currentChatroomTitle: string | null;
   actions: {
     setShowEmojiPicker: (bool: boolean) => void;
     setIsMessagesLoading: (isLoaded: boolean) => void;
@@ -19,25 +19,27 @@ type ChatStore = {
     clearSelectedFiles: () => void;
     removeSelectedFile: (id: number) => void;
     setShouldFetchMoreMessages: (val: boolean) => void;
-    setTypingUser: (userId: string) => void;
-    setIsTyping: (isTyping: boolean) => void;
     setShowDetails: (isOpen: boolean) => void;
+    setTypingUser: (userId: string) => void;
     setCurrentChatroom: (data: TChatroom | null) => void;
+    setCurrentChatroomTitle: (v: string) => void;
   };
 };
 
 const useChatStore = create<ChatStore>(
   (set): ChatStore => ({
-    currentChatroom: null,
     showDetails: false,
     typingUser: "",
-    isTyping: false,
     shouldFetchMoreMessages: true,
     isMessagesLoading: true,
     selectedImageFiles: [],
     showEmojiPicker: false,
+    currentChatroom: null,
+    currentChatroomTitle: null,
     actions: {
       clearSelectedFiles: () => set({ selectedImageFiles: [] }),
+      setCurrentChatroomTitle: (currentChatroomTitle) =>
+        set({ currentChatroomTitle }),
       setCurrentChatroom: (currentChatroom: TChatroom | null) =>
         set({ currentChatroom }),
       setShowEmojiPicker: (bool: boolean) =>
@@ -49,7 +51,6 @@ const useChatStore = create<ChatStore>(
           ),
         })),
       setShowDetails: (isOpen: boolean) => set({ showDetails: isOpen }),
-      setIsTyping: (isTyping) => set({ isTyping }),
       setTypingUser: (userId: string) => set({ typingUser: userId }),
       addSelectedFile: (newFile: File) =>
         set((state) => ({
