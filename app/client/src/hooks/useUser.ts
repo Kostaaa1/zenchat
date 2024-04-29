@@ -10,6 +10,7 @@ type TUserDataMutation = TUserData & {
 
 const useUser = () => {
   const username = useGeneralStore((state) => state.username);
+
   const ctx = trpc.useUtils();
   const userData = ctx.user.get.getData({
     data: username!,

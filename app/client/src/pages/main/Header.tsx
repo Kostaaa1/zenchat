@@ -18,13 +18,14 @@ const Header = () => {
   useOutsideClick([iconRef, dropdownRef], "click", () =>
     setShowDropdown(false),
   );
+
   const handleActivateSearch = () => {
     setIsSearchActive(!isSearchActive);
   };
+
   const handleActiveElement = (list: ActiveList) => {
     setIsSearchActive(false);
     setCurrentActiveNavList(list);
-
     if (list === "user") {
       navigate(`/${userData?.username}`);
     } else if (list === "inbox") {

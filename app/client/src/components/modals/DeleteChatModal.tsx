@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import useOutsideClick from "../../hooks/useOutsideClick";
+import { FC, RefObject } from "react";
 import useModalStore from "../../utils/stores/modalStore";
 import useChatStore from "../../utils/stores/chatStore";
 import useChatCache from "../../hooks/useChatCache";
@@ -7,14 +6,16 @@ import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import useUser from "../../hooks/useUser";
 
-const DeleteChatModal = () => {
-  const modalRef = useRef<HTMLDivElement>(null);
+type ModalProps = {
+  modalRef: RefObject<HTMLDivElement>;
+};
+
+const DeleteChatModal: FC<ModalProps> = ({ modalRef }) => {
   const { currentChatroom } = useChatStore();
   const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
   const { removeChatFromUserChats } = useChatCache();
   const deleteChatMutation = trpc.chat.delete.useMutation();
   const { userData } = useUser();
-  useOutsideClick([modalRef], "mousedown", () => setIsDeleteChatOpen(false));
 
   const handleDeleteConversation = async () => {
     if (!currentChatroom || !userData) return;

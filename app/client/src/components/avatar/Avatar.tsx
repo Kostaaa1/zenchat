@@ -4,15 +4,15 @@ import { cn } from "../../utils/utils";
 import { Loader2, User } from "lucide-react";
 
 const avatarVariance = cva(
-  "relative flex items-center justify-center text-white overflow-hidden rounded-full",
+  "relative flex cursor-pointer items-center justify-center text-white overflow-hidden rounded-full",
   {
     variants: {
       size: {
-        sm: "h-7 w-7 p-1",
-        md: "h-10 w-10 p-2",
-        lg: "h-14 w-14 p-2",
-        xl: "h-32 w-32 p-3",
-        xxl: "h-40 w-40 p-4",
+        sm: "h-7 w-7",
+        md: "h-10 w-10",
+        lg: "h-14 w-14",
+        xl: "h-32 w-32",
+        xxl: "h-40 w-40",
       },
     },
     defaultVariants: {
@@ -20,6 +20,14 @@ const avatarVariance = cva(
     },
   },
 );
+
+const paddingSize = {
+  sm: "p-1",
+  md: "p-2",
+  lg: "p-2",
+  xl: "p-3",
+  xxl: "p-4",
+};
 
 export interface AvatarProps extends VariantProps<typeof avatarVariance> {
   image_url?: string | null;
@@ -40,15 +48,15 @@ const Avatar: FC<AvatarProps> = ({
   return (
     <div>
       <div
-        className={cn(avatarVariance({ size, className }), "bg-slate-300")}
+        className={cn(avatarVariance({ size, className }), "bg-neutral-300")}
         onClick={onClick}
       >
         {enableHover && (
-          <div className="absolute h-full w-full cursor-pointer bg-black opacity-0 transition-all duration-200 hover:opacity-40"></div>
+          <div className="absolute h-full w-full bg-black opacity-0 transition-all duration-200 hover:opacity-40"></div>
         )}
         {isLoading && (
           <>
-            <div className="absolute h-full w-full cursor-pointer bg-black opacity-40"></div>
+            <div className="absolute h-full w-full bg-black opacity-40"></div>
             <div className="absolute z-[100] h-full w-full animate-spin">
               <Loader2
                 strokeWidth="1.2"
@@ -58,7 +66,10 @@ const Avatar: FC<AvatarProps> = ({
           </>
         )}
         {!image_url || image_url === "" ? (
-          <User fill="white" className="h-full w-full" />
+          <User
+            fill="white"
+            className={cn("h-full w-full", paddingSize[size || "lg"])}
+          />
         ) : (
           <img className="h-full w-full" src={image_url} />
         )}

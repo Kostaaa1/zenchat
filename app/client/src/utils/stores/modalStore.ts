@@ -31,6 +31,7 @@ type Store = {
     setIsEditProfileModalOpen: (isOpen: boolean) => void;
     setIsAvatarUpdating: (isUpdating: boolean) => void;
     setIsDeleteChatOpen: (isUpdating: boolean) => void;
+    closeAllModals: () => void;
   };
 };
 
@@ -73,6 +74,20 @@ const useModalStore = create<Store>(
         set({
           imageModalSource: "",
           isImageModalOpen: false,
+        }),
+      closeAllModals: () =>
+        set({
+          // isDndUploadModalOpen: false,
+          imageModalSource: "",
+          isEditProfileModalOpen: false,
+          modalPostData: null,
+          showUnsendMsgModal: false,
+          isDeleteChatOpen: false,
+          isImageModalOpen: false,
+          isNewMessageModalModalOpen: false,
+          isMessageDropdownActive: false,
+          isAvatarUpdating: false,
+          messageDropdownData: null,
         }),
     },
   }),

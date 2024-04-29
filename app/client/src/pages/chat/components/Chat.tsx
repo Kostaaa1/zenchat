@@ -137,7 +137,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             messages?.length > 0 &&
             shouldFetchMoreMessages &&
             !isSuccess && (
-              <div className="gw-full flex items-center justify-center py-4">
+              <div className="flex w-full items-center justify-center py-4">
                 <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
               </div>
             )}
@@ -151,7 +151,11 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
                         image_url_1: currentChatroom.users[0]?.image_url,
                         image_url_2: currentChatroom.users[1]?.image_url,
                       }
-                    : { image_url_1: currentChatroom.users[0]?.image_url }
+                    : {
+                        image_url_1: currentChatroom.users.find(
+                          (x) => x.user_id !== userData?.id,
+                        )?.image_url,
+                      }
                 }
               />
               <div className="flex flex-col items-center pt-4">
@@ -160,7 +164,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
                     ? currentChatroomTitle
                     : currentChatroom?.users[0].username}
                 </h3>
-                {currentChatroom?.users.length === 1 ? (
+                {!currentChatroom?.is_group ? (
                   <Button
                     size="sm"
                     className="text-sm font-semibold"

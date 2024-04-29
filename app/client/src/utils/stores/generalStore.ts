@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TUserData } from "../../../../server/src/types/types";
+import { TUserDataState } from "../../../../server/src/types/types";
 
 export type ActiveList = "inbox" | "user" | "";
 
@@ -7,17 +7,17 @@ type Store = {
   isSearchActive: boolean;
   showDropdown: boolean;
   currentActiveNavList: ActiveList;
-  searchedUsers: TUserData[];
+  searchedUsers: TUserDataState[];
   search: string;
   isResponsive: boolean;
   username: string | null;
   actions: {
-    setUsername: (s: string | null) => void;
+    setUsername: (s: string) => void;
     setIsResponsive: (isResponsive: boolean) => void;
     setIsSearchActive: (isActive: boolean) => void;
     setShowDropdown: (isShown: boolean) => void;
     setCurrentActiveNavList: (list: ActiveList) => void;
-    setSearchedUsers: (searchedUsers: TUserData[]) => void;
+    setSearchedUsers: (searchedUsers: TUserDataState[]) => void;
     setSearch: (search: string) => void;
   };
 };
@@ -32,14 +32,15 @@ const useGeneralStore = create<Store>(
     isResponsive: false,
     username: null,
     actions: {
-      setUsername: (username: string | null) => set({ username }),
+      setUsername: (username: string) => set({ username }),
       setIsResponsive: (isResponsive: boolean) => set({ isResponsive }),
       setSearch: (search: string) => set({ search }),
       setIsSearchActive: (isActive: boolean) =>
         set({ isSearchActive: isActive }),
       setShowDropdown: (isShown: boolean) => set({ showDropdown: isShown }),
       setCurrentActiveNavList: (list) => set({ currentActiveNavList: list }),
-      setSearchedUsers: (searchedUsers: TUserData[]) => set({ searchedUsers }),
+      setSearchedUsers: (searchedUsers: TUserDataState[]) =>
+        set({ searchedUsers }),
     },
   }),
 );

@@ -15,7 +15,7 @@ type SeparatorProps = {
   className?: string;
 };
 
-const Separator: FC<SeparatorProps> = ({ className }) => {
+export const Separator: FC<SeparatorProps> = ({ className }) => {
   return (
     <div className={cn("z-50 h-[2px] w-full bg-[#262626]", className)}></div>
   );
@@ -46,9 +46,13 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (!inspectedUserData) return;
+    if (!inspectedUserData || !inspectedUserData.image_url) {
+      setPostsLoaded(true);
+      return;
+    }
+
     loadImages([
-      inspectedUserData.image_url,
+      inspectedUserData?.image_url,
       ...inspectedUserData.posts.map((x) => x.media_url),
     ]);
   }, [inspectedUserData]);
@@ -58,6 +62,12 @@ const Dashboard = () => {
       setPostsLoaded(false);
     };
   }, [isFetched]);
+
+  const openUploadModal = () => {
+    if (params.username === userData?.username) {
+      setIsDndUploadModalOpen(true);
+    }
+  };
 
   return (
     <div className="ml-[80px] min-h-full w-full max-w-[1000px] px-4 py-2 lg:ml-[300px]">
@@ -85,7 +95,7 @@ const Dashboard = () => {
                         className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
                         size="78px"
                         strokeWidth="1"
-                        onClick={() => setIsDndUploadModalOpen(true)}
+                        onClick={openUploadModal}
                       />
                       <div className="space-y-2 text-center">
                         <h2 className="text-3xl font-extrabold">
@@ -96,7 +106,7 @@ const Dashboard = () => {
                         </p>
                         <p
                           className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
-                          onClick={() => setIsDndUploadModalOpen(true)}
+                          onClick={openUploadModal}
                         >
                           Upload the photo
                         </p>
@@ -109,7 +119,7 @@ const Dashboard = () => {
                         className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
                         size="78px"
                         strokeWidth="1"
-                        onClick={() => setIsDndUploadModalOpen(true)}
+                        onClick={openUploadModal}
                       />
                       <div className="space-y-2 text-center">
                         <h2 className="text-3xl font-extrabold">

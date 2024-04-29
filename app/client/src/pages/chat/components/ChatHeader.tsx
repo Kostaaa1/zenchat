@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import useChatStore from "../../../utils/stores/chatStore";
+import useUser from "../../../hooks/useUser";
 
 const ChatHeader = () => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
@@ -9,6 +10,7 @@ const ChatHeader = () => {
   );
   const { setShowDetails } = useChatStore((state) => state.actions);
   const showDetails = useChatStore((state) => state.showDetails);
+  const { userData } = useUser();
 
   const handleIconClick = () => {
     setShowDetails(!showDetails);
@@ -23,12 +25,24 @@ const ChatHeader = () => {
       <div className="flex items-center">
         <RenderAvatar
           avatarSize="md"
-          image_urls={{
-            image_url_1: currentChatroom?.users[0].image_url as string,
-            image_url_2: currentChatroom?.is_group
-              ? currentChatroom?.users[1].image_url
-              : undefined,
-          }}
+          // image_urls={{
+          //   image_url_1: currentChatroom?.users[0].image_url as string,
+          //   image_url_2: currentChatroom?.is_group
+          //     ? currentChatroom?.users[1].image_url
+          //     : undefined,
+          // }}
+          image_urls={
+            currentChatroom?.is_group
+              ? {
+                  image_url_1: currentChatroom.users[0]?.image_url,
+                  image_url_2: currentChatroom.users[1]?.image_url,
+                }
+              : {
+                  image_url_1: currentChatroom?.users.find(
+                    (x) => x.user_id !== userData!.id,
+                  )?.image_url,
+                }
+          }
         />
         <h1 className="ml-2 text-lg font-medium">{currentChatroomTitle}</h1>
       </div>

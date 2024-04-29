@@ -38,6 +38,7 @@
     "@types/multer": "^1.4.7",
     "@types/multer-s3": "^3.0.0",
     "@types/socket.io": "^3.0.2",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "supabase": "^1.163.6"
   }
 }

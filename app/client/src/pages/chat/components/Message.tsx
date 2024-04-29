@@ -1,10 +1,13 @@
 import { FC, useRef, useState } from "react";
-import { cn } from "../../../utils/utils";
+import { cn, convertAndFormatDate } from "../../../utils/utils";
 import useUser from "../../../hooks/useUser";
 import useModalStore from "../../../utils/stores/modalStore";
 import { TMessage } from "../../../../../server/src/types/types";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import Icon from "../../main/components/Icon";
+import { motion } from "framer-motion";
+import List from "../../../components/List";
+import { Separator } from "../../dashboard/Dashboard";
 
 interface MessageProps {
   message: TMessage;
@@ -69,8 +72,8 @@ const Message: FC<MessageProps> = ({ message }) => {
             className={cn(
               "max-w-[300px] px-2 py-1",
               sender_id === userData!.id
-                ? "rounded-xl bg-lightBlue"
-                : "rounded-xl bg-neutral-700",
+                ? "rounded-3xl bg-lightBlue"
+                : "rounded-3xl bg-neutral-800",
             )}
           >
             {content}
@@ -81,42 +84,50 @@ const Message: FC<MessageProps> = ({ message }) => {
         <div
           ref={moreDropdownRef}
           className={cn(
-            "relative flex w-14 cursor-pointer justify-around text-neutral-400",
+            "relative flex w-max cursor-pointer justify-between space-x-2 px-1 text-neutral-400",
             sender_id === userData!.id ? "flex-row-reverse" : "",
           )}
         >
-          <Icon name="Smile" size="18px" className="hover:text-white" />
+          {/* <Icon name="Smile" size="18px" className="hover:text-white" /> */}
           <Icon
             name="MoreHorizontal"
             size="18px"
-            className="hover:text-white"
+            className="rotate-90 hover:text-white"
             onClick={handleMessageDropdownData}
           />
           {messageDropdownData?.id === id ? (
-            <div
+            <motion.ul
+              initial={{ y: 6, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 6, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
               className={cn(
-                "absolute bottom-5 z-[100] flex h-max w-max select-none items-center justify-between rounded-sm bg-black p-2",
-                sender_id === userData!.id ? "right-16" : "left-16",
+                "absolute bottom-8 z-[100] flex h-max w-32 select-none flex-col justify-between rounded-lg bg-neutral-800 p-2 text-sm font-medium text-white",
+                sender_id === userData!.id ? "-right-1" : "-left-1",
               )}
             >
+              <p className="text-sm text-neutral-300">
+                {convertAndFormatDate(message.created_at)}
+              </p>
+              <Separator className="my-1 bg-neutral-600" />
               {sender_id === userData!.id ? (
-                <p
+                <List
+                  title="Unsend"
+                  showAvatar={false}
+                  className="rounded-tl-lg rounded-tr-lg p-1 font-normal"
                   onClick={() => setShowUnsendMsgModal(true)}
-                  className="mr-2 text-sm font-semibold text-white transition-colors duration-150 hover:text-neutral-200"
-                >
-                  Unsend
-                </p>
+                />
               ) : null}
-              <p
+              <List
+                title="Copy"
+                showAvatar={false}
+                className="rounded-bl-lg rounded-br-lg p-1 font-normal"
                 onClick={() => {
                   navigator.clipboard.writeText(content);
                   setMessageDropdownData(null);
                 }}
-                className="text-sm font-semibold text-white transition-colors duration-150 hover:text-neutral-200"
-              >
-                Copy
-              </p>
-            </div>
+              />
+            </motion.ul>
           ) : null}
         </div>
       ) : null}

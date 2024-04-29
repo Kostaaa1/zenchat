@@ -26,12 +26,14 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   children?: ReactElement;
   title?: string;
   subtitle?: string | null;
-  image_url?: (string | null)[];
+  image_url?: (string | null | undefined)[];
   className?: string;
   onClick?: () => void;
   isHoverDisabled?: boolean;
   icon?: ReactNode;
   isLoading?: boolean;
+  isRead?: boolean;
+  showAvatar?: boolean;
   onIconClick?: () => void;
 }
 
@@ -46,6 +48,8 @@ const List: FC<ListProps> = ({
   children,
   isHoverDisabled,
   icon,
+  showAvatar = true,
+  isRead = false,
   isLoading = false,
   ...props
 }) => {
@@ -71,16 +75,23 @@ const List: FC<ListProps> = ({
           onClick={onClick}
         >
           {children}
-          <RenderAvatar
-            avatarSize="lg"
-            image_urls={{
-              image_url_1: image_url?.[0],
-              image_url_2: image_url?.[1],
-            }}
-          />
+          {showAvatar && (
+            <RenderAvatar
+              avatarSize="lg"
+              image_urls={{
+                image_url_1: image_url?.[0],
+                image_url_2: image_url?.[1],
+              }}
+            />
+          )}
           <div className="flex w-full flex-col text-start">
-            <h1 className="font-semibold"> {title} </h1>
-            <h4 className="text-sm font-semibold text-neutral-400">
+            <h1> {title} </h1>
+            <h4
+              className={cn(
+                "text-sm font-semibold",
+                isRead ? "text-neutral-400" : "text-white",
+              )}
+            >
               {subtitle}
             </h4>
           </div>

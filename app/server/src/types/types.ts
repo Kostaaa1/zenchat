@@ -14,6 +14,7 @@ export type TChatHistory = QueryData<typeof chatHistory>[0];
 
 const userWithPosts = supabase.from("users").select("*, posts(*)");
 export type TUserData = QueryData<typeof userWithPosts>[0];
+export type TUserDataState = Omit<TUserData, "posts">;
 export type TUserQueryParam = {
   data: string;
   type: "userId" | "email" | "username";
@@ -29,6 +30,7 @@ export type TChatroom = {
   chatroom_id: string;
   last_message: string | null;
   created_at: string;
+  is_read: boolean;
   is_group: boolean;
   admin: string;
   users: {

@@ -1,24 +1,22 @@
-import { useRef } from "react";
+import { FC } from "react";
 import useModalStore from "../../utils/stores/modalStore";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import useChatCache from "../../hooks/useChatCache";
 import useChatStore from "../../utils/stores/chatStore";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 
-const UnsendMessageModal = () => {
+type ModalProps = {
+  modalRef: React.RefObject<HTMLDivElement>;
+};
+
+const UnsendMessageModal: FC<ModalProps> = ({ modalRef }) => {
   const { setShowUnsendMsgModal } = useModalStore((state) => state.actions);
   const messageDropdownData = useModalStore(
     (state) => state.messageDropdownData,
   );
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const { removeMessageCache } = useChatCache();
-  const unsendMsgModalRef = useRef<HTMLDivElement>(null);
   const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
-
-  useOutsideClick([unsendMsgModalRef], "mousedown", () =>
-    setShowUnsendMsgModal(false),
-  );
 
   const handleUnsendMessage = async () => {
     if (messageDropdownData && currentChatroom) {
@@ -31,7 +29,7 @@ const UnsendMessageModal = () => {
   return (
     <Modal>
       <div
-        ref={unsendMsgModalRef}
+        ref={modalRef}
         className="flex h-max w-96 flex-col items-center rounded-xl bg-[#282828] px-2 py-4 pb-0 text-center"
       >
         <h4 className="py-2 text-xl">Unsend message?</h4>

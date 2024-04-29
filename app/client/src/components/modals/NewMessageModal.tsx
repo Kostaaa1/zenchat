@@ -1,35 +1,31 @@
-import { useEffect, useRef, useState } from "react";
+import React, { FC, RefObject, useEffect, useRef, useState } from "react";
 import Icon from "../../pages/main/components/Icon";
 import Button from "../Button";
 import useModalStore from "../../utils/stores/modalStore";
 import { trpc } from "../../utils/trpcClient";
-import { TUserData } from "../../../../server/src/types/types";
+import { TUserDataState } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import { debounce } from "lodash";
 import List from "../List";
 import { cn } from "../../utils/utils";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "./Modals";
 
-type TUserDataState = Omit<TUserData, "posts">;
+type NewMessageModalProps = {
+  modalRef: RefObject<HTMLDivElement>;
+};
 
-const NewMessageModal = () => {
+const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const { userData } = useUser();
   const [searchedUsers, setSearchedUsers] = useState<TUserDataState[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<TUserDataState[]>([]);
-  const sendMessageModal = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, chat } = trpc.useUtils();
   const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
   );
-  useOutsideClick([sendMessageModal], "mousedown", () =>
-    setIsNewMessageModalModalOpen(false),
-  );
-
   const closeSendMessageModal = () => {
     setIsNewMessageModalModalOpen(false);
   };
@@ -81,19 +77,18 @@ const NewMessageModal = () => {
       userIds: [...userIds, userData!.id],
       admin: userData!.id,
     });
+    await chat.get.user_chatrooms.refetch(userData!.id);
 
-    const newChat = await chat.get.currentChatRoom.fetch({
-      chatroom_id: newChatroomId as string,
-      user_id: userData!.id,
-    });
-
-    if (newChat) {
-      chat.get.user_chatrooms.setData(userData!.id, (stale) => {
-        if (stale) return [newChat, ...stale];
-      });
-    }
-
-    if (newChatroomId && newChat) {
+    // const newChat = await chat.get.currentChatRoom.fetch({
+    //   chatroom_id: newChatroomId as string,
+    //   user_id: userData!.id,
+    // });
+    // if (newChat) {
+    //   chat.get.user_chatrooms.setData(userData!.id, (stale) => {
+    //     if (stale) return [newChat, ...stale];
+    //   });
+    // }
+    if (newChatroomId) {
       closeSendMessageModal();
       setLoading(false);
       navigate(`/inbox/${newChatroomId}`);
@@ -103,7 +98,7 @@ const NewMessageModal = () => {
   return (
     <Modal>
       <div
-        ref={sendMessageModal}
+        ref={modalRef}
         className="flex h-[620px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
       >
         <div className="relative flex w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">

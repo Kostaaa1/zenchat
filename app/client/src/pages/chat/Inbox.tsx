@@ -13,11 +13,9 @@ import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
 import useModalStore from "../../utils/stores/modalStore";
-import { TChatroom } from "../../../../server/src/types/types";
 
 const Inbox = () => {
   const location = useLocation();
-  const { chat } = trpc.useUtils();
   const { userData } = useUser();
   const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -25,6 +23,7 @@ const Inbox = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const showDetails = useChatStore((state) => state.showDetails);
+  const { chat } = trpc.useUtils();
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
@@ -43,14 +42,12 @@ const Inbox = () => {
     };
   }, []);
 
-  useOutsideClick([emojiRef, iconRef], "click", () =>
-    setShowEmojiPicker(false),
-  );
-
+  // useOutsideClick([emojiRef, iconRef], "click", () =>
+  //   setShowEmojiPicker(false),
+  // );
   const scrollToStart = () => {
     scrollRef.current?.scrollTo({ top: 0 });
   };
-
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
     // refetchOnMount: "always",
@@ -69,7 +66,7 @@ const Inbox = () => {
       (chat) => chat.chatroom_id === chatRoomId,
     );
     if (currentChat) {
-      setCurrentChatroom(currentChat);
+      setCurrentChatroom({ ...currentChat, img_urls: [], new_message: "" });
       setCurrentChatroomTitle(
         currentChat.users
           .filter((chat) => chat.username !== userData.username)
@@ -115,10 +112,10 @@ const Inbox = () => {
           </div>
         </div>
       ) : null}
-      <EmojiPickerContainer
+      {/* <EmojiPickerContainer
         emojiRef={emojiRef}
         showEmojiPicker={showEmojiPicker}
-      />
+      /> */}
     </div>
   );
 };

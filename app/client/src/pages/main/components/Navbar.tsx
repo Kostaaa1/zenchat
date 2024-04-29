@@ -12,9 +12,11 @@ import useGeneralStore, {
   ActiveList,
 } from "../../../utils/stores/generalStore";
 import useWindowSize from "../../../hooks/useWindowSize";
+import { icons } from "lucide-react";
+import useModalStore from "../../../utils/stores/modalStore";
 
 type NavListItems = {
-  iconName?: "MessageCircle" | "Search" | undefined;
+  iconName?: keyof typeof icons;
   iconStrokeWidth?: string;
   title?: string;
   onClick?: () => void;
@@ -39,6 +41,7 @@ const Navbar: FC<NavbarProps> = ({
   );
   const showDropdown = useGeneralStore((state) => state.showDropdown);
   const isSearchActive = useGeneralStore((state) => state.isSearchActive);
+  const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
   const isResponsive = useGeneralStore((state) => state.isResponsive);
   const { setShowDropdown, setIsSearchActive, setIsResponsive } =
     useGeneralStore((state) => state.actions);
@@ -71,18 +74,21 @@ const Navbar: FC<NavbarProps> = ({
       iconStrokeWidth: currentActiveNavList === "inbox" ? "3" : "",
       title: isResponsive ? "" : "Messages",
       onClick: () => handleClick("inbox"),
-      className: "mb-2",
     },
     {
       iconName: "Search",
       iconStrokeWidth: isSearchActive ? "3" : "",
       title: isResponsive ? "" : "Search",
       onClick: handleActivateSearch,
-      className: `${isSearchActive ? "outline outline-1" : null} mb-2`,
+      className: `${isSearchActive ? "outline outline-1" : null} `,
+    },
+    {
+      iconName: "PlusSquare",
+      title: isResponsive ? "" : "Create",
+      onClick: () => setIsDndUploadModalOpen(true),
     },
     {
       title: isResponsive ? "" : "Profile",
-      className: "mb-2",
       onClick: () => handleClick("user"),
     },
   ];
@@ -95,12 +101,12 @@ const Navbar: FC<NavbarProps> = ({
           animate={{ width: isResponsive ? "80px" : "300px" }}
           exit={{ width: isResponsive ? "300px" : "80px" }}
           transition={{ type: "spring", damping: 45, stiffness: 300 }}
-          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black px-4 py-6"
+          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4"
         >
           <Logo variant={isResponsive ? "default" : "list"} />
           <div
             className={cn(
-              "my-4 h-full w-full py-4",
+              "my-4 h-full w-full space-y-2 py-4",
               !isResponsive && "flex flex-col",
             )}
           >

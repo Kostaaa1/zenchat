@@ -1,12 +1,10 @@
-import React, { ChangeEvent, FC, useEffect, useState } from "react";
+import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import Icon from "../../main/components/Icon";
 import useChatStore from "../../../utils/stores/chatStore";
 import { cn, renameFile } from "../../../utils/utils";
 import useChat from "../../../hooks/useChat";
-import io from "socket.io-client";
-import { useRouteLoaderData } from "react-router-dom";
 import useUser from "../../../hooks/useUser";
-const socket = io(import.meta.env.VITE_SERVER_URL);
+import { EmojiPickerContainer } from "./EmojiPicker";
 
 interface MessageInputProps {
   iconRef: React.RefObject<HTMLDivElement>;
@@ -26,7 +24,8 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
     img_urls,
     fileSetter,
     new_message,
-  } = useChat(socket, scrollToStart);
+  } = useChat(scrollToStart);
+  const emojiRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!currentChatroom) return;
@@ -165,6 +164,10 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
           </div>
         </form>
       )}
+      <EmojiPickerContainer
+        emojiRef={emojiRef}
+        showEmojiPicker={showEmojiPicker}
+      />
     </>
   );
 };

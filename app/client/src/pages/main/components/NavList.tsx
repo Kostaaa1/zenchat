@@ -8,7 +8,7 @@ export const listVariants = cva(
   {
     variants: {
       variant: {
-        default: "max-w-[48px] transition-all duration-200 group",
+        default: "max-w-[46px] transition-all duration-200 group",
         list: "active:bg-opacity-10",
       },
       hover: {
@@ -62,7 +62,7 @@ const NavListItem: FC<NavListProps> = ({
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className=" pl-3 text-3xl font-bold"
+          className="pl-3 text-3xl font-bold"
         >
           {head}
         </motion.h1>

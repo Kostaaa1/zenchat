@@ -1,38 +1,31 @@
 import { useEffect } from "react";
-import type { Socket } from "socket.io-client";
-import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets";
 import useUser from "./useUser";
 import useChatStore from "../utils/stores/chatStore";
+import { trpc } from "../utils/trpcClient";
+import useChatCache from "./useChatCache";
+import { socket } from "../lib/socket";
 
-type TUseChatSocketProps = {
-  socket: Socket;
-  recieveNewSocketMessage: (data: TRecieveNewSocketMessageType) => void;
-};
-
-const useChatSocket = ({
-  socket,
-  recieveNewSocketMessage,
-}: TUseChatSocketProps) => {
+const useChatSocket = () => {
   const { userData } = useUser();
+  const { recieveNewSocketMessage } = useChatCache();
   const { setTypingUser } = useChatStore((state) => state.actions);
+
   useEffect(() => {
     if (!userData) return;
-
     socket.emit("join-room", userData.id);
     socket.emit("onMessage", userData.id);
     socket.on("onMessage", recieveNewSocketMessage);
-    // socket.on("isTyping", (data) => {
-    //   if (data) {
-    //     if (!data.data.isTyping) setTypingUser(data.data.typingUser);
-    //   } else {
-    //     setTypingUser("");
-    //   }
-    // });
-
+    socket.on("isTyping", (data) => {
+      if (data) {
+        if (!data.data.isTyping) setTypingUser(data.data.typingUser);
+      } else {
+        setTypingUser("");
+      }
+    });
     const cleanup = () => {
       socket.off("join-room", recieveNewSocketMessage);
       socket.off("onMessage", recieveNewSocketMessage);
-      // socket.off("isTyping", recieveNewSocketMessage);
+      socket.off("isTyping", recieveNewSocketMessage);
       socket.off("disconnect", () => {
         console.log("Disconnected from socket");
       });

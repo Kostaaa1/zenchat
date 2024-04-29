@@ -62,3 +62,15 @@ export const uploadMultipartForm = async (
     return [];
   }
 };
+
+export function convertAndFormatDate(dateString: string) {
+  const date = new Date(dateString);
+  const dayOptions = { weekday: "short" };
+  const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
+  // @ts-expect-error sko
+  const dayOfWeek = date.toLocaleDateString("en-US", dayOptions);
+  // @ts-expect-error sko
+  const formattedTime = date.toLocaleTimeString("en-US", timeOptions);
+  const result = `${dayOfWeek} ${formattedTime}`;
+  return result;
+}

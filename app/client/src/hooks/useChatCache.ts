@@ -6,12 +6,14 @@ import { trpc } from "../utils/trpcClient";
 import useChatStore from "../utils/stores/chatStore";
 import useUser from "./useUser";
 import { useNavigate, useParams } from "react-router-dom";
+import useChat from "./useChat";
 
 const useChatCache = () => {
   const ctx = trpc.useUtils();
   const { setCurrentChatroom } = useChatStore((state) => state.actions);
   const { userData } = useUser();
   const params = useParams<{ chatRoomId: string }>();
+  const utils = trpc.useUtils();
   const navigate = useNavigate();
 
   const addNewMessageToChatCache = useCallback(
@@ -97,7 +99,13 @@ const useChatCache = () => {
 
   const recieveNewSocketMessage = useCallback(
     async (socketData: TRecieveNewSocketMessageType) => {
+      /* 
+      TODO:  
+      Notify that new message arrived,
+      the number will reset when user sees the message (how??)
+      */
       const { channel, data } = socketData;
+      await utils.chat.get.user_chatrooms.refetch(userData!.id);
       if (channel === "onMessage") {
         const { message, shouldActivate, user_id } = data;
         if (shouldActivate) {

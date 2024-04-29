@@ -107,9 +107,11 @@ export const getChatroomData = async (
 ): Promise<TChatroom> => {
   const { data, error } = await supabase
     .from("chatroom_users")
-    .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)")
+    .select(
+      "*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin, is_read)"
+    )
     .eq("chatroom_id", chatroom_id);
-  // .neq("user_id", currentUser_id)
+  // .neq("user_id", currentUser_id);
 
   if (!data) {
     throw new Error(
@@ -124,7 +126,7 @@ export const getChatroomData = async (
     chatroomUsers.push({ username, image_url, user_id, is_active });
   }
   const { id, chatrooms } = data[0];
-  const { last_message, created_at, is_group, admin } = chatrooms!;
+  const { last_message, created_at, is_group, admin, is_read } = chatrooms!;
 
   return {
     id,
@@ -132,6 +134,7 @@ export const getChatroomData = async (
     last_message,
     created_at,
     is_group,
+    is_read,
     admin,
     users: chatroomUsers,
   };
@@ -173,7 +176,8 @@ export const getSearchedHistory = async (id: string): Promise<TChatHistory[]> =>
     const { data, error } = await supabase
       .from("searched_users")
       .select("*, users(username, image_url, first_name, last_name)")
-      .eq("main_user_id", id);
+      .eq("main_user_id", id)
+      .order("created_at", { ascending: false });
 
     if (!data) throw new Error(error.message);
     return data;

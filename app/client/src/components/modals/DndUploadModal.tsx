@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { FC, RefObject, useRef, useState } from "react";
 import Icon from "../../pages/main/components/Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
@@ -9,18 +9,23 @@ import { cn, loadImage, renameFile } from "../../utils/utils";
 import useUser from "../../hooks/useUser";
 import Avatar from "../avatar/Avatar";
 import { motion } from "framer-motion";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { TPost } from "../../../../server/src/types/types";
 import { Modal } from "./Modals";
+import useOutsideClick from "../../hooks/useOutsideClick";
 
-const FileDropZone = ({ onDrop }) => {
+interface Props {
+  onDrop: (droppedFile: File) => void;
+}
+
+const FileDropZone: FC<Props> = ({ onDrop }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: [NativeTypes.FILE],
     drop: (item, monitor) => {
       if (monitor) {
+        // @ts-expect-error skkd
         const files = monitor.getItem().files;
         const droppedFile = files[0];
         if (onDrop) {
@@ -65,20 +70,23 @@ const FileDropZone = ({ onDrop }) => {
   );
 };
 
-const DndUpload = () => {
+type ModalProps = {
+  modalRef: RefObject<HTMLDivElement>;
+};
+
+const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
   const [file, setFile] = useState<File | null>(null);
   const [displayFile, setDisplayFile] = useState<string | null>(null);
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
   const { userData } = useUser();
   const [caption, setCaption] = useState<string>("");
-  const sendMessageModal = useRef<HTMLDivElement>(null);
   const { getToken } = useAuth();
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const ctx = trpc.useUtils();
   const [modalTitle, setModalTitle] = useState<
     "Create new post" | "Processing" | "Post uploaded"
   >("Create new post");
-  useOutsideClick([sendMessageModal], "mousedown", () => clearAndClose());
+  useOutsideClick([modalRef], "mousedown", () => clearAndClose());
 
   const displayImage = (droppedFile: File) => {
     const reader = new FileReader();
@@ -161,7 +169,7 @@ const DndUpload = () => {
     <DndProvider backend={HTML5Backend}>
       <Modal>
         <motion.div
-          ref={sendMessageModal}
+          ref={modalRef}
           initial={{ width: file ? "880px" : "640px" }}
           animate={{ width: file ? "880px" : "640px" }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
@@ -254,4 +262,4 @@ const DndUpload = () => {
   );
 };
 
-export default DndUpload;
+export default DndUploadModal;

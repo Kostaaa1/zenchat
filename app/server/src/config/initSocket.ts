@@ -12,6 +12,7 @@ export const initSocket = (io: Server) => {
     socket.on("join-room", async (userId: string) => {
       if (!userId || rooms.has(userId)) return;
       socket.join(userId);
+      socket.leave(socket.id);
       console.log("Joined room: ", userId, "Rooms", rooms);
     });
 

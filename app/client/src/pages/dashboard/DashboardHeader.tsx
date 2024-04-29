@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import { trpc } from "../../utils/trpcClient";
-import { useState } from "react";
+import {  useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
@@ -21,6 +21,7 @@ export const DashboardHeader = ({
   const { chat } = trpc.useUtils();
   const { setIsEditProfileModalOpen, showImageModal, setIsDndUploadModalOpen } =
     useModalStore((state) => state.actions);
+  const ctx = trpc.useUtils();
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
@@ -29,6 +30,7 @@ export const DashboardHeader = ({
       userIds: [userData.id, loggedUser.id],
       admin: loggedUser.id,
     });
+    await ctx.chat.get.user_chatrooms.refetch(userData.id);
     if (path) {
       setIsLoading(false);
       navigate(`/inbox/${path}`);
@@ -43,10 +45,9 @@ export const DashboardHeader = ({
   return (
     // <div className="flex h-56 max-w-full items-center justify-center">
     <div className="h-max items-center justify-center py-4 pb-8 md:flex">
-      <div className="relative mb-8 flex cursor-pointer items-center justify-center md:mb-0">
+      <div className="relative mb-8 flex items-center justify-center md:mb-0">
         <Avatar
           onClick={handleClick}
-          className=""
           image_url={userData?.image_url}
           size="xxl"
           enableHover={true}

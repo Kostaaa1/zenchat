@@ -3,6 +3,11 @@ import { TChatroom } from "../../../../server/src/types/types";
 
 export type ActiveList = "inbox" | "user" | "";
 
+type TActiveChatroom = TChatroom & {
+  img_urls: string[];
+  new_message: string;
+};
+
 type ChatStore = {
   isMessagesLoading: boolean;
   showEmojiPicker: boolean;
@@ -10,7 +15,7 @@ type ChatStore = {
   shouldFetchMoreMessages: boolean;
   typingUser: string;
   showDetails: boolean;
-  currentChatroom: TChatroom | null;
+  currentChatroom: TActiveChatroom | null;
   currentChatroomTitle: string | null;
   actions: {
     setShowEmojiPicker: (bool: boolean) => void;
@@ -21,7 +26,7 @@ type ChatStore = {
     setShouldFetchMoreMessages: (val: boolean) => void;
     setShowDetails: (isOpen: boolean) => void;
     setTypingUser: (userId: string) => void;
-    setCurrentChatroom: (data: TChatroom | null) => void;
+    setCurrentChatroom: (data: TActiveChatroom | null) => void;
     setCurrentChatroomTitle: (v: string) => void;
   };
 };
@@ -40,7 +45,7 @@ const useChatStore = create<ChatStore>(
       clearSelectedFiles: () => set({ selectedImageFiles: [] }),
       setCurrentChatroomTitle: (currentChatroomTitle) =>
         set({ currentChatroomTitle }),
-      setCurrentChatroom: (currentChatroom: TChatroom | null) =>
+      setCurrentChatroom: (currentChatroom: TActiveChatroom | null) =>
         set({ currentChatroom }),
       setShowEmojiPicker: (bool: boolean) =>
         set((state) => ({ ...state, showEmojiPicker: bool })),

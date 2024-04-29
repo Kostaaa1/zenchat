@@ -30,16 +30,16 @@ export const chatRouter = t.router({
         const chatrooms = await getUserChatRooms(userId);
         return chatrooms;
       }),
-    currentChatRoom: protectedProcedure
-      .input(z.object({ user_id: z.string(), chatroom_id: z.string() }))
-      .query(async ({ input }) => {
-        const { chatroom_id, user_id } = input;
-        const chatData = await getChatroomData(chatroom_id, user_id);
-        return { ...chatData, img_urls: [], new_message: "" } as TChatroom & {
-          img_urls: string[];
-          new_message: string;
-        };
-      }),
+    // currentChatRoom: protectedProcedure
+    //   .input(z.object({ user_id: z.string(), chatroom_id: z.string() }))
+    //   .query(async ({ input }) => {
+    //     const { chatroom_id, user_id } = input;
+    //     const chatData = await getChatroomData(chatroom_id, user_id);
+    //     return { ...chatData, img_urls: [], new_message: "" } as TChatroom & {
+    //       img_urls: string[];
+    //       new_message: string;
+    //     };
+    //   }),
   }),
   delete: protectedProcedure
     .input(z.object({ user_id: z.string(), chatroom_id: z.string() }))

@@ -1,11 +1,12 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../main/components/Icon";
 import List from "../../../components/List";
 import useChatStore from "../../../utils/stores/chatStore";
 import useModalStore from "../../../utils/stores/modalStore";
 import useUser from "../../../hooks/useUser";
+import { cn } from "../../../utils/utils";
 
 type TUserChatsProps = {
   userChats: TChatroom[] | undefined;
@@ -67,17 +68,19 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
                   .map((x) => x.username)
                   .join(", ")}
                 subtitle={chat.last_message}
-                onClick={() => handleChatUserClick(chat.chatroom_id)}
-                className={
-                  chatRoomId === chat.chatroom_id
-                    ? "bg-white bg-opacity-10"
-                    : ""
-                }
                 image_url={
                   chat.is_group && chat.users.length > 1
                     ? [chat.users[0].image_url, chat.users[1].image_url]
-                    : [chat.users[0].image_url]
+                    : [
+                        chat.users.find((x) => x.user_id !== userData?.id)
+                          ?.image_url,
+                      ]
                 }
+                className={cn(
+                  chatRoomId === chat.chatroom_id && "bg-white bg-opacity-10",
+                )}
+                onClick={() => handleChatUserClick(chat.chatroom_id)}
+                isRead={chat.is_read}
               />
             ))}
           </>

@@ -7,19 +7,16 @@ const useOutsideClick = (
 ) => {
   const handleClick = useCallback(
     (e: MouseEvent) => {
-      if (refs.find((ref) => !ref.current)) return;
-
-      const isOutslideClick = refs.every(
-        (ref) => ref.current && !ref.current.contains(e.target as Node),
-      );
-
-      if (isOutslideClick) {
+      const target = e.target as Node;
+      if (
+        refs
+          .filter((r) => Boolean(r.current))
+          .every((r) => r.current && !r.current.contains(target))
+      )
         callback();
-      }
     },
     [callback, refs],
   );
-
   useEffect(() => {
     window.addEventListener(event, handleClick as EventListener);
     return () => {

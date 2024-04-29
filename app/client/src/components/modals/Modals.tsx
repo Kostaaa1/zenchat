@@ -4,13 +4,15 @@ import ImageModal from "./ImageModal";
 import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
-import DndUpload from "./DndUpload";
-import { FC } from "react";
+import DndUpload from "./DndUploadModal";
+import React, { FC, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import useOnClickOutside from "../../hooks/useOutsideClick";
 
 type ModalProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
+
 export const Modal: FC<ModalProps> = ({ children }) => {
   return (
     <motion.div
@@ -44,15 +46,47 @@ const Modals = () => {
   const isDndUploadModalOpen = useModalStore(
     (state) => state.isDndUploadModalOpen,
   );
+  const { closeAllModals } = useModalStore((state) => state.actions);
+
+  // Refs:
+  const newMessageModalRef = useRef<HTMLDivElement>(null);
+  const imageModalRef = useRef<HTMLDivElement>(null);
+  const uploadModalRef = useRef<HTMLDivElement>(null);
+  const deleteChatModalRef = useRef<HTMLDivElement>(null);
+  const editProfileModalRef = useRef<HTMLFormElement>(null);
+  const unsendMessageModalRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(
+    [
+      newMessageModalRef,
+      imageModalRef,
+      deleteChatModalRef,
+      editProfileModalRef,
+      unsendMessageModalRef,
+      // uploadModalRef,
+    ],
+    "mousedown",
+    () => {
+      closeAllModals();
+    },
+  );
 
   return (
     <AnimatePresence>
-      {isImageModalOpen && imageModalSource && <ImageModal />}
-      {showUnsendMsgModal && <UnsendMessageModal />}
-      {isNewMessageModalOpen && <NewMessageModal />}
-      {isEditProfileModalOpen && <EditProfileModal />}
-      {isDeleteChatOpen && <DeleteChatModal />}
-      {isDndUploadModalOpen && <DndUpload />}
+      {isImageModalOpen && imageModalSource && (
+        <ImageModal modalRef={imageModalRef} />
+      )}
+      {showUnsendMsgModal && (
+        <UnsendMessageModal modalRef={unsendMessageModalRef} />
+      )}
+      {isNewMessageModalOpen && (
+        <NewMessageModal modalRef={newMessageModalRef} />
+      )}
+      {isEditProfileModalOpen && (
+        <EditProfileModal modalRef={editProfileModalRef} />
+      )}
+      {isDeleteChatOpen && <DeleteChatModal modalRef={deleteChatModalRef} />}
+      {isDndUploadModalOpen && <DndUpload modalRef={uploadModalRef} />}
     </AnimatePresence>
   );
 };

@@ -1,21 +1,20 @@
-import { useRef, useState } from "react";
+import { FC, useState } from "react";
 import Icon from "../../pages/main/components/Icon";
 import useModalStore from "../../utils/stores/modalStore";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import { Modal } from "./Modals";
 import { motion } from "framer-motion";
 import { trpc } from "../../utils/trpcClient";
 import useUser from "../../hooks/useUser";
 
-const ImageModal = () => {
+type ModalProps = {
+  modalRef: React.RefObject<HTMLDivElement>;
+};
+
+const ImageModal: FC<ModalProps> = ({ modalRef }) => {
   const [showMore, setShowMore] = useState(false);
-  const { closeImageModal, setModalPostData } = useModalStore(
-    (state) => state.actions,
-  );
   const imageModalSource = useModalStore((state) => state.imageModalSource);
   const { userData } = useUser();
   const modalPostData = useModalStore((state) => state.modalPostData);
-  const imageModalRef = useRef<HTMLDivElement>(null);
   const ctx = trpc.useUtils();
   const deletePostMutation = trpc.posts.delete.useMutation({
     onSuccess: () => {
@@ -33,11 +32,6 @@ const ImageModal = () => {
     },
   });
 
-  useOutsideClick([imageModalRef], "mousedown", () => {
-    closeImageModal();
-    setModalPostData(null);
-  });
-
   const handleDeletePost = async () => {
     try {
       if (!modalPostData) return;
@@ -51,7 +45,7 @@ const ImageModal = () => {
     <>
       {imageModalSource ? (
         <Modal>
-          <div ref={imageModalRef} className="relative flex select-none">
+          <div ref={modalRef} className="relative flex select-none">
             {imageModalSource.split("blob").length > 1 ? (
               <img
                 src={imageModalSource}

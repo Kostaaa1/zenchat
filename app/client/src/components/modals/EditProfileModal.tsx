@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import useOutsideClick from "../../hooks/useOutsideClick";
+import React, { FC, useEffect, useState } from "react";
 import useModalStore from "../../utils/stores/modalStore";
 import Icon from "../../pages/main/components/Icon";
 import Avatar from "../avatar/Avatar";
@@ -11,7 +10,6 @@ import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
-import useGeneralStore from "../../utils/stores/generalStore";
 import { Loader2 } from "lucide-react";
 
 export type CommonInput = {
@@ -26,14 +24,16 @@ export type Inputs = CommonInput & {
   file: FileList;
 };
 
-const EditProfileModal = () => {
-  const editUserRef = useRef<HTMLFormElement>(null);
+type ModalProps = {
+  modalRef: React.RefObject<HTMLFormElement>;
+};
+
+const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
   const { user } = useClerkUser();
   const [file, setFile] = useState<string>("");
   const { userData, updateUserCache } = useUser();
   const navigate = useNavigate();
   const { getToken } = useAuth();
-  const { setUsername } = useGeneralStore((state) => state.actions);
   const utils = trpc.useUtils();
   const { setIsEditProfileModalOpen, setIsAvatarUpdating } = useModalStore(
     (state) => state.actions,
@@ -46,9 +46,6 @@ const EditProfileModal = () => {
     handleSubmit,
     watch,
   } = useForm<Inputs>();
-  useOutsideClick([editUserRef], "mousedown", () =>
-    setIsEditProfileModalOpen(false),
-  );
 
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
     onSuccess: async (updatedAvatar) => {
@@ -61,17 +58,18 @@ const EditProfileModal = () => {
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
     onSuccess: async (data) => {
-      // Invalidating here or onSubmit?
       setIsEditProfileModalOpen(false);
       setIsLoading(false);
       const { username, last_name, first_name } = data;
-
       await user?.update({
         username,
         firstName: first_name,
         lastName: last_name,
       });
-      setUsername(username);
+      await utils.user.get.refetch({
+        data: userData!.username,
+        type: "username",
+      });
       navigate(`/${username}`);
     },
     onError: (error) => {
@@ -101,7 +99,6 @@ const EditProfileModal = () => {
         const renamedFile = renameFile(file[0]);
         const form = new FormData();
         form.append("images", renamedFile);
-
         const uploadedImages = await uploadMultipartForm(
           "/api/uploadMedia/avatar",
           form,
@@ -122,7 +119,7 @@ const EditProfileModal = () => {
       });
     } catch (error) {
       console.log("From server error: ", error);
-      // @ts-expect-error kdoskao
+      // @ts-expect-error dskao
       if (error.status === 422) {
         setError("username", {
           type: "custom",
@@ -135,6 +132,14 @@ const EditProfileModal = () => {
 
   useEffect(() => {
     const newFile = watch("file");
+    if (newFile.length > 0 && newFile[0].type.split("/")[0] !== "image") {
+      setError("file", {
+        type: "custom",
+        message: "The file that is provided is not an image",
+      });
+      return;
+    }
+
     if (newFile.length === 0) return;
     const url = URL.createObjectURL(newFile[0]);
     setFile(url);
@@ -143,8 +148,8 @@ const EditProfileModal = () => {
   return (
     <Modal>
       <form
+        ref={modalRef}
         autoComplete="off"
-        ref={editUserRef}
         onSubmit={handleSubmit(onSubmit)}
         className="flex h-max w-[420px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
       >
@@ -155,7 +160,7 @@ const EditProfileModal = () => {
             </p>
             <div
               onClick={() => setIsEditProfileModalOpen(false)}
-              className="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-full text-neutral-300 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
+              className="absolute top-1/2 -translate-y-1/2 rounded-full text-neutral-300 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
             >
               <Icon name="X" className="p-[2px]" size="26px" />
             </div>
@@ -173,7 +178,7 @@ const EditProfileModal = () => {
             />
           )}
         </div>
-        <div className="flex w-full items-center justify-center py-8">
+        <div className="flex w-full flex-col items-center justify-center space-y-2 py-8">
           <div className="relative h-max w-max">
             <label
               htmlFor="file"
@@ -189,7 +194,13 @@ const EditProfileModal = () => {
             <Avatar
               image_url={file.length > 0 ? file : userData?.image_url}
               size="xl"
+              className="outline"
             />
+          </div>
+          <div className="text-sm text-red-600">
+            {errors.file && errors.file.type === "custom" && (
+              <span>{errors.file.message}</span>
+            )}
           </div>
         </div>
         <div className="flex h-full w-full flex-col items-start justify-around space-y-2">

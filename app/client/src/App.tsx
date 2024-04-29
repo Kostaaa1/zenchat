@@ -16,33 +16,30 @@ import Modals from "./components/modals/Modals";
 import { trpc } from "./utils/trpcClient";
 import { useEffect, useState } from "react";
 import { loadImage } from "./utils/utils";
-import useGeneralStore from "./utils/stores/generalStore";
 import Home from "./pages/Home";
 import { Tables } from "../../server/src/types/supabase";
-import io from "socket.io-client";
 import useChatCache from "./hooks/useChatCache";
 import useChatSocket from "./hooks/useChatSocket";
-const socket = io(import.meta.env.VITE_SERVER_URL);
+import useGeneralStore from "./utils/stores/generalStore";
+// import { socket } from "./lib/socket";
 
 function App() {
-  const { isSignedIn } = useAuth();
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const ctx = trpc.useUtils();
-  const [isFetched, setIsFetched] = useState<boolean>(false);
-  const username = useGeneralStore((state) => state.username);
   const { setUsername } = useGeneralStore((state) => state.actions);
-  const navigate = useNavigate();
-  const { recieveNewSocketMessage } = useChatCache();
-  useChatSocket({ socket, recieveNewSocketMessage });
+  const username = useGeneralStore((state) => state.username);
+  const [isFetched, setIsFetched] = useState<boolean>(false);
+  useChatSocket();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !user.username) return;
     setUsername(user.username);
   }, [user]);
 
   const { data: userData } = trpc.user.get.useQuery(
     { data: username!, type: "username" },
-    { enabled: !!user && !!username && !!isSignedIn },
+    { enabled: !!username && !!isSignedIn },
   );
 
   const createUserMutation = trpc.user.create.useMutation({
@@ -57,17 +54,12 @@ function App() {
     if (!user) return;
     const { firstName, lastName, username } = user;
     if (!firstName || !lastName || !username) throw new Error("No credentials");
-
-    await createUserMutation
-      .mutateAsync({
-        firstName,
-        lastName,
-        username,
-        email: user.emailAddresses[0].emailAddress,
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    createUserMutation.mutate({
+      firstName,
+      lastName,
+      username,
+      email: user.emailAddresses[0].emailAddress,
+    });
   };
 
   const loadImages = async (posts: Tables<"posts">[]) => {

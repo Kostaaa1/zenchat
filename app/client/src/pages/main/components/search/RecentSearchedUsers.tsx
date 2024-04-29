@@ -22,7 +22,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
     userData!.id,
     {
       enabled: !!userData?.id,
-      refetchOnMount: "always",
+      // refetchOnMount: "always",
     },
   );
 

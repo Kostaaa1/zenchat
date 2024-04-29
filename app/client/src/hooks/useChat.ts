@@ -1,5 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
-import type { Socket } from "socket.io-client";
+import { FormEvent, useState } from "react";
 import useChatStore from "../utils/stores/chatStore";
 import useUser from "./useUser";
 import { v4 as uuidv4 } from "uuid";
@@ -12,47 +11,33 @@ import { Skin } from "@emoji-mart/data";
 import { uploadMultipartForm } from "../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
 
-const useChat = (socket?: Socket, scrollToStart?: () => void) => {
+const useChat = (scrollToStart?: () => void) => {
   const { userData } = useUser();
   const [formData, setFormdata] = useState<FormData>(new FormData());
   const { chatRoomId } = useParams();
   const { chat } = trpc.useUtils();
   const { getToken } = useAuth();
   const selectedImageFiles = useChatStore((state) => state.selectedImageFiles);
-  const { addSelectedFile, removeSelectedFile, clearSelectedFiles } =
-    useChatStore((state) => state.actions);
+  const {
+    addSelectedFile,
+    removeSelectedFile,
+    setCurrentChatroom,
+    clearSelectedFiles,
+  } = useChatStore((state) => state.actions);
   const { addNewMessageToChatCache } = useChatCache();
+  const currentChatroom = useChatStore((state) => state.currentChatroom);
 
-  const { data: currentChatroom } = trpc.chat.get.currentChatRoom.useQuery(
-    { chatroom_id: chatRoomId as string, user_id: userData!.id },
-    {
-      enabled: !!chatRoomId && !!userData,
-    },
-  );
-  const { new_message, img_urls, chatroom_id } = currentChatroom || {};
+  const { new_message, img_urls } = currentChatroom || {};
   const sendMessageMutation = trpc.chat.messages.send.useMutation();
 
   const setMessage = (text: string) => {
-    chat.get.currentChatRoom.setData(
-      {
-        chatroom_id: chatRoomId!,
-        user_id: userData!.id,
-      },
-      (stale) => {
-        if (stale) {
-          return { ...stale, new_message: text };
-        }
-      },
-    );
+    if (currentChatroom) {
+      setCurrentChatroom({ ...currentChatroom, new_message: text });
+    }
   };
 
   const setImgUrls = (img_urls: string[]) => {
-    chat.get.currentChatRoom.setData(
-      { chatroom_id: chatRoomId!, user_id: userData!.id },
-      (stale) => {
-        return stale ? { ...stale, img_urls } : stale;
-      },
-    );
+    if (currentChatroom) setCurrentChatroom({ ...currentChatroom, img_urls });
   };
 
   const handleSelectEmoji = (e: Skin) => {
@@ -126,7 +111,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
   };
 
   const sendImageMessage = async (chatroom_id: string) => {
-    if (!img_urls || !socket) return;
+    if (!img_urls) return;
     const arrayOfCreatedIds: string[] = [];
     for (const fileUrl of img_urls) {
       const id = uuidv4();
@@ -156,12 +141,14 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
         chatroom_id,
         is_image: true,
       });
-      socket.emit("new-message", messageData);
+      // socket.emit("new-message", messageData);
       await sendMessageMutation.mutateAsync(messageData);
     }
     formData.delete("images");
     clearSelectedFiles();
   };
+
+  const userChats = chat.get.user_chatrooms.getData(userData?.id);
 
   return {
     handleSubmitMessage,
@@ -169,6 +156,7 @@ const useChat = (socket?: Socket, scrollToStart?: () => void) => {
     setImgUrls,
     removeFileFromArray,
     handleSelectEmoji,
+    userChats,
     img_urls,
     fileSetter,
     new_message,

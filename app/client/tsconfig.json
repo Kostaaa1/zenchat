@@ -24,7 +24,7 @@
   },
   "include": [
     "src",
-    "lib/db",
+    "src/lib/db",
   ],
   "references": [
     {

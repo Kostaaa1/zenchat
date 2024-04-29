@@ -50,7 +50,6 @@ export const userRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { userData, userId } = input;
-      console.log("Userdata to update", userData);
       const response = await updateUserData(userId, userData);
       if (!response.success) {
         throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: response.message });
