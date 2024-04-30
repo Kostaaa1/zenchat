@@ -78,7 +78,6 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
       admin: userData!.id,
     });
     await chat.get.user_chatrooms.refetch(userData!.id);
-
     // const newChat = await chat.get.currentChatRoom.fetch({
     //   chatroom_id: newChatroomId as string,
     //   user_id: userData!.id,

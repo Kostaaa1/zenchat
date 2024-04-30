@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import { trpc } from "../../utils/trpcClient";
-import {  useState } from "react";
+import { useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
@@ -84,7 +84,7 @@ export const DashboardHeader = ({
           <h4 className="font-semibold">
             {`${userData?.first_name} ${userData?.last_name}`}
           </h4>
-          <span>Lorem ipsum dolor sit amet.</span>
+          <span>{userData?.description ?? ""}</span>
         </div>
       </div>
     </div>

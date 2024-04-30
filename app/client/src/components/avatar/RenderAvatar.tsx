@@ -19,7 +19,7 @@ const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
       ) : (
         <div
           className={cn(
-            "relative h-16 w-16",
+            "relative h-14 w-14",
             avatarSize === "md"
               ? "-m-3 scale-75"
               : avatarSize === "xl"

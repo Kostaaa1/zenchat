@@ -136,7 +136,7 @@ export const getChatroomData = async (
     is_group,
     is_read,
     admin,
-    users: chatroomUsers,
+    users: chatroomUsers.sort((a, y) => a.image_url!.length - y.image_url!.length),
   };
 };
 

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import useUser from "./useUser";
 import useChatStore from "../utils/stores/chatStore";
-import { trpc } from "../utils/trpcClient";
 import useChatCache from "./useChatCache";
 import { socket } from "../lib/socket";
 

@@ -53,6 +53,7 @@ export const updateUserData = async (
     image_url?: string | undefined;
   }
 ): Promise<SupabaseResponse<Tables<"users">>> => {
+  console.log("To update: ", userId, "Data: ", userData);
   const { data, error } = await supabase
     .from("users")
     .update({ ...userData })

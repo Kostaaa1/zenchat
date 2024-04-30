@@ -5,7 +5,7 @@ import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC,  useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "../../hooks/useOutsideClick";
 

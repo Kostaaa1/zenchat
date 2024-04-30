@@ -17,6 +17,7 @@ export type CommonInput = {
   last_name?: string;
   username?: string;
   image_url?: string | undefined;
+  description?: string;
   [key: string]: string | undefined;
 };
 
@@ -86,6 +87,7 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
+      console.log("submit this form: ", formData);
       if (!userData) return;
       setIsLoading(true);
       const { file } = formData;
@@ -151,7 +153,7 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
         ref={modalRef}
         autoComplete="off"
         onSubmit={handleSubmit(onSubmit)}
-        className="flex h-max w-[420px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
+        className="flex h-max w-[450px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
       >
         <div className="flex w-full items-center justify-between">
           <div className="relative flex items-center justify-between">
@@ -162,7 +164,7 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
               onClick={() => setIsEditProfileModalOpen(false)}
               className="absolute top-1/2 -translate-y-1/2 rounded-full text-neutral-300 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
             >
-              <Icon name="X" className="p-[2px]" size="26px" />
+              <Icon name="X" className="cursor-pointer p-[2px]" size="26px" />
             </div>
           </div>
           {isLoading ? (
@@ -217,7 +219,7 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
                 minLength: 3,
               })}
               defaultValue={userData?.username}
-              className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+              className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
             />
             <div className="text-sm text-red-600">
               {errors.username && errors.username.type === "maxLength" && (
@@ -244,7 +246,7 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
               defaultValue={userData?.first_name}
               {...register("first_name")}
               type="text"
-              className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+              className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
             />
           </div>
           <div className="flex w-full flex-col items-start justify-start">
@@ -253,9 +255,18 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
               defaultValue={userData?.last_name}
               {...register("last_name")}
               type="text"
-              className="center flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+              className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
             />
           </div>
+          <textarea
+            cols={30}
+            rows={4}
+            maxLength={20}
+            defaultValue={userData!.description ?? ""}
+            {...register("description")}
+            placeholder="About you"
+            className="flex w-full rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+          ></textarea>
         </div>
       </form>
     </Modal>

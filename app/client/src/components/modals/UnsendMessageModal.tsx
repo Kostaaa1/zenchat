@@ -11,18 +11,16 @@ type ModalProps = {
 
 const UnsendMessageModal: FC<ModalProps> = ({ modalRef }) => {
   const { setShowUnsendMsgModal } = useModalStore((state) => state.actions);
-  const messageDropdownData = useModalStore(
-    (state) => state.messageDropdownData,
-  );
+  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const { removeMessageCache } = useChatCache();
   const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
 
-  const handleUnsendMessage = async () => {
-    if (messageDropdownData && currentChatroom) {
-      removeMessageCache(messageDropdownData.id, currentChatroom.chatroom_id);
+  const handleConfirm = async () => {
+    if (unsendMsgData && currentChatroom) {
+      removeMessageCache(unsendMsgData.id, currentChatroom.chatroom_id);
       setShowUnsendMsgModal(false);
-      await unsendMessageMutation.mutateAsync(messageDropdownData);
+      await unsendMessageMutation.mutateAsync(unsendMsgData);
     }
   };
 
@@ -40,7 +38,7 @@ const UnsendMessageModal: FC<ModalProps> = ({ modalRef }) => {
         <div className="flex w-full flex-col pt-4 text-sm font-semibold">
           <div className="-mx-2 transition-colors duration-200">
             <button
-              onClick={handleUnsendMessage}
+              onClick={handleConfirm}
               className="w-full cursor-pointer border border-x-0 border-neutral-600 p-3 text-red-500 hover:text-opacity-80"
             >
               Unsend

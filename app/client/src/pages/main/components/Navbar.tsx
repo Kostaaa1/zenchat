@@ -71,13 +71,13 @@ const Navbar: FC<NavbarProps> = ({
   const NavListItems: NavListItems[] = [
     {
       iconName: "MessageCircle",
-      iconStrokeWidth: currentActiveNavList === "inbox" ? "3" : "",
+      iconStrokeWidth: currentActiveNavList === "inbox" ? "2" : "",
       title: isResponsive ? "" : "Messages",
       onClick: () => handleClick("inbox"),
     },
     {
       iconName: "Search",
-      iconStrokeWidth: isSearchActive ? "3" : "",
+      iconStrokeWidth: isSearchActive ? "2" : "",
       title: isResponsive ? "" : "Search",
       onClick: handleActivateSearch,
       className: `${isSearchActive ? "outline outline-1" : null} `,
@@ -101,7 +101,7 @@ const Navbar: FC<NavbarProps> = ({
           animate={{ width: isResponsive ? "80px" : "300px" }}
           exit={{ width: isResponsive ? "300px" : "80px" }}
           transition={{ type: "spring", damping: 45, stiffness: 300 }}
-          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4"
+          className="fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4 py-6"
         >
           <Logo variant={isResponsive ? "default" : "list"} />
           <div

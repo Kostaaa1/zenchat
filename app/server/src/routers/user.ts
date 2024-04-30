@@ -44,6 +44,7 @@ export const userRouter = t.router({
           username: z.string().optional(),
           last_name: z.string().optional(),
           first_name: z.string().optional(),
+          description: z.string().optional(),
           image_url: z.string().optional(),
         }),
       })

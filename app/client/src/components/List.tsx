@@ -3,7 +3,6 @@ import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
 import { motion } from "framer-motion";
-import Avatar from "./avatar/Avatar";
 
 export const listVariants = cva(
   "flex cursor-pointer w-full justify-between px-6 py-2 items-center",
@@ -31,8 +30,8 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   onClick?: () => void;
   isHoverDisabled?: boolean;
   icon?: ReactNode;
-  isLoading?: boolean;
   isRead?: boolean;
+  isLoading?: boolean;
   showAvatar?: boolean;
   onIconClick?: () => void;
 }
@@ -48,8 +47,8 @@ const List: FC<ListProps> = ({
   children,
   isHoverDisabled,
   icon,
+  isRead = true,
   showAvatar = true,
-  isRead = false,
   isLoading = false,
   ...props
 }) => {

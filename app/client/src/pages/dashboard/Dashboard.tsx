@@ -92,7 +92,7 @@ const Dashboard = () => {
                     <>
                       <Icon
                         name="Camera"
-                        className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                        className="cursor-pointer rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
                         size="78px"
                         strokeWidth="1"
                         onClick={openUploadModal}
@@ -116,7 +116,7 @@ const Dashboard = () => {
                     <>
                       <Icon
                         name="Camera"
-                        className="rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                        className="cursor-default rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
                         size="78px"
                         strokeWidth="1"
                         onClick={openUploadModal}

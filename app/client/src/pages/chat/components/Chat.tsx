@@ -10,6 +10,7 @@ import { loadImagesAndStructureMessages } from "../../../utils/loadImages";
 import useUser from "../../../hooks/useUser";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import Message from "./Message";
+import useModalStore from "../../../utils/stores/modalStore";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -21,6 +22,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const navigate = useNavigate();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const currentChatroom = useChatStore((state) => state.currentChatroom);
+  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
+  const { setUnsendMsgData } = useModalStore((state) => state.actions);
   const currentChatroomTitle = useChatStore(
     (state) => state.currentChatroomTitle,
   );
@@ -110,6 +113,21 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     };
   });
 
+  const handlePressMore = (message: TMessage) => {
+    const { is_image, content, id } = message;
+    if (!unsendMsgData) {
+      const imageKitPrefix = import.meta.env.VITE_IMAGEKIT_PREFIX;
+      const imageUrl = is_image ? content.split(imageKitPrefix)[1] : null;
+      const msgData = {
+        id,
+        imageUrl,
+      };
+      setUnsendMsgData(unsendMsgData ? null : msgData);
+    } else {
+      setUnsendMsgData(null);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {isMessagesLoading ? (
@@ -130,7 +148,11 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
               )} */}
             </span>
             {messages?.map((message) => (
-              <Message key={message.id} message={message} />
+              <Message
+                key={message.id}
+                message={message}
+                onClick={() => handlePressMore(message)}
+              />
             ))}
           </ul>
           {messages &&

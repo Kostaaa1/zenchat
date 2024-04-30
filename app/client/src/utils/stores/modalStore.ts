@@ -10,7 +10,7 @@ type TOpenMessageDropdown = {
 type Store = {
   isImageModalOpen: boolean;
   imageModalSource: string;
-  messageDropdownData: { id: string; imageUrl: string | null } | null;
+  unsendMsgData: { id: string; imageUrl: string | null } | null;
   showUnsendMsgModal: boolean;
   isMessageDropdownActive: boolean;
   isNewMessageModalModalOpen: boolean;
@@ -22,7 +22,7 @@ type Store = {
   actions: {
     setModalPostData: (s: TPost | null) => void;
     setIsDndUploadModalOpen: (isOpen: boolean) => void;
-    setMessageDropdownData: (data: TOpenMessageDropdown | null) => void;
+    setUnsendMsgData: (data: TOpenMessageDropdown | null) => void;
     showImageModal: (messageContent: string) => void;
     closeImageModal: () => void;
     setShowUnsendMsgModal: (val: boolean) => void;
@@ -41,7 +41,7 @@ const useModalStore = create<Store>(
     isAvatarUpdating: false,
     isEditProfileModalOpen: false,
     isNewMessageModalModalOpen: false,
-    messageDropdownData: null,
+    unsendMsgData: null,
     isMessageDropdownActive: false,
     showUnsendMsgModal: false,
     imageModalSource: "",
@@ -59,8 +59,8 @@ const useModalStore = create<Store>(
         set({ isEditProfileModalOpen: isOpen }),
       setIsNewMessageModalModalOpen: (open: boolean) =>
         set({ isNewMessageModalModalOpen: open }),
-      setMessageDropdownData: (data: TOpenMessageDropdown | null) =>
-        set({ messageDropdownData: data }),
+      setUnsendMsgData: (data: TOpenMessageDropdown | null) =>
+        set({ unsendMsgData: data }),
       setIsMessageDropdownActive: (isOpen: boolean) =>
         set({ isMessageDropdownActive: isOpen }),
       setShowUnsendMsgModal: (bool: boolean) =>
@@ -87,7 +87,6 @@ const useModalStore = create<Store>(
           isNewMessageModalModalOpen: false,
           isMessageDropdownActive: false,
           isAvatarUpdating: false,
-          messageDropdownData: null,
         }),
     },
   }),

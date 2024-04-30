@@ -1,9 +1,8 @@
-import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FC, useRef } from "react";
 import Icon from "../../main/components/Icon";
 import useChatStore from "../../../utils/stores/chatStore";
 import { cn, renameFile } from "../../../utils/utils";
 import useChat from "../../../hooks/useChat";
-import useUser from "../../../hooks/useUser";
 import { EmojiPickerContainer } from "./EmojiPicker";
 
 interface MessageInputProps {
@@ -15,8 +14,7 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { setShowEmojiPicker } = useChatStore((state) => state.actions);
   const { currentChatroom } = useChat();
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const { userData } = useUser();
+  const emojiRef = useRef<HTMLDivElement>(null);
   const {
     handleSubmitMessage,
     removeFileFromArray,
@@ -25,12 +23,14 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
     fileSetter,
     new_message,
   } = useChat(scrollToStart);
-  const emojiRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!currentChatroom) return;
-    setIsTyping(currentChatroom.new_message.length > 0);
-  }, [currentChatroom]);
+  // const [isTyping, setIsTyping] = useState<boolean>(false);
+  // const { userData } = useUser();
+
+  // useEffect(() => {
+  //   if (!currentChatroom) return;
+  //   setIsTyping(currentChatroom.new_message.length > 0);
+  // }, [currentChatroom]);
 
   // useEffect(() => {
   //   if (!currentChatroom || !userData) return;
@@ -126,7 +126,7 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
             >
               <div>
                 <label htmlFor="file">
-                  <Icon name="Image" size="24px" onClick={showEmoji} />
+                  <Icon name="Image" size="24px" />
                 </label>
                 <input
                   type="file"

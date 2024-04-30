@@ -22,15 +22,9 @@ const ChatHeader = () => {
 
   return (
     <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6 px-4">
-      <div className="flex items-center">
+      <div className="flex items-center space-x-4">
         <RenderAvatar
           avatarSize="md"
-          // image_urls={{
-          //   image_url_1: currentChatroom?.users[0].image_url as string,
-          //   image_url_2: currentChatroom?.is_group
-          //     ? currentChatroom?.users[1].image_url
-          //     : undefined,
-          // }}
           image_urls={
             currentChatroom?.is_group
               ? {
@@ -44,7 +38,7 @@ const ChatHeader = () => {
                 }
           }
         />
-        <h1 className="ml-2 text-lg font-medium">{currentChatroomTitle}</h1>
+        <h1 className="text-lg">{currentChatroomTitle}</h1>
       </div>
       <Info
         onClick={handleIconClick}

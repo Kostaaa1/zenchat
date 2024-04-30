@@ -15,6 +15,9 @@ const ImageModal: FC<ModalProps> = ({ modalRef }) => {
   const imageModalSource = useModalStore((state) => state.imageModalSource);
   const { userData } = useUser();
   const modalPostData = useModalStore((state) => state.modalPostData);
+  const { setModalPostData, closeImageModal } = useModalStore(
+    (state) => state.actions,
+  );
   const ctx = trpc.useUtils();
   const deletePostMutation = trpc.posts.delete.useMutation({
     onSuccess: () => {
@@ -36,6 +39,8 @@ const ImageModal: FC<ModalProps> = ({ modalRef }) => {
     try {
       if (!modalPostData) return;
       await deletePostMutation.mutateAsync(modalPostData.id);
+      closeImageModal();
+      setModalPostData(null);
     } catch (error) {
       console.log("error deleting post", error);
     }

@@ -3,7 +3,6 @@ import { cn, convertAndFormatDate } from "../../../utils/utils";
 import useUser from "../../../hooks/useUser";
 import useModalStore from "../../../utils/stores/modalStore";
 import { TMessage } from "../../../../../server/src/types/types";
-import useOutsideClick from "../../../hooks/useOutsideClick";
 import Icon from "../../main/components/Icon";
 import { motion } from "framer-motion";
 import List from "../../../components/List";
@@ -11,33 +10,17 @@ import { Separator } from "../../dashboard/Dashboard";
 
 interface MessageProps {
   message: TMessage;
+  onClick: () => void;
 }
 
-const Message: FC<MessageProps> = ({ message }) => {
-  const { setMessageDropdownData, setShowUnsendMsgModal, showImageModal } =
+const Message: FC<MessageProps> = ({ message, onClick }) => {
+  const { setShowUnsendMsgModal, setUnsendMsgData, showImageModal } =
     useModalStore((state) => state.actions);
-  const messageDropdownData = useModalStore(
-    (state) => state.messageDropdownData,
-  );
+  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const { userData } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { content, id, sender_id, is_image } = message;
   const moreDropdownRef = useRef<HTMLDivElement>(null);
-  useOutsideClick([moreDropdownRef], "click", () =>
-    setMessageDropdownData(null),
-  );
-
-  const handleMessageDropdownData = () => {
-    const imageKitPrefix = import.meta.env.VITE_IMAGEKIT_PREFIX;
-    const imageUrl = is_image ? content.split(imageKitPrefix)[1] : null;
-
-    const msgData = {
-      id,
-      imageUrl,
-    };
-
-    setMessageDropdownData(messageDropdownData ? null : msgData);
-  };
 
   return (
     <li
@@ -80,7 +63,7 @@ const Message: FC<MessageProps> = ({ message }) => {
           </div>
         </div>
       )}
-      {messageDropdownData?.id === id || isHovered ? (
+      {unsendMsgData?.id === id || isHovered ? (
         <div
           ref={moreDropdownRef}
           className={cn(
@@ -88,14 +71,13 @@ const Message: FC<MessageProps> = ({ message }) => {
             sender_id === userData!.id ? "flex-row-reverse" : "",
           )}
         >
-          {/* <Icon name="Smile" size="18px" className="hover:text-white" /> */}
           <Icon
             name="MoreHorizontal"
             size="18px"
             className="rotate-90 hover:text-white"
-            onClick={handleMessageDropdownData}
+            onClick={onClick}
           />
-          {messageDropdownData?.id === id ? (
+          {unsendMsgData?.id === id ? (
             <motion.ul
               initial={{ y: 6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -124,7 +106,7 @@ const Message: FC<MessageProps> = ({ message }) => {
                 className="rounded-bl-lg rounded-br-lg p-1 font-normal"
                 onClick={() => {
                   navigator.clipboard.writeText(content);
-                  setMessageDropdownData(null);
+                  setUnsendMsgData(null);
                 }}
               />
             </motion.ul>
