@@ -36,6 +36,7 @@ const Navbar: FC<NavbarProps> = ({
   iconRef,
   dropdownRef,
 }) => {
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const currentActiveNavList = useGeneralStore(
     (state) => state.currentActiveNavList,
   );
@@ -43,20 +44,22 @@ const Navbar: FC<NavbarProps> = ({
   const isSearchActive = useGeneralStore((state) => state.isSearchActive);
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
   const isResponsive = useGeneralStore((state) => state.isResponsive);
-  const { setShowDropdown, setIsSearchActive, setIsResponsive } =
-    useGeneralStore((state) => state.actions);
   const location = useLocation();
   const [list, setList] = useState<"list" | "default">("default");
   const { userData } = useUser();
   const { width } = useWindowSize();
+  const { setShowDropdown, setIsResponsive } = useGeneralStore(
+    (state) => state.actions,
+  );
 
   useEffect(() => {
-    if (width <= 1024) {
-      setIsResponsive(true);
-      return;
-    }
+    console.log("isMobile", isMobile);
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (width <= 1024) return;
     setIsResponsive(isSearchActive || location.pathname.includes("/inbox"));
-  }, [isSearchActive, width, location]);
+  }, [isSearchActive, location]);
 
   useEffect(() => {
     setList(isResponsive ? "default" : "list");
@@ -94,7 +97,7 @@ const Navbar: FC<NavbarProps> = ({
   ];
 
   return (
-    <nav>
+    <motion.nav>
       <AnimatePresence>
         <motion.ul
           initial={{ width: isResponsive ? "300px" : "80px" }}
@@ -155,7 +158,7 @@ const Navbar: FC<NavbarProps> = ({
           </div>
         </motion.ul>
       </AnimatePresence>
-    </nav>
+    </motion.nav>
   );
 };
 

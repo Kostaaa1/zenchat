@@ -54,7 +54,7 @@ const SideSearch = () => {
 
   return (
     <motion.div
-      className="fixed left-[80px] top-0 z-40 flex h-full w-full max-w-[400px] flex-col border-r border-[#262626] bg-black"
+      className="fixed left-[80px] top-0 z-40 flex h-full w-full max-w-sm flex-col border-r border-[#262626] bg-black"
       initial={{ x: "-100%" }}
       animate={{ x: 0 }}
       exit={{ x: "-100%" }}

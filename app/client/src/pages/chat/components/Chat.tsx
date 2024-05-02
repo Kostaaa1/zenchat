@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from "react";
 import Button from "../../../components/Button";
 import { TMessage } from "../../../../../server/src/types/types";
-import { Dot, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useChatStore from "../../../utils/stores/chatStore";
 import { trpc } from "../../../utils/trpcClient";

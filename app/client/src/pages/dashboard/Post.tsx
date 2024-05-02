@@ -23,11 +23,8 @@ const Post: FC<PostProps> = ({ post }) => {
   };
 
   return (
-    <div
-      className="relative h-[300px] cursor-pointer select-none"
-      onClick={openModel}
-    >
-      <img src={post.media_url} alt={post.id} className="h-full w-full" />
+    <div className="relative cursor-pointer select-none" onClick={openModel}>
+      <img src={post.media_url} alt={post.id} />
       <div className="group absolute top-0 h-full w-full bg-black bg-opacity-0 transition-colors hover:bg-opacity-50">
         <p className="absolute top-0 inline-flex h-full w-full items-end justify-start pb-2 pl-2 opacity-0 transition-opacity group-hover:opacity-100">
           {post.caption}

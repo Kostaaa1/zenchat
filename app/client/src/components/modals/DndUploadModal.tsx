@@ -1,4 +1,4 @@
-import React, { FC, RefObject, useRef, useState } from "react";
+import React, { FC, RefObject, useMemo, useState } from "react";
 import Icon from "../../pages/main/components/Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
@@ -15,6 +15,7 @@ import { trpc } from "../../utils/trpcClient";
 import { TPost } from "../../../../server/src/types/types";
 import { Modal } from "./Modals";
 import useOutsideClick from "../../hooks/useOutsideClick";
+import useWindowSize from "../../hooks/useWindowSize";
 
 interface Props {
   onDrop: (droppedFile: File) => void;
@@ -41,7 +42,7 @@ const FileDropZone: FC<Props> = ({ onDrop }) => {
   return (
     <div
       ref={drop}
-      className="flex h-full w-full flex-col items-center justify-center space-y-4"
+      className="flex h-full w-full flex-col items-center justify-center space-y-2"
     >
       <div className="flex h-11 w-11">
         <Upload
@@ -164,17 +165,29 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
       console.log(error);
     }
   };
+  const { width } = useWindowSize();
+  const modalWidth = useMemo(() => {
+    if (file) {
+      return width > 840 ? (file ? "880px" : "600px") : "calc(100vw - 40px)";
+    } else {
+      return width > 640 ? (file ? "880px" : "600px") : "calc(100vw - 40px)";
+    }
+  }, [width, file]);
 
   return (
     <DndProvider backend={HTML5Backend}>
       <Modal>
         <motion.div
           ref={modalRef}
-          initial={{ width: file ? "880px" : "640px" }}
-          animate={{ width: file ? "880px" : "640px" }}
+          initial={{
+            width: modalWidth,
+          }}
+          animate={{
+            width: modalWidth,
+          }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
           className={cn(
-            "flex h-[640px] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center",
+            "flex h-[600px] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center",
           )}
         >
           <div className="relative flex h-12 w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
@@ -208,14 +221,12 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ ease: "easeInOut", duration: 0.3 }}
-                  className="flex h-full w-full"
+                  className="flex"
                 >
-                  <img
-                    src={displayFile}
-                    alt="image"
-                    className="h-[640px] w-[640px]"
-                  />
-                  <div className="w-full">
+                  <div className="h-[600px] w-full">
+                    <img src={displayFile} alt="image" />
+                  </div>
+                  <div className="w-[280px]">
                     <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
                       <Avatar image_url={userData?.image_url} size="sm" />
                       <p className="">{userData?.username}</p>

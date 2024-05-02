@@ -33,7 +33,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   };
 
   return (
-    <div className="flex h-full w-full max-w-[400px] flex-col border-r border-[#262626] bg-black">
+    <div className="flex h-full w-full max-w-sm flex-col border-r border-[#262626] bg-black">
       <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
         <div className="flex cursor-pointer items-center active:text-zinc-500">
           <h1 className="mr-1 text-2xl font-bold"> {userData?.username} </h1>

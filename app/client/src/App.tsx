@@ -7,7 +7,7 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Header from "./pages/main/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -18,10 +18,8 @@ import { useEffect, useState } from "react";
 import { loadImage } from "./utils/utils";
 import Home from "./pages/Home";
 import { Tables } from "../../server/src/types/supabase";
-import useChatCache from "./hooks/useChatCache";
 import useChatSocket from "./hooks/useChatSocket";
 import useGeneralStore from "./utils/stores/generalStore";
-// import { socket } from "./lib/socket";
 
 function App() {
   const { user } = useUser();

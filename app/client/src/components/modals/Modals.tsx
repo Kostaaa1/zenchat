@@ -5,7 +5,7 @@ import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
-import React, { FC,  useRef } from "react";
+import React, { FC, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "../../hooks/useOutsideClick";
 
@@ -16,7 +16,7 @@ type ModalProps = {
 export const Modal: FC<ModalProps> = ({ children }) => {
   return (
     <motion.div
-      className="fixed z-[1000] flex h-screen w-full items-center justify-center bg-black bg-opacity-75"
+      className="fixed z-[1000] flex h-screen w-screen items-center justify-center bg-black bg-opacity-75"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
