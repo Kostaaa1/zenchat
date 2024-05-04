@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
-import Icon from "../../pages/main/components/Icon";
-import useModalStore from "../../utils/stores/modalStore";
+import Icon from "../Icon";
+import useModalStore from "../../utils/state/modalStore";
 import { Modal } from "./Modals";
 import { motion } from "framer-motion";
 import { trpc } from "../../utils/trpcClient";

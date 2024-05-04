@@ -1,4 +1,4 @@
-import { cn } from "../../../utils/utils";
+import { cn } from "../utils/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { motion } from "framer-motion";
 import { FC, ReactElement } from "react";
@@ -62,7 +62,7 @@ const NavListItem: FC<NavListProps> = ({
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="pl-3 text-3xl font-bold"
+          className="pl-1 text-2xl font-bold md:pl-3 md:text-3xl"
         >
           {head}
         </motion.h1>

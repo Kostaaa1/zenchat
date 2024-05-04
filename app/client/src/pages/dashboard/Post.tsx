@@ -1,5 +1,5 @@
 import { FC } from "react";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 
 type PostProps = {
   post: {

@@ -2,7 +2,7 @@ import { trpc } from "../utils/trpcClient";
 import { CommonInput } from "../components/modals/EditProfileModal";
 import { loadImage } from "../utils/utils";
 import { TUserData } from "../../../server/src/types/types";
-import useGeneralStore from "../utils/stores/generalStore";
+import useGeneralStore from "../utils/state/generalStore";
 
 type TUserDataMutation = TUserData & {
   [key: string]: string | undefined;

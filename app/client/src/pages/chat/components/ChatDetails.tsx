@@ -3,8 +3,8 @@ import Button from "../../../components/Button";
 import List from "../../../components/List";
 import { Link } from "react-router-dom";
 import { cn } from "../../../utils/utils";
-import useModalStore from "../../../utils/stores/modalStore";
-import useChatStore from "../../../utils/stores/chatStore";
+import useModalStore from "../../../utils/state/modalStore";
+import useChatStore from "../../../utils/state/chatStore";
 import useUser from "../../../hooks/useUser";
 
 interface ChatDetailsProps {}

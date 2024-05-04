@@ -1,10 +1,10 @@
-import Icon from "../main/components/Icon";
+import Icon from "../../components/Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/Button";
 import { useLocation, useParams } from "react-router-dom";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import MessageInput from "./components/MessageInput";
-import useChatStore from "../../utils/stores/chatStore";
+import useChatStore from "../../utils/state/chatStore";
 import Chat from "./components/Chat";
 import UserChats from "./components/UserChats";
 import { EmojiPickerContainer } from "./components/EmojiPicker";
@@ -12,7 +12,9 @@ import { trpc } from "../../utils/trpcClient";
 import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
+import { cn } from "../../utils/utils";
+import useGeneralStore from "../../utils/state/generalStore";
 
 const Inbox = () => {
   const location = useLocation();
@@ -23,6 +25,7 @@ const Inbox = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const showDetails = useChatStore((state) => state.showDetails);
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const { chat } = trpc.useUtils();
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { setIsNewMessageModalModalOpen } = useModalStore(
@@ -41,7 +44,6 @@ const Inbox = () => {
       setShowDetails(false);
     };
   }, []);
-
   // useOutsideClick([emojiRef, iconRef], "click", () =>
   //   setShowEmojiPicker(false),
   // );
@@ -50,7 +52,6 @@ const Inbox = () => {
   };
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
-    // refetchOnMount: "always",
   });
 
   const userChats = useMemo(() => {
@@ -78,7 +79,13 @@ const Inbox = () => {
   }, [userChats, chatRoomId, userData]);
 
   return (
-    <div className="flex h-full max-h-screen w-full pl-20" ref={scrollRef}>
+    <div
+      ref={scrollRef}
+      className={cn(
+        "flex h-[95vh] w-full md:h-screen",
+        isMobile ? "" : "pl-20",
+      )}
+    >
       <UserChats userChats={userChats} isLoading={isLoading} />
       {location.pathname !== "/inbox" && currentChatroom && chatRoomId && (
         <div className="w-full">
@@ -91,7 +98,7 @@ const Inbox = () => {
       )}
       {showDetails && currentChatroom && <ChatDetails />}
       {location.pathname === "/inbox" ? (
-        <div className="flex w-full flex-col items-center justify-center text-center ">
+        <div className="flex h-full w-full flex-col items-center justify-center text-center">
           <Icon
             name="MessageCircle"
             size="100px"
@@ -112,10 +119,6 @@ const Inbox = () => {
           </div>
         </div>
       ) : null}
-      {/* <EmojiPickerContainer
-        emojiRef={emojiRef}
-        showEmojiPicker={showEmojiPicker}
-      /> */}
     </div>
   );
 };

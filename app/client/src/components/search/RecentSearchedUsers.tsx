@@ -1,9 +1,9 @@
 import { FC } from "react";
-import useUser from "../../../../hooks/useUser";
-import List from "../../../../components/List";
+import useUser from "../../hooks/useUser";
+import List from "../List";
 import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
-import { trpc } from "../../../../utils/trpcClient";
+import { trpc } from "../../utils/trpcClient";
 
 interface RecentSearchedUsersProps {
   navigateToUserDashboard: (username: string) => void;

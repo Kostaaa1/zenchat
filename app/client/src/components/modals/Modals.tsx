@@ -1,4 +1,4 @@
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 import EditProfileModal from "./EditProfileModal";
 import ImageModal from "./ImageModal";
 import NewMessageModal from "./NewMessageModal";
@@ -72,22 +72,24 @@ const Modals = () => {
   );
 
   return (
-    <AnimatePresence>
-      {isImageModalOpen && imageModalSource && (
-        <ImageModal modalRef={imageModalRef} />
-      )}
-      {showUnsendMsgModal && (
-        <UnsendMessageModal modalRef={unsendMessageModalRef} />
-      )}
-      {isNewMessageModalOpen && (
-        <NewMessageModal modalRef={newMessageModalRef} />
-      )}
-      {isEditProfileModalOpen && (
-        <EditProfileModal modalRef={editProfileModalRef} />
-      )}
-      {isDeleteChatOpen && <DeleteChatModal modalRef={deleteChatModalRef} />}
-      {isDndUploadModalOpen && <DndUpload modalRef={uploadModalRef} />}
-    </AnimatePresence>
+    <div className="absolute left-0 top-0 w-full">
+      <AnimatePresence>
+        {isImageModalOpen && imageModalSource && (
+          <ImageModal modalRef={imageModalRef} />
+        )}
+        {showUnsendMsgModal && (
+          <UnsendMessageModal modalRef={unsendMessageModalRef} />
+        )}
+        {isNewMessageModalOpen && (
+          <NewMessageModal modalRef={newMessageModalRef} />
+        )}
+        {isEditProfileModalOpen && (
+          <EditProfileModal modalRef={editProfileModalRef} />
+        )}
+        {isDeleteChatOpen && <DeleteChatModal modalRef={deleteChatModalRef} />}
+        {isDndUploadModalOpen && <DndUpload modalRef={uploadModalRef} />}
+      </AnimatePresence>
+    </div>
   );
 };
 

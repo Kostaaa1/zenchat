@@ -3,14 +3,14 @@ import Button from "../../../components/Button";
 import { TMessage } from "../../../../../server/src/types/types";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import useChatStore from "../../../utils/stores/chatStore";
+import useChatStore from "../../../utils/state/chatStore";
 import { trpc } from "../../../utils/trpcClient";
 import { debounce } from "lodash";
 import { loadImagesAndStructureMessages } from "../../../utils/loadImages";
 import useUser from "../../../hooks/useUser";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import Message from "./Message";
-import useModalStore from "../../../utils/stores/modalStore";
+import useModalStore from "../../../utils/state/modalStore";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;

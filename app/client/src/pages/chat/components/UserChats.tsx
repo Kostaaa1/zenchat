@@ -1,10 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { FC } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
-import Icon from "../../main/components/Icon";
+import Icon from "../../../components/Icon";
 import List from "../../../components/List";
-import useChatStore from "../../../utils/stores/chatStore";
-import useModalStore from "../../../utils/stores/modalStore";
+import useChatStore from "../../../utils/state/chatStore";
+import useModalStore from "../../../utils/state/modalStore";
 import useUser from "../../../hooks/useUser";
 import { cn } from "../../../utils/utils";
 

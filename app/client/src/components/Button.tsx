@@ -4,7 +4,7 @@ import { cn } from "../utils/utils";
 import { Loader2 } from "lucide-react";
 
 export const buttonVariants = cva(
-  "transform-all duration-200 inline-flex w-max items-center justify-center font-lg disabled:opacity-50 font-lg disabled:pointer-events-none rounded-lg text-white active:text-zinc-500",
+  "transform-all font-lg font-lg inline-flex w-max items-center justify-center rounded-lg text-white duration-200 active:text-zinc-500 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {

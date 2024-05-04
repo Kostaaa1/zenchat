@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import useChatStore from "../utils/stores/chatStore";
+import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
 import { v4 as uuidv4 } from "uuid";
 import { TMessage } from "../../../server/src/types/types";

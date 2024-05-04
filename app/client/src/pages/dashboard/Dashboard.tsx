@@ -4,11 +4,11 @@ import { trpc } from "../../utils/trpcClient";
 import ErrorPage from "../ErrorPage";
 import { FC, useEffect, useState } from "react";
 import useUser from "../../hooks/useUser";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 import { cn, loadImage } from "../../utils/utils";
-import Icon from "../main/components/Icon";
+import Icon from "../../components/Icon";
 import Post from "./Post";
-import useGeneralStore from "../../utils/stores/generalStore";
+import useGeneralStore from "../../utils/state/generalStore";
 import { DashboardHeader } from "./DashboardHeader";
 
 type SeparatorProps = {
@@ -27,6 +27,7 @@ const Dashboard = () => {
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
   const [postsLoaded, setPostsLoaded] = useState<boolean>(false);
   const username = useGeneralStore((state) => state.username);
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const { data: inspectedUserData, isFetched } = trpc.user.get.useQuery(
     { data: params.username!, type: "username" },
     {
@@ -50,7 +51,6 @@ const Dashboard = () => {
       setPostsLoaded(true);
       return;
     }
-
     loadImages([
       inspectedUserData?.image_url,
       ...inspectedUserData.posts.map((x) => x.media_url),
@@ -70,7 +70,12 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="ml-[80px] min-h-full w-full max-w-[1000px] px-4 py-2 lg:ml-[300px]">
+    <div
+      className={cn(
+        "ml-[80px] min-h-full w-full max-w-[1000px] px-4 py-2 lg:ml-[300px]",
+        isMobile ? "ml-0" : "",
+      )}
+    >
       {inspectedUserData === null ? (
         <ErrorPage />
       ) : (

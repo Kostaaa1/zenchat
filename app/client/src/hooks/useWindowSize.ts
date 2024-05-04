@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import useGeneralStore from "../utils/stores/generalStore";
+import useGeneralStore from "../utils/state/generalStore";
 
 type TWindowSize = {
   width: number;

@@ -1,7 +1,7 @@
 import React, { FC, RefObject, useEffect, useRef, useState } from "react";
-import Icon from "../../pages/main/components/Icon";
+import Icon from "../Icon";
 import Button from "../Button";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 import { trpc } from "../../utils/trpcClient";
 import { TUserDataState } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";

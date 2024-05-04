@@ -1,10 +1,10 @@
 import React, { FC, RefObject, useMemo, useState } from "react";
-import Icon from "../../pages/main/components/Icon";
+import Icon from "../Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 import { cn, loadImage, renameFile } from "../../utils/utils";
 import useUser from "../../hooks/useUser";
 import Avatar from "../avatar/Avatar";

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import useUser from "./useUser";
-import useChatStore from "../utils/stores/chatStore";
+import useChatStore from "../utils/state/chatStore";
 import useChatCache from "./useChatCache";
 import { socket } from "../lib/socket";
 

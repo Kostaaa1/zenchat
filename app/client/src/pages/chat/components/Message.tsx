@@ -1,9 +1,9 @@
 import { FC, useRef, useState } from "react";
 import { cn, convertAndFormatDate } from "../../../utils/utils";
 import useUser from "../../../hooks/useUser";
-import useModalStore from "../../../utils/stores/modalStore";
+import useModalStore from "../../../utils/state/modalStore";
 import { TMessage } from "../../../../../server/src/types/types";
-import Icon from "../../main/components/Icon";
+import Icon from "../../../components/Icon";
 import { motion } from "framer-motion";
 import List from "../../../components/List";
 import { Separator } from "../../dashboard/Dashboard";

@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
-import useModalStore from "../../utils/stores/modalStore";
-import Icon from "../../pages/main/components/Icon";
+import useModalStore from "../../utils/state/modalStore";
+import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";

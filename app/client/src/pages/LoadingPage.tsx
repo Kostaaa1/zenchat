@@ -1,4 +1,4 @@
-import Logo from "./main/components/Logo";
+import Logo from "../components/Logo";
 
 const LoadingPage = () => {
   return (

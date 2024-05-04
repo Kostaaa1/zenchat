@@ -1,7 +1,7 @@
 import { FC } from "react";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 import useChatCache from "../../hooks/useChatCache";
-import useChatStore from "../../utils/stores/chatStore";
+import useChatStore from "../../utils/state/chatStore";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 

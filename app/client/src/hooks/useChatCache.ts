@@ -3,7 +3,7 @@ import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets"
 import { useCallback } from "react";
 import getCurrentDate from "../utils/getCurrentDate";
 import { trpc } from "../utils/trpcClient";
-import useChatStore from "../utils/stores/chatStore";
+import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
 import { useNavigate, useParams } from "react-router-dom";
 import useChat from "./useChat";

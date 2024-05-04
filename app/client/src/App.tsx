@@ -8,7 +8,7 @@ import {
   useAuth,
 } from "@clerk/clerk-react";
 import { Route, Routes } from "react-router-dom";
-import Header from "./pages/main/Header";
+import Header from "./components/header/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
 import LoadingPage from "./pages/LoadingPage";
@@ -16,10 +16,10 @@ import Modals from "./components/modals/Modals";
 import { trpc } from "./utils/trpcClient";
 import { useEffect, useState } from "react";
 import { loadImage } from "./utils/utils";
-import Home from "./pages/Home";
 import { Tables } from "../../server/src/types/supabase";
 import useChatSocket from "./hooks/useChatSocket";
-import useGeneralStore from "./utils/stores/generalStore";
+import useGeneralStore from "./utils/state/generalStore";
+import Home from "./pages/home/Home";
 
 function App() {
   const { user } = useUser();
@@ -76,24 +76,26 @@ function App() {
         {!isFetched ? (
           <LoadingPage />
         ) : (
-          <div className="relative flex h-screen w-full justify-center overflow-auto">
+          <>
             <Header />
-            <Routes>
-              <Route
-                path="/sign-in/*"
-                element={<SignIn routing="path" path="/sign-in" />}
-              />
-              <Route
-                path="/sign-up/*"
-                element={<SignUp routing="path" path="/sign-up" />}
-              />
-              <Route path="/" element={<Home />} />
-              <Route path="/inbox" element={<Inbox />} />
-              <Route path="/inbox/:chatRoomId" element={<Inbox />} />
-              <Route path="/:username" element={<Dashboard />} />
-            </Routes>
+            <div className="flex w-full items-center justify-center">
+              <Routes>
+                <Route
+                  path="/sign-in/*"
+                  element={<SignIn routing="path" path="/sign-in" />}
+                />
+                <Route
+                  path="/sign-up/*"
+                  element={<SignUp routing="path" path="/sign-up" />}
+                />
+                <Route path="/" element={<Home />} />
+                <Route path="/inbox" element={<Inbox />} />
+                <Route path="/inbox/:chatRoomId" element={<Inbox />} />
+                <Route path="/:username" element={<Dashboard />} />
+              </Routes>
+            </div>
             <Modals />
-          </div>
+          </>
         )}
       </SignedIn>
       <SignedOut>

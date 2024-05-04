@@ -1,28 +1,50 @@
 import { motion } from "framer-motion";
-import Search from "./Search";
-import { useState } from "react";
-import List from "../../../../components/List";
+import SearchInput from "./SearchInput";
+import { FC, ReactNode, useState } from "react";
+import List from "../List";
 import { useNavigate } from "react-router-dom";
-import useUser from "../../../../hooks/useUser";
+import useUser from "../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
-import { cn } from "../../../../utils/utils";
-import useGeneralStore from "../../../../utils/stores/generalStore";
-import { trpc } from "../../../../utils/trpcClient";
+import { cn } from "../../utils/utils";
+import useGeneralStore from "../../utils/state/generalStore";
+import { trpc } from "../../utils/trpcClient";
+import useSearchStore from "../../utils/state/searchStore";
 
-const SideSearch = () => {
+const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
+  const isMobile = useGeneralStore((state) => state.isMobile);
+  return !isMobile ? (
+    <motion.div
+      className="fixed left-[80px] top-0 z-40 flex h-full w-full max-w-sm flex-col border-r border-[#262626] bg-black"
+      initial={{ x: "-100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "-100%" }}
+      transition={{ type: "spring", damping: 45, stiffness: 280 }}
+    >
+      {children}
+    </motion.div>
+  ) : (
+    <div className="fixed right-2 top-16 z-[1000] h-max w-[300px] overflow-auto rounded-2xl bg-neutral-800">
+      {children}
+    </div>
+  );
+};
+
+const Search = () => {
   const navigate = useNavigate();
-  const search = useGeneralStore((state) => state.search);
-  const searchedUsers = useGeneralStore((state) => state.searchedUsers);
-  const { setIsSearchActive, setSearch } = useGeneralStore(
+  const search = useSearchStore((state) => state.search);
+  const searchedUsers = useSearchStore((state) => state.searchedUsers);
+  const isMobile = useGeneralStore((state) => state.isMobile);
+  const { setIsSearchActive, setSearch } = useSearchStore(
     (state) => state.actions,
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  // const [loading, setLoading] = useState<boolean>(false);
+  const isSearchingForUsers = useSearchStore(
+    (state) => state.isSearchingForUsers,
+  );
   const { userData } = useUser();
   const utils = trpc.useUtils();
-
   const addToHistoryMutation = trpc.chat.history.addUser.useMutation({
-    onSuccess: (data) => {
-      console.log("Added to history, ", data);
+    onSuccess: () => {
       utils.chat.history.getAll.refetch();
     },
   });
@@ -32,7 +54,7 @@ const SideSearch = () => {
     setIsSearchActive(false);
   };
 
-  const handleListClick = async ({
+  const handleClickUser = async ({
     username,
     id,
   }: {
@@ -53,24 +75,20 @@ const SideSearch = () => {
   };
 
   return (
-    <motion.div
-      className="fixed left-[80px] top-0 z-40 flex h-full w-full max-w-sm flex-col border-r border-[#262626] bg-black"
-      initial={{ x: "-100%" }}
-      animate={{ x: 0 }}
-      exit={{ x: "-100%" }}
-      transition={{ type: "spring", damping: 45, stiffness: 280 }}
-    >
-      <div className="flex h-full max-h-[140px] w-full flex-col justify-between border-b border-[#262626] p-6">
-        <h1 className="text-2xl font-bold">Search</h1>
-        <Search setLoading={setLoading} />
-      </div>
+    <SearchWrapper>
+      {!isMobile && (
+        <div className="flex h-full max-h-[140px] w-full flex-col justify-between border-b border-[#262626] p-6">
+          <h1 className="text-2xl font-bold">Search</h1>
+          <SearchInput />
+        </div>
+      )}
       <div
         className={cn(
           "h-full w-full",
-          !loading ? "overflow-y-auto" : "overflow-hidden",
+          !isSearchingForUsers ? "overflow-y-auto" : "overflow-hidden",
         )}
       >
-        {!loading ? (
+        {!isSearchingForUsers ? (
           <>
             {search.length === 0 || searchedUsers.length === 0 ? (
               <RecentSearchedUsers
@@ -89,7 +107,7 @@ const SideSearch = () => {
                         subtitle={`${user?.first_name} ${user?.last_name}`}
                         onClick={() => {
                           const { username, id } = user;
-                          handleListClick({
+                          handleClickUser({
                             username,
                             id,
                           });
@@ -108,11 +126,12 @@ const SideSearch = () => {
         ) : (
           Array(12)
             .fill("")
-            .map((_, id) => <List key={id} isLoading={true} />)
+            .map((_, id) => <List key={id} isLoading={isSearchingForUsers} />)
         )}
       </div>
-    </motion.div>
+    </SearchWrapper>
+    // </motion.div>
   );
 };
 
-export default SideSearch;
+export default Search;

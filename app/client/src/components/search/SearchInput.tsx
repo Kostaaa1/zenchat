@@ -1,25 +1,31 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import Icon from "../Icon";
-import useGeneralStore from "../../../../utils/stores/generalStore";
-import UseUser from "../../../../hooks/useUser";
+import UseUser from "../../hooks/useUser";
 import { debounce } from "lodash";
-import useOutsideClick from "../../../../hooks/useOutsideClick";
-import { trpc } from "../../../../utils/trpcClient";
+import useOutsideClick from "../../hooks/useOutsideClick";
+import { trpc } from "../../utils/trpcClient";
+import useSearchStore from "../../utils/state/searchStore";
+import { cn } from "../../utils/utils";
+import useGeneralStore from "../../utils/state/generalStore";
 
-type SearchProps = {
-  setLoading: (bool: boolean) => void;
-};
-
-const Search: FC<SearchProps> = ({ setLoading }) => {
-  const [isSearchFocused, setIsSearchFocused] = useState<boolean | null>(null);
+const SearchInput = () => {
   const { userData } = UseUser();
   const searchRef = useRef<HTMLDivElement>(null);
-  const search = useGeneralStore((state) => state.search);
-  const { setSearchedUsers, setSearch } = useGeneralStore(
-    (state) => state.actions,
-  );
+  const search = useSearchStore((state) => state.search);
+  const isSearchFocused = useSearchStore((state) => state.isSearchFocused);
+  const {
+    setSearchedUsers,
+    setIsSearchingForUsers,
+    setIsSearchFocused,
+    setSearch,
+  } = useSearchStore((state) => state.actions);
   const { user } = trpc.useUtils();
+  const isMobile = useGeneralStore((state) => state.isMobile);
   useOutsideClick([searchRef], "click", () => setIsSearchFocused(false));
+
+  useEffect(() => {
+    console.log("isSearchFocused", isSearchFocused);
+  }, [isSearchFocused]);
 
   const debounceEmit = debounce(
     async () => {
@@ -27,25 +33,23 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
         console.log("There is not user data.");
         return null;
       }
-
       const searchedUsers = await user.search.fetch({
         username: userData?.username,
         searchValue: search,
       });
-
       if (searchedUsers) {
         setSearchedUsers(searchedUsers);
-        setLoading(false);
+        setIsSearchingForUsers(false);
       }
     },
     Math.floor(Math.random() * 500 + 300),
   );
 
   useEffect(() => {
-    setLoading(true);
+    setIsSearchingForUsers(true);
     if (search.length === 0) {
       setSearchedUsers([]);
-      setLoading(false);
+      setIsSearchingForUsers(false);
       return;
     }
     debounceEmit();
@@ -64,9 +68,14 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
         />
       )}
       <input
-        className={`${
-          !isSearchFocused ? "pl-8" : "pl-4"
-        } rounded-md bg-[#303030] py-2 text-neutral-400 placeholder-neutral-400 focus:text-white`}
+        // className={`${
+        //   !isSearchFocused ? "pl-8" : "pl-4"
+        // } rounded-md bg-[#303030] py-2 text-neutral-400 placeholder-neutral-400 focus:text-white`}
+        className={cn(
+          "rounded-md bg-[#303030] py-2 text-neutral-400 placeholder-neutral-400 focus:text-white",
+          isMobile ? "py-1" : "py-2",
+          !isSearchFocused ? "pl-8" : "pl-4",
+        )}
         type="text"
         onFocus={() => setIsSearchFocused(true)}
         value={search}
@@ -85,4 +94,4 @@ const Search: FC<SearchProps> = ({ setLoading }) => {
   );
 };
 
-export default Search;
+export default SearchInput;

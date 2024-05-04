@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
-import useChatStore from "../../../utils/stores/chatStore";
+import useChatStore from "../../../utils/state/chatStore";
 import useUser from "../../../hooks/useUser";
 
 const ChatHeader = () => {

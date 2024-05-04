@@ -5,7 +5,7 @@ import { useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
-import useModalStore from "../../utils/stores/modalStore";
+import useModalStore from "../../utils/state/modalStore";
 
 export const DashboardHeader = ({
   userData,
@@ -43,9 +43,8 @@ export const DashboardHeader = ({
   };
 
   return (
-    // <div className="flex h-56 max-w-full items-center justify-center">
-    <div className="h-max items-center justify-center py-4 pb-8 md:flex">
-      <div className="relative mb-8 flex items-center justify-center md:mb-0">
+    <div className="flex h-max max-w-full items-center justify-start space-x-6 py-4 pb-8 md:justify-center">
+      <div className="relative flex items-center sm:justify-start md:mb-0">
         <Avatar
           onClick={handleClick}
           image_url={userData?.image_url}
@@ -54,26 +53,24 @@ export const DashboardHeader = ({
           isLoading={isAvatarUpdating}
         />
       </div>
-      <div className="flex flex-col space-y-4 p-0 md:pl-16">
-        <div className="flex items-start justify-between space-x-10">
-          <h1 className="text-2xl">{userData?.username}</h1>
+      <div className="flex flex-col space-y-4 p-0">
+        <div className="flex flex-wrap items-center justify-between">
+          <h1 className="pr-2 text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
-            <div className="flex space-x-2">
-              <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
-                Message
-              </Button>
-            </div>
+            <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
+              Message
+            </Button>
           ) : (
-            <div className="flex space-x-2">
+            <div className="space-y-1">
               <Button
                 onClick={() => setIsEditProfileModalOpen(true)}
-                className="text-sm"
+                className="mr-2 text-xs sm:text-sm"
               >
                 Edit profile
               </Button>
               <Button
                 onClick={() => setIsDndUploadModalOpen(true)}
-                className="text-sm"
+                className="text-xs sm:text-sm"
               >
                 New post
               </Button>

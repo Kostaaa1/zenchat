@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC, useRef } from "react";
-import Icon from "../../main/components/Icon";
-import useChatStore from "../../../utils/stores/chatStore";
+import Icon from "../../../components/Icon";
+import useChatStore from "../../../utils/state/chatStore";
 import { cn, renameFile } from "../../../utils/utils";
 import useChat from "../../../hooks/useChat";
 import { EmojiPickerContainer } from "./EmojiPicker";
