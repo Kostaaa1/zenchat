@@ -2,11 +2,15 @@ import NavList from "../NavList";
 import useUser from "../../hooks/useUser";
 import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
-import useNavbar from "../../hooks/useNavbar";
+import { NavListItems } from "../../hooks/useNavbar";
+import { FC } from "react";
 
-const BottomNavbar = () => {
+type BottomNavbarProps = {
+  navListItems: NavListItems[];
+};
+
+const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
   const { userData } = useUser();
-  const { navListItems } = useNavbar();
   return (
     <ul className="fixed bottom-0 z-50 flex h-14 w-full select-none items-center justify-evenly border-t border-[#262626] bg-black">
       {navListItems.map((li, id) => (

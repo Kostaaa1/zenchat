@@ -1,13 +1,13 @@
 import useSearchStore from "../utils/state/searchStore";
 import useUser from "./useUser";
 import useGeneralStore, { ActiveList } from "../utils/state/generalStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useModalStore from "../utils/state/modalStore";
 import { useEffect } from "react";
 import useWindowSize from "./useWindowSize";
 import type { icons } from "lucide-react";
 
-type NavListItems = {
+export type NavListItems = {
   iconName?: keyof typeof icons;
   iconStrokeWidth?: string;
   title?: string;
@@ -26,25 +26,20 @@ const useNavbar = () => {
   const { setActiveNavList, setIsResponsive } = useGeneralStore(
     (state) => state.actions,
   );
-  const { setIsSearchActive, setIsSearchFocused } = useSearchStore(
-    (state) => state.actions,
-  );
+  const { setIsSearchActive } = useSearchStore((state) => state.actions);
 
   useEffect(() => {
+    const { pathname } = location;
     if (width <= 1024) return;
-    setIsResponsive(isSearchActive || location.pathname.includes("/inbox"));
-  }, [isSearchActive, width, location]);
+    setIsResponsive(isSearchActive || pathname.includes("/inbox"));
+  }, [isSearchActive, width, location.pathname]);
 
   const handleActivateSearch = () => {
-    setIsSearchFocused(true);
     setIsSearchActive(!isSearchActive);
   };
 
   const handleActiveElement = (list: ActiveList) => {
-    if (width > 1024) {
-      setIsResponsive(list === "inbox");
-    }
-    setIsSearchActive(false);
+    if (width > 1024) setIsResponsive(list === "inbox");
     setActiveNavList(list);
     if (list === "user") {
       navigate(`/${userData?.username}`);
@@ -53,23 +48,22 @@ const useNavbar = () => {
     }
   };
 
-  useEffect(() => {
-    console.log('activeNavList', activeNavList)
-  }, [activeNavList])
-
+  // const activeListClass = "bg-neutral-900 ring ring-[1.4px] ring-neutral-700";
+  const activeListClass = "bg-neutral-900";
   const navListItems: NavListItems[] = [
     {
       iconName: "MessageCircle",
       iconStrokeWidth: activeNavList === "inbox" ? "2" : "",
       title: isResponsive ? "" : "Messages",
       onClick: () => handleActiveElement("inbox"),
+      className: `${activeNavList === "inbox" ? activeListClass : null} `,
     },
     {
       iconName: "Search",
       iconStrokeWidth: isSearchActive ? "2" : "",
       title: isResponsive ? "" : "Search",
+      className: `${isSearchActive ? activeListClass : null} `,
       onClick: handleActivateSearch,
-      className: `${isSearchActive ? "outline outline-1" : null} `,
     },
     {
       iconName: "PlusSquare",
@@ -79,14 +73,15 @@ const useNavbar = () => {
     {
       title: isResponsive ? "" : "Profile",
       onClick: () => handleActiveElement("user"),
+      className: `${activeNavList === "user" ? activeListClass : null} `,
     },
   ];
 
   return {
     navListItems,
-    // handleClick,
     handleActiveElement,
     handleActivateSearch,
+    // handleClick,
   };
 };
 

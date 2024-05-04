@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import useChatStore from "../../../utils/state/chatStore";
 import useUser from "../../../hooks/useUser";
+import { useNavigate } from "react-router-dom";
 
 const ChatHeader = () => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
@@ -11,7 +12,7 @@ const ChatHeader = () => {
   const { setShowDetails } = useChatStore((state) => state.actions);
   const showDetails = useChatStore((state) => state.showDetails);
   const { userData } = useUser();
-
+  const navigate = useNavigate();
   const handleIconClick = () => {
     setShowDetails(!showDetails);
   };
@@ -19,10 +20,15 @@ const ChatHeader = () => {
   const iconSize = showDetails ? 30 : 26;
   const fillColor = showDetails ? "white" : "";
   const color = showDetails ? "black" : "white";
+  const handleNavigate = () => {
+    currentChatroom?.is_group
+      ? setShowDetails(true)
+      : navigate(`/${currentChatroom?.users[0].username}`);
+  };
 
   return (
-    <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6 px-4">
-      <div className="flex items-center space-x-4">
+    <div className="flex h-full max-h-[90px] cursor-pointer items-center justify-between border-b border-[#262626] p-6 px-4">
+      <div className="flex items-center space-x-4" onClick={handleNavigate}>
         <RenderAvatar
           avatarSize="md"
           image_urls={

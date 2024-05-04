@@ -102,7 +102,7 @@ const Inbox = () => {
           <Icon
             name="MessageCircle"
             size="100px"
-            className="rounded-full border-2 border-white p-6"
+            className="cursor-default rounded-full border-2 border-white p-6"
           />
           <div className="flex h-14 flex-col items-center pt-4">
             <h3 className="text-xl">Your Messages</h3>

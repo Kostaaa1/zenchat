@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { TPost } from "../../../../server/src/types/types";
 
-export type ActiveList = "inbox" | "user" | "";
 type TOpenMessageDropdown = {
   id: string;
   imageUrl: string | null;

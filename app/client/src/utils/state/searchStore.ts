@@ -1,20 +1,14 @@
 import { create } from "zustand";
-import { TPost, TUserDataState } from "../../../../server/src/types/types";
-
-// export type ActiveList = "inbox" | "user" | "";
-// type TOpenMessageDropdown = {
-//   id: string;
-//   imageUrl: string | null;
-// };
+import { TUserDataState } from "../../../../server/src/types/types";
 
 type Store = {
   searchedUsers: TUserDataState[];
   search: string;
   isSearchingForUsers: boolean;
   isSearchActive: boolean;
-  isSearchFocused: boolean;
+  // isSearchFocused: boolean;
   actions: {
-    setIsSearchFocused: (v: boolean) => void;
+    // setIsSearchFocused: (v: boolean) => void;
     setIsSearchingForUsers: (v: boolean) => void;
     setIsSearchActive: (isActive: boolean) => void;
     setSearchedUsers: (searchedUsers: TUserDataState[]) => void;
@@ -28,9 +22,9 @@ const useSearchStore = create<Store>(
     searchedUsers: [],
     isSearchActive: false,
     isSearchingForUsers: false,
-    isSearchFocused: false,
+    // isSearchFocused: false,
     actions: {
-      setIsSearchFocused: (isSearchFocused) => set({ isSearchFocused }),
+      // setIsSearchFocused: (isSearchFocused) => set({ isSearchFocused }),
       setSearch: (search: string) => set({ search }),
       setIsSearchActive: (isActive: boolean) =>
         set({ isSearchActive: isActive }),

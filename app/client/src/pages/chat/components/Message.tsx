@@ -74,7 +74,10 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
           <Icon
             name="MoreHorizontal"
             size="18px"
-            className="rotate-90 hover:text-white"
+            className={cn(
+              "absolute -translate-y-1/2 rotate-90 hover:text-white",
+              sender_id === userData!.id ? "right-1" : "left-1",
+            )}
             onClick={onClick}
           />
           {unsendMsgData?.id === id ? (
@@ -84,11 +87,11 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
               exit={{ y: 6, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className={cn(
-                "absolute bottom-8 z-[100] flex h-max w-32 select-none flex-col justify-between rounded-lg bg-neutral-800 p-2 text-sm font-medium text-white",
+                "absolute bottom-4 z-[100] flex h-max w-32 select-none flex-col justify-between rounded-lg bg-neutral-800 p-2 text-sm font-medium text-white",
                 sender_id === userData!.id ? "-right-1" : "-left-1",
               )}
             >
-              <p className="text-sm text-neutral-300">
+              <p className="text-sm text-neutral-200">
                 {convertAndFormatDate(message.created_at)}
               </p>
               <Separator className="my-1 bg-neutral-600" />

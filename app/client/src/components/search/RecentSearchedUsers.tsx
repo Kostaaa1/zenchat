@@ -17,12 +17,10 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   const removeUserMutation = trpc.chat.history.removeUser.useMutation();
   const clearChatHistoryMutation =
     trpc.chat.history.clearChatHistory.useMutation();
-
   const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(
     userData!.id,
     {
       enabled: !!userData?.id,
-      // refetchOnMount: "always",
     },
   );
 
@@ -44,7 +42,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="m-6  flex select-none items-center justify-between font-semibold ">
+      <div className="flex select-none items-center justify-between p-6 py-2 font-semibold md:py-6">
         <h3>Recent</h3>
         {searchedChats && searchedChats?.length > 0 ? (
           <p

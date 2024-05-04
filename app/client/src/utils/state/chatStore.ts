@@ -1,8 +1,6 @@
 import { create } from "zustand";
 import { TChatroom } from "../../../../server/src/types/types";
 
-export type ActiveList = "inbox" | "user" | "";
-
 type TActiveChatroom = TChatroom & {
   img_urls: string[];
   new_message: string;

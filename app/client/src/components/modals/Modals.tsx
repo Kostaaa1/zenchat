@@ -5,7 +5,7 @@ import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
-import React, { FC, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "../../hooks/useOutsideClick";
 
@@ -14,6 +14,12 @@ type ModalProps = {
 };
 
 export const Modal: FC<ModalProps> = ({ children }) => {
+  // useEffect(() => {
+  //   document.body.style.overflow = "hidden";
+  //   return () => {
+  //     document.body.style.overflow = "auto";
+  //   };
+  // });
   return (
     <motion.div
       className="fixed z-[1000] flex h-screen w-screen items-center justify-center bg-black bg-opacity-75"
@@ -55,7 +61,6 @@ const Modals = () => {
   const deleteChatModalRef = useRef<HTMLDivElement>(null);
   const editProfileModalRef = useRef<HTMLFormElement>(null);
   const unsendMessageModalRef = useRef<HTMLDivElement>(null);
-
   useOnClickOutside(
     [
       newMessageModalRef,

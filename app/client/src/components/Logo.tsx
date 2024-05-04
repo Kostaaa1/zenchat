@@ -8,11 +8,12 @@ import useSearchStore from "../utils/state/searchStore";
 const Logo = () => {
   const navigate = useNavigate();
   const isSearchActive = useSearchStore((state) => state.isSearchActive);
-  const { setIsSearchFocused } = useSearchStore((state) => state.actions);
+  const { setIsSearchActive } = useSearchStore((state) => state.actions);
   const isResponsive = useGeneralStore((state) => state.isResponsive);
   const isMobile = useGeneralStore((state) => state.isMobile);
+
   const handleLogoClick = () => {
-    setIsSearchFocused(true);
+    setIsSearchActive(true);
     navigate("/");
   };
 

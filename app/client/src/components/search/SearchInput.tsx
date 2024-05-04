@@ -1,8 +1,7 @@
-import { RefObject, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "../Icon";
 import UseUser from "../../hooks/useUser";
 import { debounce } from "lodash";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import { trpc } from "../../utils/trpcClient";
 import useSearchStore from "../../utils/state/searchStore";
 import { cn } from "../../utils/utils";
@@ -11,21 +10,18 @@ import useGeneralStore from "../../utils/state/generalStore";
 const SearchInput = () => {
   const { userData } = UseUser();
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const search = useSearchStore((state) => state.search);
-  const isSearchFocused = useSearchStore((state) => state.isSearchFocused);
   const {
     setSearchedUsers,
     setIsSearchingForUsers,
-    setIsSearchFocused,
     setSearch,
+    setIsSearchActive,
   } = useSearchStore((state) => state.actions);
+  const isSearchActive = useSearchStore((state) => state.isSearchActive);
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
   const { user } = trpc.useUtils();
   const isMobile = useGeneralStore((state) => state.isMobile);
-  useOutsideClick([searchRef], "click", () => setIsSearchFocused(false));
-
-  useEffect(() => {
-    console.log("isSearchFocused", isSearchFocused);
-  }, [isSearchFocused]);
 
   const debounceEmit = debounce(
     async () => {
@@ -58,31 +54,43 @@ const SearchInput = () => {
     };
   }, [search, userData]);
 
+  useEffect(() => {
+    if (isSearchActive && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isSearchActive]);
+
+  const onInputFocus = () => {
+    setIsSearchActive(true);
+    setIsInputFocused(true);
+  };
+
+  const onInputBlur = () => {
+    setIsSearchActive(false);
+    setIsInputFocused(false);
+  };
+
   return (
     <div className="relative flex select-none text-neutral-400" ref={searchRef}>
-      {!isSearchFocused && (
-        <Icon
-          name="Search"
-          size="18px"
-          className="absolute bottom-1/2 translate-x-1/2 translate-y-1/2"
-        />
-      )}
+      <Icon
+        name="Search"
+        size="18px"
+        className="absolute bottom-1/2 translate-x-1/2 translate-y-1/2"
+      />
       <input
-        // className={`${
-        //   !isSearchFocused ? "pl-8" : "pl-4"
-        // } rounded-md bg-[#303030] py-2 text-neutral-400 placeholder-neutral-400 focus:text-white`}
         className={cn(
-          "rounded-md bg-[#303030] py-2 text-neutral-400 placeholder-neutral-400 focus:text-white",
+          "rounded-md bg-[#303030] pl-8 text-neutral-400 placeholder-neutral-400 focus:text-white",
           isMobile ? "py-1" : "py-2",
-          !isSearchFocused ? "pl-8" : "pl-4",
         )}
+        ref={inputRef}
         type="text"
-        onFocus={() => setIsSearchFocused(true)}
+        onFocus={onInputFocus}
+        onBlur={onInputBlur}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search"
       />
-      {isSearchFocused || isSearchFocused === null ? (
+      {isInputFocused ? (
         <div
           className="absolute bottom-1/2 right-2 flex translate-y-1/2 items-center rounded-full bg-zinc-300 p-[2px] text-zinc-500"
           onClick={() => setSearch("")}
