@@ -6,6 +6,7 @@ import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
 import useModalStore from "../../utils/state/modalStore";
+import useGeneralStore from "../../utils/state/generalStore";
 
 export const DashboardHeader = ({
   userData,
@@ -16,6 +17,7 @@ export const DashboardHeader = ({
 }) => {
   const navigate = useNavigate();
   const { userData: loggedUser } = useUser();
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
   const { chat } = trpc.useUtils();
@@ -48,7 +50,7 @@ export const DashboardHeader = ({
         <Avatar
           onClick={handleClick}
           image_url={userData?.image_url}
-          size="xxl"
+          size={isMobile ? "xl" : "xxl"}
           enableHover={true}
           isLoading={isAvatarUpdating}
         />
@@ -64,7 +66,7 @@ export const DashboardHeader = ({
             <div className="space-y-1">
               <Button
                 onClick={() => setIsEditProfileModalOpen(true)}
-                className="mr-2 text-xs sm:text-sm"
+                className="mr-1 text-xs sm:text-sm"
               >
                 Edit profile
               </Button>

@@ -4,8 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import useGeneralStore from "../utils/state/generalStore";
 import useSearchStore from "../utils/state/searchStore";
+import { FC } from "react";
 
-const Logo = () => {
+type LogoProps = {
+  showTitle?: boolean;
+};
+
+const Logo: FC<LogoProps> = ({ showTitle }) => {
   const navigate = useNavigate();
   const isSearchActive = useSearchStore((state) => state.isSearchActive);
   const { setIsSearchActive } = useSearchStore((state) => state.actions);
@@ -21,7 +26,7 @@ const Logo = () => {
     <div>
       <NavList
         onClick={handleLogoClick}
-        head={!isMobile && isResponsive ? "" : "Zenchat"}
+        head={!showTitle && !isMobile && isResponsive ? "" : "Zenchat"}
         hover="blank"
         variant={!isResponsive ? "default" : "list"}
       >

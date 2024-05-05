@@ -14,7 +14,7 @@ const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
   return (
     <ul className="fixed bottom-0 z-50 flex h-14 w-full select-none items-center justify-evenly border-t border-[#262626] bg-black">
       {navListItems.map((li, id) => (
-        <div key={id}>
+        <div key={id} ref={li.ref}>
           <NavList
             variant="default"
             onClick={li.onClick}

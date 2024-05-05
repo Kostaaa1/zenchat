@@ -1,14 +1,15 @@
 import { create } from "zustand";
 import { TUserDataState } from "../../../../server/src/types/types";
+import { RefObject, createRef } from "react";
 
 type Store = {
   searchedUsers: TUserDataState[];
   search: string;
   isSearchingForUsers: boolean;
   isSearchActive: boolean;
-  // isSearchFocused: boolean;
+  searchRef: RefObject<HTMLDivElement>;
+  searchInputRef: RefObject<HTMLInputElement>;
   actions: {
-    // setIsSearchFocused: (v: boolean) => void;
     setIsSearchingForUsers: (v: boolean) => void;
     setIsSearchActive: (isActive: boolean) => void;
     setSearchedUsers: (searchedUsers: TUserDataState[]) => void;
@@ -22,9 +23,9 @@ const useSearchStore = create<Store>(
     searchedUsers: [],
     isSearchActive: false,
     isSearchingForUsers: false,
-    // isSearchFocused: false,
+    searchRef: createRef<HTMLDivElement>(),
+    searchInputRef: createRef<HTMLInputElement>(),
     actions: {
-      // setIsSearchFocused: (isSearchFocused) => set({ isSearchFocused }),
       setSearch: (search: string) => set({ search }),
       setIsSearchActive: (isActive: boolean) =>
         set({ isSearchActive: isActive }),

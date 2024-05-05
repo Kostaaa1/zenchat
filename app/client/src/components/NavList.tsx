@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { FC, ReactElement } from "react";
 
 export const listVariants = cva(
-  "relative transition-colors px-[10px] flex active:text-zinc-500 h-[46px] items-center justify-start cursor-pointer w-full rounded-lg",
+  "relative transition-colors px-[10px] flex active:text-zinc-500 h-[47px] items-center justify-start cursor-pointer w-full rounded-lg",
   {
     variants: {
       variant: {
-        default: "max-w-[46px] transition-all duration-200 group",
+        default: "max-w-[47px] transition-all duration-200 group",
         list: "active:bg-opacity-10",
       },
       hover: {

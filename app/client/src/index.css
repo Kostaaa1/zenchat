@@ -18,6 +18,8 @@ body {
   color: #fff;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-color: black;
 }
 
 input,

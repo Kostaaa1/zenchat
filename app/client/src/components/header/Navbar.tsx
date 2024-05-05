@@ -41,7 +41,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
             initial={{ width: isResponsive ? "300px" : "80px" }}
             animate={{ width: isResponsive ? "80px" : "300px" }}
             exit={{ width: isResponsive ? "300px" : "80px" }}
-            transition={{ type: "spring", damping: 45, stiffness: 300 }}
+            transition={{ type: "spring", damping: 45, stiffness: 500 }}
             className={cn(
               "fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4 py-6",
               // isResponsive ? "w-[80px]" : "w-[300px]",
@@ -55,7 +55,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
               )}
             >
               {navListItems.map((li, id) => (
-                <div key={id}>
+                <div key={id} ref={li.ref}>
                   <NavList
                     variant={list}
                     onClick={li.onClick}

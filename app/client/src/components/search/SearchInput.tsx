@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "../Icon";
 import UseUser from "../../hooks/useUser";
 import { debounce } from "lodash";
@@ -9,19 +9,18 @@ import useGeneralStore from "../../utils/state/generalStore";
 
 const SearchInput = () => {
   const { userData } = UseUser();
-  const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useSearchStore((state) => state.searchInputRef);
   const search = useSearchStore((state) => state.search);
+  const isSearchActive = useSearchStore((state) => state.isSearchActive);
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
+  const { user } = trpc.useUtils();
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const {
     setSearchedUsers,
     setIsSearchingForUsers,
     setSearch,
     setIsSearchActive,
   } = useSearchStore((state) => state.actions);
-  const isSearchActive = useSearchStore((state) => state.isSearchActive);
-  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
-  const { user } = trpc.useUtils();
-  const isMobile = useGeneralStore((state) => state.isMobile);
 
   const debounceEmit = debounce(
     async () => {
@@ -66,16 +65,21 @@ const SearchInput = () => {
   };
 
   const onInputBlur = () => {
-    setIsSearchActive(false);
+    // setIsSearchActive(false);
     setIsInputFocused(false);
   };
 
+  useEffect(() => {
+    setIsInputFocused(false);
+  }, []);
+
   return (
-    <div className="relative flex select-none text-neutral-400" ref={searchRef}>
+    <div className="relative flex select-none text-neutral-400">
       <Icon
         name="Search"
         size="18px"
         className="absolute bottom-1/2 translate-x-1/2 translate-y-1/2"
+        onClick={onInputFocus}
       />
       <input
         className={cn(
@@ -85,7 +89,6 @@ const SearchInput = () => {
         ref={inputRef}
         type="text"
         onFocus={onInputFocus}
-        onBlur={onInputBlur}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search"

@@ -3,7 +3,7 @@ import useUser from "./useUser";
 import useGeneralStore, { ActiveList } from "../utils/state/generalStore";
 import { useNavigate, useParams } from "react-router-dom";
 import useModalStore from "../utils/state/modalStore";
-import { useEffect } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useState } from "react";
 import useWindowSize from "./useWindowSize";
 import type { icons } from "lucide-react";
 
@@ -12,6 +12,7 @@ export type NavListItems = {
   iconStrokeWidth?: string;
   title?: string;
   onClick?: () => void;
+  ref?: RefObject<HTMLDivElement>;
   className?: string;
 };
 
@@ -23,10 +24,11 @@ const useNavbar = () => {
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
   const { width } = useWindowSize();
   const activeNavList = useGeneralStore((state) => state.activeNavList);
+  const { setIsSearchActive } = useSearchStore((state) => state.actions);
+  const searchInputRef = useSearchStore((state) => state.searchInputRef);
   const { setActiveNavList, setIsResponsive } = useGeneralStore(
     (state) => state.actions,
   );
-  const { setIsSearchActive } = useSearchStore((state) => state.actions);
 
   useEffect(() => {
     const { pathname } = location;
@@ -34,11 +36,11 @@ const useNavbar = () => {
     setIsResponsive(isSearchActive || pathname.includes("/inbox"));
   }, [isSearchActive, width, location.pathname]);
 
-  const handleActivateSearch = () => {
+  const handleActivateSearch = useCallback(() => {
     setIsSearchActive(!isSearchActive);
-  };
+  }, [setIsSearchActive, isSearchActive]);
 
-  const handleActiveElement = (list: ActiveList) => {
+  const handleActiveElement = useCallback((list: ActiveList) => {
     if (width > 1024) setIsResponsive(list === "inbox");
     setActiveNavList(list);
     if (list === "user") {
@@ -46,7 +48,7 @@ const useNavbar = () => {
     } else if (list === "inbox") {
       navigate(`/inbox`);
     }
-  };
+  }, []);
 
   // const activeListClass = "bg-neutral-900 ring ring-[1.4px] ring-neutral-700";
   const activeListClass = "bg-neutral-900";
@@ -56,7 +58,7 @@ const useNavbar = () => {
       iconStrokeWidth: activeNavList === "inbox" ? "2" : "",
       title: isResponsive ? "" : "Messages",
       onClick: () => handleActiveElement("inbox"),
-      className: `${activeNavList === "inbox" ? activeListClass : null} `,
+      className: `${location.pathname.includes("/inbox") || activeNavList === "inbox" ? activeListClass : null} `,
     },
     {
       iconName: "Search",
@@ -64,6 +66,7 @@ const useNavbar = () => {
       title: isResponsive ? "" : "Search",
       className: `${isSearchActive ? activeListClass : null} `,
       onClick: handleActivateSearch,
+      ref: searchInputRef,
     },
     {
       iconName: "PlusSquare",
@@ -73,7 +76,7 @@ const useNavbar = () => {
     {
       title: isResponsive ? "" : "Profile",
       onClick: () => handleActiveElement("user"),
-      className: `${activeNavList === "user" ? activeListClass : null} `,
+      className: `${!location.pathname.includes("/inbox") || activeNavList === "user" ? activeListClass : null} `,
     },
   ];
 

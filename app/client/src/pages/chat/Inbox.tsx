@@ -19,24 +19,17 @@ import useGeneralStore from "../../utils/state/generalStore";
 const Inbox = () => {
   const location = useLocation();
   const { userData } = useUser();
-  const emojiRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const showDetails = useChatStore((state) => state.showDetails);
   const isMobile = useGeneralStore((state) => state.isMobile);
-  const { chat } = trpc.useUtils();
-  const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { setIsNewMessageModalModalOpen } = useModalStore(
     (state) => state.actions,
   );
-  const {
-    setShowEmojiPicker,
-    setCurrentChatroomTitle,
-    setCurrentChatroom,
-    setShowDetails,
-  } = useChatStore((state) => state.actions);
+  const { setCurrentChatroomTitle, setCurrentChatroom, setShowDetails } =
+    useChatStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -44,12 +37,11 @@ const Inbox = () => {
       setShowDetails(false);
     };
   }, []);
-  // useOutsideClick([emojiRef, iconRef], "click", () =>
-  //   setShowEmojiPicker(false),
-  // );
+
   const scrollToStart = () => {
     scrollRef.current?.scrollTo({ top: 0 });
   };
+
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
   });
@@ -59,7 +51,7 @@ const Inbox = () => {
       x.users.some((y) => y.username === userData?.username && y.is_active),
     );
     return filteredChats;
-  }, [data, userData]);
+  }, [data]);
 
   useEffect(() => {
     if (!userChats || userChats.length === 0 || !userData) return;
@@ -77,6 +69,10 @@ const Inbox = () => {
     }
     setIsLoading(false);
   }, [userChats, chatRoomId, userData]);
+
+  useEffect(() => {
+    console.log('isLoading', isLoading)
+  }, [isLoading])
 
   return (
     <div

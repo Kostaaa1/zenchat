@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import SearchInput from "./SearchInput";
-import { FC, ReactNode, useRef } from "react";
+import { FC, ReactNode } from "react";
 import List from "../List";
 import { useNavigate } from "react-router-dom";
 import useUser from "../../hooks/useUser";
@@ -9,7 +9,6 @@ import { cn } from "../../utils/utils";
 import useGeneralStore from "../../utils/state/generalStore";
 import { trpc } from "../../utils/trpcClient";
 import useSearchStore from "../../utils/state/searchStore";
-import useOutsideClick from "../../hooks/useOutsideClick";
 
 const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
   const isMobile = useGeneralStore((state) => state.isMobile);
@@ -24,16 +23,15 @@ const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
       {children}
     </motion.div>
   ) : (
-    <div className="absolute right-2 top-16 z-[1000] h-max w-[300px] overflow-auto rounded-2xl bg-neutral-800">
+    <motion.div className="absolute right-4 top-14 z-[1000] h-max w-[50vw] max-w-[300px] overflow-auto rounded-2xl bg-neutral-800">
       {children}
-    </div>
+    </motion.div>
   );
 };
 
 const Search = () => {
   const navigate = useNavigate();
   const search = useSearchStore((state) => state.search);
-  const searchRef = useRef<HTMLDivElement>(null);
   const searchedUsers = useSearchStore((state) => state.searchedUsers);
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { setIsSearchActive, setSearch } = useSearchStore(
@@ -70,67 +68,63 @@ const Search = () => {
       user_id: id,
     });
   };
-  // const isSearchActive = useSearchStore(state => state.isSearchActive)
-  // useOutsideClick([searchRef], "mousedown", () => {
-  //   setIsSearchActive(!isSearchActive);
-  // });
+
+  const mockUserCount = isMobile ? 4 : 12;
 
   return (
     <SearchWrapper>
-      <div ref={searchRef}>
-        {!isMobile && (
-          <div className="flex h-full max-h-[140px] w-full flex-col justify-between border-b border-[#262626] p-6">
-            <h1 className="text-2xl font-bold">Search</h1>
-            <SearchInput />
-          </div>
-        )}
-        <div
-          className={cn(
-            "h-full w-full",
-            !isSearchingForUsers ? "overflow-y-auto" : "overflow-hidden",
-          )}
-        >
-          {!isSearchingForUsers ? (
-            <>
-              {search.length === 0 || searchedUsers.length === 0 ? (
-                <RecentSearchedUsers
-                  navigateToUserDashboard={navigateToUserDashboard}
-                />
-              ) : (
-                <>
-                  {searchedUsers.length !== 0 ? (
-                    <div>
-                      {searchedUsers.map((user) => (
-                        <List
-                          title={user?.username}
-                          key={user?.id}
-                          image_url={[user?.image_url]}
-                          hover="darker"
-                          subtitle={`${user?.first_name} ${user?.last_name}`}
-                          onClick={() => {
-                            const { username, id } = user;
-                            handleClickUser({
-                              username,
-                              id,
-                            });
-                          }}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="border-1 flex h-full max-h-full w-full items-center justify-center">
-                      No results found.
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          ) : (
-            Array(12)
-              .fill("")
-              .map((_, id) => <List key={id} isLoading={isSearchingForUsers} />)
-          )}
+      {!isMobile && (
+        <div className="flex h-full max-h-[140px] w-full flex-col justify-between border-b border-[#262626] p-6">
+          <h1 className="text-2xl font-bold">Search</h1>
+          <SearchInput />
         </div>
+      )}
+      <div
+        className={cn(
+          "h-full w-full",
+          !isSearchingForUsers ? "overflow-y-auto" : "overflow-hidden",
+        )}
+      >
+        {!isSearchingForUsers ? (
+          <>
+            {search.length === 0 || searchedUsers.length === 0 ? (
+              <RecentSearchedUsers
+                navigateToUserDashboard={navigateToUserDashboard}
+              />
+            ) : (
+              <>
+                {searchedUsers.length !== 0 ? (
+                  <div>
+                    {searchedUsers.map((user) => (
+                      <List
+                        title={user?.username}
+                        key={user?.id}
+                        image_url={[user?.image_url]}
+                        hover="darker"
+                        subtitle={`${user?.first_name} ${user?.last_name}`}
+                        onClick={() => {
+                          const { username, id } = user;
+                          handleClickUser({
+                            username,
+                            id,
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-1 flex h-full max-h-full w-full items-center justify-center">
+                    No results found.
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        ) : (
+          Array(mockUserCount)
+            .fill("")
+            .map((_, id) => <List key={id} isLoading={isSearchingForUsers} />)
+        )}
       </div>
     </SearchWrapper>
   );
