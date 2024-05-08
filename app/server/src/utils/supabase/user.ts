@@ -1,13 +1,12 @@
-import { TRPCError } from "@trpc/server";
 import supabase from "../../config/supabase";
+import { deleteImageFromS3 } from "../../middleware/multer";
+import { Tables } from "../../types/supabase";
 import {
   SupabaseResponse,
   TCreateUserInput,
   TUserData,
   TUserQueryParam,
 } from "../../types/types";
-import { deleteImageFromS3 } from "../../middleware/multer";
-import { Tables } from "../../types/supabase";
 
 export const getUser = async ({ data, type }: TUserQueryParam): Promise<TUserData | null> => {
   if (!data) return null;

@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { protectedProcedure, t } from "../../trpc";
+import { chatHistoryRouter } from "./history";
+import { messageRouter } from "./messages";
 import {
   getUserChatRooms,
   getChatroomId,
   deleteConversation,
 } from "../../utils/supabase/chatroom";
-import { chatHistoryRouter } from "./history";
-import { messageRouter } from "./messages";
 
 export const chatRouter = t.router({
   get: t.router({
