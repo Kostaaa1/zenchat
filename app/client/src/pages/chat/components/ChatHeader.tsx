@@ -13,13 +13,14 @@ const ChatHeader = () => {
   const showDetails = useChatStore((state) => state.showDetails);
   const { userData } = useUser();
   const navigate = useNavigate();
+  const iconSize = showDetails ? 30 : 26;
+  const fillColor = showDetails ? "white" : "";
+  const color = showDetails ? "black" : "white";
+
   const handleIconClick = () => {
     setShowDetails(!showDetails);
   };
 
-  const iconSize = showDetails ? 30 : 26;
-  const fillColor = showDetails ? "white" : "";
-  const color = showDetails ? "black" : "white";
   const handleNavigate = () => {
     currentChatroom?.is_group
       ? setShowDetails(true)

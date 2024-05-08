@@ -13,7 +13,7 @@ import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
 import useModalStore from "../../utils/state/modalStore";
-import { cn } from "../../utils/utils";
+import { cn, loadImage } from "../../utils/utils";
 import useGeneralStore from "../../utils/state/generalStore";
 
 const Inbox = () => {
@@ -69,10 +69,6 @@ const Inbox = () => {
     }
     setIsLoading(false);
   }, [userChats, chatRoomId, userData]);
-
-  useEffect(() => {
-    console.log('isLoading', isLoading)
-  }, [isLoading])
 
   return (
     <div

@@ -33,6 +33,7 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   isRead?: boolean;
   isLoading?: boolean;
   showAvatar?: boolean;
+  isActive?: boolean
   onIconClick?: () => void;
 }
 
@@ -47,6 +48,7 @@ const List: FC<ListProps> = ({
   children,
   isHoverDisabled,
   icon,
+  isActive = false,
   isRead = true,
   showAvatar = true,
   isLoading = false,
@@ -77,6 +79,7 @@ const List: FC<ListProps> = ({
           {showAvatar && (
             <RenderAvatar
               avatarSize="lg"
+              isActive={isActive}
               image_urls={{
                 image_url_1: image_url?.[0],
                 image_url_2: image_url?.[1],

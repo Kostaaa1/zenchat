@@ -55,6 +55,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
           },
         );
         if (messages.length < MESSAGE_FETCH_LIMIT) {
+          console.log("ran");
           setShouldFetchMoreMessages(false);
         }
       },

@@ -37,7 +37,7 @@ const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
       >
         <ul
           className={cn(
-            "absolute z-[100] flex w-[200px] flex-col rounded-lg bg-neutral-800 p-2",
+            "absolute z-[100] flex w-[200px] flex-col rounded-lg bg-neutral-700 p-2",
             isMobile ? "-right-12" : "left-0",
           )}
         >

@@ -7,6 +7,7 @@ import Icon from "../../../components/Icon";
 import { motion } from "framer-motion";
 import List from "../../../components/List";
 import { Separator } from "../../dashboard/Dashboard";
+import useOutsideClick from "../../../hooks/useOutsideClick";
 
 interface MessageProps {
   message: TMessage;
@@ -16,11 +17,14 @@ interface MessageProps {
 const Message: FC<MessageProps> = ({ message, onClick }) => {
   const { setShowUnsendMsgModal, setUnsendMsgData, showImageModal } =
     useModalStore((state) => state.actions);
-  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const { userData } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { content, id, sender_id, is_image } = message;
+  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const moreDropdownRef = useRef<HTMLDivElement>(null);
+  useOutsideClick([moreDropdownRef], "mousedown", () => {
+    setUnsendMsgData(null);
+  });
 
   return (
     <li
@@ -56,7 +60,7 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
               "max-w-[300px] px-2 py-1",
               sender_id === userData!.id
                 ? "rounded-3xl bg-lightBlue"
-                : "rounded-3xl bg-neutral-800",
+                : "rounded-3xl bg-neutral-700",
             )}
           >
             {content}
@@ -74,11 +78,11 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
           <Icon
             name="MoreHorizontal"
             size="18px"
+            onClick={onClick}
             className={cn(
               "absolute -translate-y-1/2 rotate-90 hover:text-white",
-              sender_id === userData!.id ? "right-1" : "left-1",
+              sender_id === userData!.id ? "right-0" : "left-0",
             )}
-            onClick={onClick}
           />
           {unsendMsgData?.id === id ? (
             <motion.ul
@@ -87,7 +91,7 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
               exit={{ y: 6, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className={cn(
-                "absolute bottom-4 z-[100] flex h-max w-32 select-none flex-col justify-between rounded-lg bg-neutral-800 p-2 text-sm font-medium text-white",
+                "absolute bottom-4 flex h-max w-32 select-none flex-col justify-between rounded-lg bg-neutral-700 p-2 text-sm font-medium text-white",
                 sender_id === userData!.id ? "-right-1" : "-left-1",
               )}
             >

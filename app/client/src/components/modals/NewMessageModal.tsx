@@ -98,7 +98,7 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
     <Modal>
       <div
         ref={modalRef}
-        className="flex h-[620px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
+        className="flex h-[640px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
       >
         <div className="relative flex w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
           <span></span>
@@ -159,6 +159,7 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
                       image_url={[user.image_url]}
                       hover="darker"
                       subtitle={`${user?.first_name} ${user?.last_name}`}
+                      className="px-2"
                       onClick={() => handleClick(user)}
                     />
                   ))}
@@ -175,9 +176,9 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
               .map((_, id) => (
                 <div
                   key={id}
-                  className="flex animate-pulse items-center px-6 py-2"
+                  className="flex animate-pulse items-center px-2 py-2"
                 >
-                  <div className="block h-12 w-12 rounded-full bg-neutral-700"></div>
+                  <div className="block h-14 w-14 rounded-full bg-neutral-700"></div>
                   <div className="ml-4 flex h-full flex-col justify-between py-[6px]">
                     <div className="mb-2 h-4 w-[300px] rounded-lg bg-neutral-700"></div>
                     <div className="h-4 w-[120px] rounded-lg bg-neutral-700"></div>

@@ -69,10 +69,11 @@ const useChatCache = () => {
 
   const updateUserChatLastMessageCache = useCallback(
     (msg: TMessage) => {
+      ctx.chat.get.user_chatrooms.refetch(userData!.id);
       const last_message = msg.is_image
         ? "Photo"
-        : msg.content.length > 40
-          ? msg.content.slice(0, 40) + "..."
+        : msg.content.length > 38
+          ? msg.content.slice(0, 38) + "..."
           : msg.content;
 
       ctx.chat.get.user_chatrooms.setData(userData!.id, (oldData) => {
@@ -105,8 +106,11 @@ const useChatCache = () => {
       the number will reset when user sees the message (how??)
       */
       const { channel, data } = socketData;
-      await utils.chat.get.user_chatrooms.refetch(userData!.id);
       if (channel === "onMessage") {
+        // await ctx.chat.messages.get.refetch({
+        //   chatroom_id: data.message.chatroom_id,
+        // });
+        // await ctx.chat.get.user_chatrooms.refetch(userData!.id)
         const { message, shouldActivate, user_id } = data;
         if (shouldActivate) {
           await ctx.chat.get.user_chatrooms.refetch(user_id);

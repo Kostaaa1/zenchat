@@ -6,9 +6,11 @@ interface TCustomSocketType extends Socket {
   userId?: string;
 }
 
+export let rooms: Map<string, Set<string>>;
+
 export const initSocket = (io: Server) => {
   io.on("connection", (socket: TCustomSocketType) => {
-    const rooms = io.sockets.adapter.rooms;
+    rooms = io.sockets.adapter.rooms;
     socket.on("join-room", async (userId: string) => {
       if (!userId || rooms.has(userId)) return;
       socket.join(userId);

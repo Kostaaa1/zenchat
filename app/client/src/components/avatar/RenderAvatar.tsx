@@ -1,6 +1,7 @@
 import { FC } from "react";
 import Avatar from "./Avatar";
 import { cn } from "../../utils/utils";
+import { Dot } from "lucide-react";
 
 interface RenderAvatarProps {
   image_urls: {
@@ -8,13 +9,19 @@ interface RenderAvatarProps {
     image_url_2?: string | null | undefined;
   };
   avatarSize: "sm" | "md" | "lg" | "xl";
+  isActive?: boolean;
 }
 
-const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
+const RenderAvatar: FC<RenderAvatarProps> = ({
+  image_urls,
+  avatarSize,
+  isActive,
+}) => {
   const { image_url_1, image_url_2 } = image_urls;
+  const hasImage2 = image_url_2 === undefined;
   return (
-    <div className="flex h-full">
-      {image_url_2 === undefined ? (
+    <div className="relative flex h-full">
+      {hasImage2 ? (
         <Avatar image_url={image_url_1} size={avatarSize} />
       ) : (
         <div
@@ -33,6 +40,9 @@ const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize }) => {
             className="absolute left-4 top-4 outline outline-1 outline-black"
           />
         </div>
+      )}
+      {hasImage2 && isActive && (
+        <div className="absolute bottom-[6px] right-[2px] h-[10px] w-[10px] rounded-full bg-green-500 outline outline-black"></div>
       )}
     </div>
   );

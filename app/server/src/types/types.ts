@@ -38,6 +38,7 @@ export type TChatroom = {
     image_url: string | null;
     user_id: string;
     is_active: boolean;
+    is_socket_active: boolean;
   }[];
 };
 

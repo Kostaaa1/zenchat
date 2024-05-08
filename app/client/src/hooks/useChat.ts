@@ -6,7 +6,6 @@ import { TMessage } from "../../../server/src/types/types";
 import getCurrentDate from "../utils/getCurrentDate";
 import useChatCache from "./useChatCache";
 import { trpc } from "../utils/trpcClient";
-import { useParams } from "react-router-dom";
 import { Skin } from "@emoji-mart/data";
 import { uploadMultipartForm } from "../utils/utils";
 import { useAuth } from "@clerk/clerk-react";
@@ -14,7 +13,6 @@ import { useAuth } from "@clerk/clerk-react";
 const useChat = (scrollToStart?: () => void) => {
   const { userData } = useUser();
   const [formData, setFormdata] = useState<FormData>(new FormData());
-  const { chatRoomId } = useParams();
   const { chat } = trpc.useUtils();
   const { getToken } = useAuth();
   const selectedImageFiles = useChatStore((state) => state.selectedImageFiles);
@@ -113,6 +111,7 @@ const useChat = (scrollToStart?: () => void) => {
   const sendImageMessage = async (chatroom_id: string) => {
     if (!img_urls) return;
     const arrayOfCreatedIds: string[] = [];
+
     for (const fileUrl of img_urls) {
       const id = uuidv4();
       arrayOfCreatedIds.push(id);

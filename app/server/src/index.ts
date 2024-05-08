@@ -10,7 +10,7 @@ import { createContext } from "./context";
 import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
 import uploadRouter from "./routers/upload";
 
-const { CLIENT_URL, IMAGEKIT_URL_ENDPOINT = "" } = process.env;
+const { CLIENT_URL } = process.env;
 
 const app = express();
 const server = http.createServer(app);

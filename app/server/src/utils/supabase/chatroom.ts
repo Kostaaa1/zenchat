@@ -5,6 +5,7 @@ import { deleteImageFromS3 } from "../../middleware/multer";
 import { TMessage, TChatroom, TChatHistory, TPopulatedChat } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
+import { rooms } from "../../config/initSocket";
 
 const { IMAGEKIT_URL_ENDPOINT = "" } = process.env;
 
@@ -74,7 +75,7 @@ export const sendMessage = async (messageData: TMessage) => {
   const { error: lastMessageUpdateError } = await supabase
     .from("chatrooms")
     .update({
-      last_message: content,
+      last_message: content.length > 34 ? content.slice(0, 34) + "..." : content,
       created_at,
     })
     .eq("id", chatroom_id);
@@ -123,7 +124,8 @@ export const getChatroomData = async (
   for (const item of data) {
     const { users, user_id, is_active } = item;
     const { image_url, username } = users!;
-    chatroomUsers.push({ username, image_url, user_id, is_active });
+    const is_socket_active = rooms.has(user_id);
+    chatroomUsers.push({ username, image_url, user_id, is_active, is_socket_active });
   }
   const { id, chatrooms } = data[0];
   const { last_message, created_at, is_group, admin, is_read } = chatrooms!;
