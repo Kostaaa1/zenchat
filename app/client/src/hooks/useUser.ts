@@ -25,6 +25,7 @@ const useUser = () => {
       (state) => {
         if (state && updatedData) {
           return Object.entries(state).reduce((obj, [key, val]) => {
+            // @ts-expect-error idks
             updatedData[key] ? (obj[key] = updatedData[key]) : (obj[key] = val);
             return obj;
           }, {} as TUserDataMutation);

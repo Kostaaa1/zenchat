@@ -24,7 +24,7 @@ interface Props {
 const FileDropZone: FC<Props> = ({ onDrop }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: [NativeTypes.FILE],
-    drop: (item, monitor) => {
+    drop: (_, monitor) => {
       if (monitor) {
         // @ts-expect-error skkd
         const files = monitor.getItem().files;

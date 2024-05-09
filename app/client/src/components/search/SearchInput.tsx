@@ -64,10 +64,10 @@ const SearchInput = () => {
     setIsInputFocused(true);
   };
 
-  const onInputBlur = () => {
-    // setIsSearchActive(false);
-    setIsInputFocused(false);
-  };
+  // const onInputBlur = () => {
+  //   // setIsSearchActive(false);
+  //   setIsInputFocused(false);
+  // };
 
   useEffect(() => {
     setIsInputFocused(false);

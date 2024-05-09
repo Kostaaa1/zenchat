@@ -5,15 +5,12 @@ import getCurrentDate from "../utils/getCurrentDate";
 import { trpc } from "../utils/trpcClient";
 import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
-import { useNavigate, useParams } from "react-router-dom";
-import useChat from "./useChat";
+import { useNavigate } from "react-router-dom";
 
 const useChatCache = () => {
   const ctx = trpc.useUtils();
   const { setCurrentChatroom } = useChatStore((state) => state.actions);
   const { userData } = useUser();
-  const params = useParams<{ chatRoomId: string }>();
-  const utils = trpc.useUtils();
   const navigate = useNavigate();
 
   const addNewMessageToChatCache = useCallback(
@@ -32,7 +29,6 @@ const useChatCache = () => {
     [ctx.chat.messages.get],
   );
 
-  // Cache Mutation functions: //
   const removeMessageCache = (id: string, chatroom_id: string) => {
     ctx.chat.messages.get.setData({ chatroom_id }, (staleChats) => {
       if (staleChats && id) {
@@ -100,11 +96,6 @@ const useChatCache = () => {
 
   const recieveNewSocketMessage = useCallback(
     async (socketData: TRecieveNewSocketMessageType) => {
-      /* 
-      TODO:  
-      Notify that new message arrived,
-      the number will reset when user sees the message (how??)
-      */
       const { channel, data } = socketData;
       if (channel === "onMessage") {
         // await ctx.chat.messages.get.refetch({

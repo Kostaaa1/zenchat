@@ -22,12 +22,12 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const navigate = useNavigate();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const currentChatroom = useChatStore((state) => state.currentChatroom);
+  // const typingUser = useChatStore((state) => state.typingUser);
   const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const { setUnsendMsgData } = useModalStore((state) => state.actions);
   const currentChatroomTitle = useChatStore(
     (state) => state.currentChatroomTitle,
   );
-  const typingUser = useChatStore((state) => state.typingUser);
   const { userData } = useUser();
   const ctx = trpc.useUtils();
   const isMessagesLoading = useChatStore((state) => state.isMessagesLoading);

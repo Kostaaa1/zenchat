@@ -1,4 +1,4 @@
-import React, { FC, RefObject, useEffect, useRef, useState } from "react";
+import { FC, RefObject, useEffect, useState } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
 import useModalStore from "../../utils/state/modalStore";

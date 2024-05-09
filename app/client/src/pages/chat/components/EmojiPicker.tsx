@@ -1,7 +1,7 @@
 import { FC, RefObject } from "react";
 import Picker from "@emoji-mart/react";
 import { AnimatePresence, motion } from "framer-motion";
-import data, { Skin } from "@emoji-mart/data";
+import data from "@emoji-mart/data";
 import useChat from "../../../hooks/useChat";
 
 type EmojiPickerProps = {

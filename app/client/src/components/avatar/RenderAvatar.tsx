@@ -1,7 +1,6 @@
 import { FC } from "react";
 import Avatar from "./Avatar";
 import { cn } from "../../utils/utils";
-import { Dot } from "lucide-react";
 
 interface RenderAvatarProps {
   image_urls: {

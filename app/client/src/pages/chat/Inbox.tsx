@@ -2,18 +2,16 @@ import Icon from "../../components/Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/Button";
 import { useLocation, useParams } from "react-router-dom";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import MessageInput from "./components/MessageInput";
 import useChatStore from "../../utils/state/chatStore";
 import Chat from "./components/Chat";
 import UserChats from "./components/UserChats";
-import { EmojiPickerContainer } from "./components/EmojiPicker";
 import { trpc } from "../../utils/trpcClient";
 import useUser from "../../hooks/useUser";
 import ChatHeader from "./components/ChatHeader";
 import ChatDetails from "./components/ChatDetails";
 import useModalStore from "../../utils/state/modalStore";
-import { cn, loadImage } from "../../utils/utils";
+import { cn } from "../../utils/utils";
 import useGeneralStore from "../../utils/state/generalStore";
 
 const Inbox = () => {

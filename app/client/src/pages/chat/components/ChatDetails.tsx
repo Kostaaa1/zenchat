@@ -1,5 +1,4 @@
 import { FC, useState } from "react";
-import Button from "../../../components/Button";
 import List from "../../../components/List";
 import { Link } from "react-router-dom";
 import { cn } from "../../../utils/utils";
