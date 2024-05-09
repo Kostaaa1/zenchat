@@ -61,7 +61,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
         <div className="flex h-full flex-col justify-start">
           {searchedChats && searchedChats.length > 0 ? (
             <>
-              {searchedChats?.map((chat) => (
+              {searchedChats!.map((chat) => (
                 <List
                   key={chat.id}
                   isHoverDisabled={true}

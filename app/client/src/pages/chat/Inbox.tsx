@@ -45,7 +45,7 @@ const Inbox = () => {
   });
 
   const userChats = useMemo(() => {
-    const filteredChats = data?.filter((x) =>
+    const filteredChats = data!.filter((x) =>
       x.users.some((y) => y.username === userData?.username && y.is_active),
     );
     return filteredChats;
@@ -53,7 +53,7 @@ const Inbox = () => {
 
   useEffect(() => {
     if (!userChats || userChats.length === 0 || !userData) return;
-    const currentChat = userChats?.find(
+    const currentChat = userChats.find(
       (chat) => chat.chatroom_id === chatRoomId,
     );
     if (currentChat) {

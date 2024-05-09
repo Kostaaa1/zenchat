@@ -148,7 +148,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
                 </span>
               )} */}
             </span>
-            {messages?.map((message) => (
+            {messages!.map((message) => (
               <Message
                 key={message.id}
                 message={message}
@@ -157,7 +157,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             ))}
           </ul>
           {messages &&
-            messages?.length > 0 &&
+            messages.length > 0 &&
             shouldFetchMoreMessages &&
             !isSuccess && (
               <div className="flex w-full items-center justify-center py-4">

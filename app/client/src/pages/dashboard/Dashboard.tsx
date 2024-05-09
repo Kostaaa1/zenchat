@@ -51,8 +51,9 @@ const Dashboard = () => {
       setPostsLoaded(true);
       return;
     }
+
     loadImages([
-      inspectedUserData?.image_url,
+      inspectedUserData!.image_url,
       ...inspectedUserData.posts.map((x) => x.media_url),
     ]);
   }, [inspectedUserData]);
@@ -64,7 +65,7 @@ const Dashboard = () => {
   }, [isFetched]);
 
   const openUploadModal = () => {
-    if (params.username === userData?.username) {
+    if (params.username === userData!.username) {
       setIsDndUploadModalOpen(true);
     }
   };
@@ -137,7 +138,7 @@ const Dashboard = () => {
               ) : (
                 // <div className="grid grid-cols-1 flex-wrap gap-1 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="grid grid-cols-3 gap-1">
-                  {inspectedUserData?.posts.map((post) => (
+                  {inspectedUserData!.posts.map((post) => (
                     <Post key={post.id} post={post} />
                   ))}
                 </div>
