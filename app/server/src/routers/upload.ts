@@ -1,6 +1,6 @@
 import express from "express";
 import { uploadAvatar, uploadMessageImage, uploadPostImage } from "../middleware/multer";
-import { UploadPostRequest, TPost } from "../types/types";
+import { TPost } from "../types/types";
 import { trpcCaller } from ".";
 const uploadRouter = express.Router();
 

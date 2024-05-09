@@ -1,7 +1,5 @@
 node_modules
 .env
 *.env
-get_chatroom_id.txt
 /server/.env
 /client/.env
-clerk_public_key.pem

@@ -5,7 +5,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "concurrently \"wsrun --parallel dev\""
+    "client": "cd client && npm run dev",
+    "server": "cd server && npm run dev",
+    "start": "concurrently \"npm run server\" \"npm run client\""
   },
   "workspaces": [
     "app/*"

@@ -32,7 +32,7 @@ export const userRouter = t.router({
     }),
   updateAvatar: protectedProcedure
     .input(z.object({ userId: z.string(), image_url: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const req = await updateUserAvatar(input);
       return req;
     }),

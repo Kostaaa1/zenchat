@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { purgeImageCache } from "../../config/imagekit";
 import supabase from "../../config/supabase";
 import { deleteImageFromS3 } from "../../middleware/multer";
-import { TMessage, TChatroom, TChatHistory, TPopulatedChat } from "../../types/types";
+import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
@@ -102,10 +102,7 @@ export const sendMessage = async (messageData: TMessage) => {
   }
 };
 
-export const getChatroomData = async (
-  chatroom_id: string,
-  currentUser_id: string
-): Promise<TChatroom> => {
+export const getChatroomData = async (chatroom_id: string): Promise<TChatroom> => {
   const { data, error } = await supabase
     .from("chatroom_users")
     .select(
@@ -155,7 +152,7 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
     }
     const chatrooms = await Promise.all(
       chatData.map(async (chatroom) => {
-        const s = await getChatroomData(chatroom.chatroom_id, userId);
+        const s = await getChatroomData(chatroom.chatroom_id);
         return s;
       })
     );

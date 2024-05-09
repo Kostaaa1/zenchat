@@ -41,7 +41,7 @@ const uploadAvatar = multer({
   storage: multerS3({
     s3,
     bucket: AWS_S3_BUCKETNAME,
-    key: (req, file, cb) => {
+    key: (_, file, cb) => {
       const fullPath = "avatars/" + file.originalname;
       cb(null, fullPath);
     },
@@ -52,7 +52,7 @@ const uploadMessageImage = multer({
   storage: multerS3({
     s3,
     bucket: AWS_S3_BUCKETNAME,
-    key: (req, file, cb) => {
+    key: (_, file, cb) => {
       const fullPath = "messages/" + file.originalname;
       cb(null, fullPath);
     },
@@ -63,7 +63,7 @@ const uploadPostImage = multer({
   storage: multerS3({
     s3,
     bucket: AWS_S3_BUCKETNAME,
-    key: (req, file, cb) => {
+    key: (_, file, cb) => {
       const fullPath = "posts/" + file.originalname;
       cb(null, fullPath);
     },
