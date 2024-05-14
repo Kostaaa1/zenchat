@@ -94,21 +94,74 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
   const FILE_LIMIT_MB = 310;
   const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024;
 
+  const generateThumbnailFile = (
+    videoUrl: string,
+    tmbName: string,
+  ): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement("video");
+
+      const handleLoadedData = () => {
+        const canvas = document.createElement("canvas");
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        const ctx = canvas.getContext("2d");
+
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFile = new File([blob], tmbName, { type: "image/jpeg" });
+              cleanup();
+              canvas.remove();
+              resolve(newFile);
+            } else {
+              cleanup();
+              canvas.remove();
+              reject(new Error("Failed to create blob from canvas."));
+            }
+          }, "image/jpeg");
+        } else {
+          cleanup();
+          canvas.remove();
+          reject(new Error("Failed to get canvas context."));
+        }
+      };
+
+      const handleError = (err: ErrorEvent) => {
+        cleanup();
+        reject(err);
+      };
+
+      const cleanup = () => {
+        video.removeEventListener("loadeddata", handleLoadedData);
+        video.removeEventListener("error", handleError);
+        URL.revokeObjectURL(video.src);
+        video.remove();
+      };
+
+      video.addEventListener("loadeddata", handleLoadedData);
+      video.addEventListener("error", handleError);
+
+      video.src = videoUrl;
+      video.currentTime = 1;
+    });
+  };
+
   const handleDndFile = (dndFile: File) => {
     const reader = new FileReader();
     const isImage = dndFile.type.startsWith("image/");
-
+    const isVideo = dndFile.type.startsWith("video/");
     if (dndFile.size > FILE_LIMIT_BYTES) {
       toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
       return;
     }
-
     reader.onload = () => {
       const result = reader.result;
       if (!result) return;
       if (isImage) {
         setMediaSrc(result as string);
-      } else {
+      } else if (isVideo) {
         const blob = new Blob([result], { type: dndFile.type });
         const url = URL.createObjectURL(blob);
         setMediaSrc(url);
@@ -116,18 +169,6 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
     };
     isImage ? reader.readAsDataURL(dndFile) : reader.readAsArrayBuffer(dndFile);
     setFile(dndFile);
-  };
-
-  const clearAndClose = () => {
-    clear();
-    setIsDndUploadModalOpen(false);
-  };
-
-  const clear = () => {
-    setCaption("");
-    setFile(null);
-    setMediaSrc(null);
-    setModalTitle("Create new post");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -148,18 +189,32 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
       setModalTitle("Processing");
       const { size, name, type } = file;
 
+      let thumbnailFile: File | null = null;
+      if (type.startsWith("video/") && mediaSrc) {
+        const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
+        try {
+          thumbnailFile = await generateThumbnailFile(mediaSrc, tmbName);
+        } catch (error) {
+          console.log("Error while generating the thumbnail", error);
+        }
+      }
+
+      console.log("thumbnail file", thumbnailFile);
       const formData = new FormData();
-      const unified = {
+      const unified: Partial<TPost> = {
         id: nanoid(),
         user_id: userData.id,
         caption,
         type,
-        name,
+        media_name: name,
         size,
+        thumbnail_url: thumbnailFile?.name ?? null,
       };
 
       formData.append("serialized", JSON.stringify(unified));
       formData.append("post", file);
+      if (thumbnailFile) formData.append("post", thumbnailFile);
+
       const { data }: { data: TPost } = await axios.post(
         "/api/uploadMedia/post",
         formData,
@@ -171,7 +226,6 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
         },
       );
 
-      console.log("File type: ", file.type);
       if (file.type.startsWith("image/")) {
         await loadImage(data.media_url);
       }
@@ -184,12 +238,23 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
           }
         },
       );
-
       setIsUploading(false);
       setModalTitle("Post uploaded");
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const clearAndClose = () => {
+    clear();
+    setIsDndUploadModalOpen(false);
+  };
+
+  const clear = () => {
+    setCaption("");
+    setFile(null);
+    setMediaSrc(null);
+    setModalTitle("Create new post");
   };
 
   const { width } = useWindowSize();
@@ -256,11 +321,11 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                     )}
                     {file.type.startsWith("video/") && (
                       <video
-                        muted
+                        id="videoId"
                         autoPlay={true}
                         loop
-                        className="h-full w-[660px] object-cover"
-                        // onLoadStart={(e) => (e.currentTarget.volume = 0.03)}
+                        className="h-full w-[620px] object-cover"
+                        onLoadStart={(e) => (e.currentTarget.volume = 0.05)}
                       >
                         <source src={mediaSrc} type="video/mp4" />
                       </video>

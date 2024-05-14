@@ -7,21 +7,25 @@ import { trpc } from "../../utils/trpcClient";
 import useUser from "../../hooks/useUser";
 import { TPost } from "../../../../server/src/types/types";
 import Avatar from "../avatar/Avatar";
-import MediaDisplay from "../MediaDisplay";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ModalProps = {
-  modalRef: React.RefObject<HTMLDivElement>;
   postData: TPost;
+  modalRef: React.RefObject<HTMLDivElement>;
+  leftRef?: React.RefObject<HTMLDivElement>;
+  rightRef?: React.RefObject<HTMLDivElement>;
 };
 
-const PostModal: FC<ModalProps> = ({ modalRef, postData }) => {
-  // const modalPostData = useModalStore((state) => state.modalPostData);
+const PostModal: FC<ModalProps> = ({
+  postData,
+  modalRef,
+  leftRef,
+  rightRef,
+}) => {
   const [showMore, setShowMore] = useState(false);
-  const { media_url, type } = postData;
+  const { media_url, type, thumbnail_url } = postData;
   const { userData } = useUser();
-  const { setModalPostData, closeImageModal } = useModalStore(
-    (state) => state.actions,
-  );
+  const { setModalPostData } = useModalStore((state) => state.actions);
   const ctx = trpc.useUtils();
   const deletePostMutation = trpc.posts.delete.useMutation({
     onSuccess: () => {
@@ -41,12 +45,14 @@ const PostModal: FC<ModalProps> = ({ modalRef, postData }) => {
 
   const handleDeletePost = async () => {
     try {
-      const { id, name } = postData;
+      const { id, media_name, thumbnail_url } = postData;
       await deletePostMutation.mutateAsync({
         id,
-        s3FileName: name,
+        postUrl: media_name,
+        thumbnailUrl: thumbnail_url
+          ? `thumbnail-${media_name.replace(".mp4", ".jpg")}`
+          : null,
       });
-      closeImageModal();
       setModalPostData(null);
     } catch (error) {
       console.log("error deleting post", error);
@@ -57,28 +63,36 @@ const PostModal: FC<ModalProps> = ({ modalRef, postData }) => {
     <>
       <Modal>
         <div
-          ref={modalRef}
-          // className="mx-auto flex max-w-[90%] items-center outline"
-          className="mx-auto flex max-h-[90vh] max-w-[80%]"
+          ref={leftRef}
+          className="absolute left-4 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
         >
-          {type.startsWith("image/") ? (
-            <div className="">
+          <ChevronLeft />
+        </div>
+        <div
+          ref={rightRef}
+          className="absolute right-4 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
+        >
+          <ChevronRight />
+        </div>
+        <div className="mx-auto flex max-h-[90vh] max-w-[84%]" ref={modalRef}>
+          <div>
+            {type.startsWith("image/") ? (
               <img src={media_url} />
-            </div>
-          ) : type.startsWith("video/") ? (
-            <div className="flex">
+            ) : type.startsWith("video/") ? (
               <video
                 className="h-full w-full object-cover"
-                autoPlay
                 loop
                 controls
+                poster={thumbnail_url ?? ""}
+                autoPlay
+                onLoadStart={(e) => (e.currentTarget.volume = 0.05)}
               >
                 <source src={media_url} type={type} />
               </video>
-            </div>
-          ) : (
-            <></>
-          )}
+            ) : (
+              <></>
+            )}
+          </div>
           <div className="flex w-[500px] flex-col bg-black">
             <div className="relative flex items-center justify-between border-[1px] border-x-0 border-t-0 border-neutral-800 p-2">
               <div className="flex w-full items-center space-x-2">

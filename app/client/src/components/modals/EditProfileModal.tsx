@@ -89,7 +89,6 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
     try {
       if (!userData) return;
       setIsLoading(true);
-
       const { file } = formData;
       utils.user.get.invalidate({
         data: userData?.username,
@@ -107,17 +106,9 @@ const EditProfileModal: FC<ModalProps> = ({ modalRef }) => {
           form,
           getToken,
         );
-
-        console.log(
-          "Using extension: ",
-          import.meta.env.VITE_IMAGEKIT_PREFIX,
-          "uploadedImages",
-          uploadedImages,
-        );
-
         updateAvatarMutation.mutate({
           userId: userData!.id,
-          image_url: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[0],
+          image_url: uploadedImages[0],
         });
       }
 

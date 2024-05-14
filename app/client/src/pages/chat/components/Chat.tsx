@@ -114,13 +114,16 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const handlePressMore = (message: TMessage) => {
     const { is_image, content, id } = message;
     if (!unsendMsgData) {
-      const imageKitPrefix = import.meta.env.VITE_IMAGEKIT_PREFIX;
-      const imageUrl = is_image ? content.split(imageKitPrefix)[1] : null;
-      const msgData = {
-        id,
-        imageUrl,
-      };
-      setUnsendMsgData(unsendMsgData ? null : msgData);
+      // const imageKitPrefix = import.meta.env.VITE_S3_URL;
+      // const imageUrl = is_image ? content.split(imageKitPrefix)[1] : null;
+      // const msgData = {
+      //   id,
+      //   imageUrl,
+      // };
+      console.log("Message content: ", content);
+      setUnsendMsgData(
+        unsendMsgData ? null : { id, imageUrl: is_image ? content : null },
+      );
     } else {
       setUnsendMsgData(null);
     }
@@ -146,11 +149,13 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
               />
             ))}
           </ul>
-          {messages && messages.length > 0 && shouldFetchMoreMessages && (
-            <div className="flex w-full items-center justify-center py-4">
-              <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-            </div>
-          )}
+          {!messages ||
+            messages.length > 0 ||
+            (shouldFetchMoreMessages && (
+              <div className="flex w-full items-center justify-center py-4">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              </div>
+            ))}
           {!shouldFetchMoreMessages && currentChatroom && (
             <div className="flex flex-col items-center pb-8 pt-4">
               <RenderAvatar

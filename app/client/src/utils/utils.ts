@@ -69,6 +69,7 @@ export const renameFile = (
   return newFile;
 };
 
+// ?????????
 export const uploadMultipartForm = async (
   apiUrl: string,
   formData: FormData,
@@ -76,7 +77,6 @@ export const uploadMultipartForm = async (
 ): Promise<string[]> => {
   try {
     const newImages = await axios.post(apiUrl, formData, {
-      // withCredentials: true,
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${await getToken()}`,

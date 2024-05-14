@@ -26,12 +26,10 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
 
   // const [isTyping, setIsTyping] = useState<boolean>(false);
   // const { userData } = useUser();
-
   // useEffect(() => {
   //   if (!currentChatroom) return;
   //   setIsTyping(currentChatroom.new_message.length > 0);
   // }, [currentChatroom]);
-
   // useEffect(() => {
   //   if (!currentChatroom || !userData) return;
   //   if (isTyping) {

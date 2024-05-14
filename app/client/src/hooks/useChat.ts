@@ -24,7 +24,6 @@ const useChat = (scrollToStart?: () => void) => {
   } = useChatStore((state) => state.actions);
   const { addNewMessageToChatCache } = useChatCache();
   const currentChatroom = useChatStore((state) => state.currentChatroom);
-
   const { new_message, img_urls } = currentChatroom || {};
   const sendMessageMutation = trpc.chat.messages.send.useMutation();
 
@@ -51,7 +50,6 @@ const useChat = (scrollToStart?: () => void) => {
         newFormData.append("images", x);
       }
     });
-
     setFormdata(newFormData);
     removeSelectedFile(id);
     const filteredData = img_urls?.filter((_, index) => index !== id);
@@ -101,6 +99,7 @@ const useChat = (scrollToStart?: () => void) => {
     e.preventDefault();
     if (scrollToStart) scrollToStart();
     if (!currentChatroom) return;
+
     const { chatroom_id, new_message, img_urls } = currentChatroom;
     if (new_message.length > 0) await sendTextMessage(new_message, chatroom_id);
     if (selectedImageFiles.length > 0 && img_urls?.length > 0) {
@@ -124,8 +123,8 @@ const useChat = (scrollToStart?: () => void) => {
       messageData.content = fileUrl;
       addNewMessageToChatCache(messageData);
     }
-
     setImgUrls([]);
+
     const uploadedImages = await uploadMultipartForm(
       "/api/uploadMedia/message",
       formData,
@@ -135,18 +134,16 @@ const useChat = (scrollToStart?: () => void) => {
     for (let i = 0; i < uploadedImages.length; i++) {
       const currentId = arrayOfCreatedIds[i];
       const messageData = createNewMessage({
-        content: import.meta.env.VITE_IMAGEKIT_PREFIX + uploadedImages[i],
+        content: uploadedImages[i],
         id: currentId,
         chatroom_id,
         is_image: true,
       });
-      // socket.emit("new-message", messageData);
       await sendMessageMutation.mutateAsync(messageData);
     }
     formData.delete("images");
     clearSelectedFiles();
   };
-
   const userChats = chat.get.user_chatrooms.getData(userData?.id);
 
   return {

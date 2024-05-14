@@ -60,6 +60,9 @@ const Modals = () => {
   const notifyModalRef = useRef<HTMLDivElement>(null);
   const postModalRef = useRef<HTMLDivElement>(null);
 
+  const leftRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+
   useOnClickOutside(
     [
       newMessageModalRef,
@@ -68,6 +71,8 @@ const Modals = () => {
       editProfileModalRef,
       unsendMessageModalRef,
       notifyModalRef,
+      leftRef,
+      rightRef,
       postModalRef,
       // uploadModalRef,
     ],
@@ -94,7 +99,12 @@ const Modals = () => {
         )}
         {isDeleteChatOpen && <DeleteChatModal modalRef={deleteChatModalRef} />}
         {modalPostData && (
-          <PostModal postData={modalPostData} modalRef={postModalRef} />
+          <PostModal
+            postData={modalPostData}
+            modalRef={postModalRef}
+            leftRef={leftRef}
+            rightRef={rightRef}
+          />
         )}
         {isDndUploadModalOpen && <DndUpload modalRef={uploadModalRef} />}
       </AnimatePresence>

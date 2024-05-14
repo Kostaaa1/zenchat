@@ -7,7 +7,7 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation, useParams } from "react-router-dom";
 import Header from "./components/header/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -22,6 +22,7 @@ import useChatSocket from "./hooks/useChatSocket";
 import useGeneralStore from "./utils/state/generalStore";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/home/Home";
+import ErrorPage from "./pages/ErrorPage";
 import PostModal from "./components/modals/PostModal";
 
 function App() {
@@ -30,7 +31,9 @@ function App() {
   const ctx = trpc.useUtils();
   const { setUsername } = useGeneralStore((state) => state.actions);
   const username = useGeneralStore((state) => state.username);
+  const location = useLocation();
   const [isFetched, setIsFetched] = useState<boolean>(false);
+  const params = useParams();
   useChatSocket();
 
   useEffect(() => {
@@ -76,7 +79,6 @@ function App() {
     if (userData === null) createUser();
     if (userData) loadPosts(userData.posts);
   }, [userData]);
-
   return (
     <>
       <SignedIn>
@@ -85,23 +87,28 @@ function App() {
         ) : (
           <>
             <Header />
-            <div className="flex w-full items-center justify-center">
-              <Routes>
-                <Route
-                  path="/sign-in/*"
-                  element={<SignIn routing="path" path="/sign-in" />}
-                />
-                <Route
-                  path="/sign-up/*"
-                  element={<SignUp routing="path" path="/sign-up" />}
-                />
-                <Route path="/" element={<Home />} />
-                <Route path="/inbox" element={<Inbox />} />
-                <Route path="/inbox/:chatRoomId" element={<Inbox />} />
-                <Route path="/:username" element={<Dashboard />} />
-                {/* <Route path="/p/:id" element={<PostModal />} /> */}
-              </Routes>
-            </div>
+            {/* <div className="flex w-full items-center justify-center"> */}
+            <Routes location={location}>
+              <Route
+                path="/sign-in/*"
+                element={<SignIn routing="path" path="/sign-in" />}
+              />
+              <Route
+                path="/sign-up/*"
+                element={<SignUp routing="path" path="/sign-up" />}
+              />
+              <Route path="/" element={<Home />} />
+              <Route path="/inbox" element={<Inbox />} />
+              <Route path="/inbox/:chatRoomId" element={<Inbox />} />
+              <Route path="/:username" element={<Dashboard />} />
+              <Route
+                path="/p/:id"
+                handle={() => console.log("Params", params)}
+                element={null}
+              />
+              <Route path="*" element={<ErrorPage />} />
+            </Routes>
+            {/* </div> */}
             <ToastContainer position={"bottom-right"} className="font-bold" />
             <Modals />
           </>

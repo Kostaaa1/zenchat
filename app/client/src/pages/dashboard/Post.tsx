@@ -1,34 +1,38 @@
 import { FC } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import { TPost } from "../../../../server/src/types/types";
+import { useNavigate } from "react-router-dom";
+import Icon from "../../components/Icon";
+import { Play } from "lucide-react";
 
 type PostProps = {
   post: TPost;
-  onClick?: () => void;
 };
 
-const Post: FC<PostProps> = ({ post, onClick }) => {
-  const { media_url, type, id } = post;
+const Post: FC<PostProps> = ({ post }) => {
+  const { media_url, type, thumbnail_url, id } = post;
   const { setModalPostData } = useModalStore((state) => state.actions);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    setModalPostData(post);
+    // navigate(`/p/${post.id}`);
+  };
 
   return (
-    <li
-      className="relative max-h-[300px] cursor-pointer select-none"
-      onClick={onClick}
-      // onClick={() => setModalPostData(post)}
-    >
-      <div className="h-full">
-        {/* <MediaDisplay id={id} src={media_url} type={type} autoPlay={false} /> */}
-        {type.startsWith("image/") ? (
-          <img src={media_url} alt={id} />
-        ) : type.startsWith("video/") ? (
-          <video className="aspect-video h-full object-cover" muted>
-            <source src={media_url} type={type} />
-          </video>
-        ) : (
-          <></>
-        )}
+    <li className="relative cursor-pointer select-none" onClick={handleClick}>
+      <div className=" w-full">
+        <img
+          className="aspect-square"
+          src={thumbnail_url ?? media_url}
+          alt={id}
+        />
       </div>
+      {post.type.startsWith("video/") && (
+        <div className="absolute right-1 top-1">
+          <Play size={20} fill="white" />
+        </div>
+      )}
       <div className="group absolute top-0 h-full w-full bg-black bg-opacity-0 transition-colors hover:bg-opacity-20"></div>
     </li>
   );
