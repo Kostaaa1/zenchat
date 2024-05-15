@@ -3,6 +3,8 @@ import { CommonInput } from "../components/modals/EditProfileModal";
 import { loadImage } from "../utils/utils";
 import { TUserData } from "../../../server/src/types/types";
 import useGeneralStore from "../utils/state/generalStore";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
 
 type TUserDataMutation = TUserData & {
   [key: string]: string | undefined;
@@ -10,6 +12,16 @@ type TUserDataMutation = TUserData & {
 
 const useUser = () => {
   const username = useGeneralStore((state) => state.username);
+  const { getToken } = useAuth();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const fetchedToken = await getToken();
+      setToken(fetchedToken);
+    };
+    fetchToken();
+  }, []);
 
   const ctx = trpc.useUtils();
   const userData = ctx.user.get.getData({
@@ -25,7 +37,6 @@ const useUser = () => {
       (state) => {
         if (state && updatedData) {
           return Object.entries(state).reduce((obj, [key, val]) => {
-            // @ts-expect-error idks
             updatedData[key] ? (obj[key] = updatedData[key]) : (obj[key] = val);
             return obj;
           }, {} as TUserDataMutation);
@@ -38,6 +49,7 @@ const useUser = () => {
 
   return {
     userData,
+    token,
     updateUserCache,
   };
 };

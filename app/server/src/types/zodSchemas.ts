@@ -3,11 +3,12 @@ import { ZodSchema, z } from "zod";
 export const InputPostSchema = z.object({
   caption: z.string(),
   user_id: z.string(),
-  name: z.string(),
+  media_name: z.string(),
   size: z.number(),
   type: z.string(),
   id: z.string(),
   media_url: z.string(),
+  thumbnail_url: z.string().nullish(),
 });
 
 export const OutputPostSchema = z.object({

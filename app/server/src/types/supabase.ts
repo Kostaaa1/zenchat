@@ -130,9 +130,10 @@ export type Database = {
           caption: string
           created_at: string
           id: string
+          media_name: string
           media_url: string
-          name: string
           size: number
+          thumbnail_url: string | null
           type: string
           user_id: string
         }
@@ -140,9 +141,10 @@ export type Database = {
           caption: string
           created_at?: string
           id: string
+          media_name: string
           media_url: string
-          name: string
           size: number
+          thumbnail_url?: string | null
           type: string
           user_id: string
         }
@@ -150,9 +152,10 @@ export type Database = {
           caption?: string
           created_at?: string
           id?: string
+          media_name?: string
           media_url?: string
-          name?: string
           size?: number
+          thumbnail_url?: string | null
           type?: string
           user_id?: string
         }
@@ -204,7 +207,6 @@ export type Database = {
           id: string
           image_url: string | null
           last_name: string
-          thumbnail_url: string | null
           username: string
         }
         Insert: {
@@ -215,7 +217,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           last_name: string
-          thumbnail_url?: string | null
           username: string
         }
         Update: {
@@ -226,7 +227,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           last_name?: string
-          thumbnail_url?: string | null
           username?: string
         }
         Relationships: []

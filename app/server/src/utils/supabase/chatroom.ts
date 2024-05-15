@@ -1,13 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { purgeImageCache } from "../../config/imagekit";
 import supabase from "../../config/supabase";
 import { deleteS3Object } from "../../middleware/multer";
 import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
-
-const { IMAGEKIT_URL_ENDPOINT = "" } = process.env;
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -56,8 +53,7 @@ export const unsendMessage = async ({
     const { data, error } = await supabase.from("messages").delete().eq("id", id);
     if (!data) console.log(error);
     if (imageUrl) {
-      await purgeImageCache(IMAGEKIT_URL_ENDPOINT + imageUrl);
-      await deleteS3Object({ folder: "messages", file: imageUrl });
+      await deleteS3Object({ folder: "messages", fileName: imageUrl });
     }
   } catch (error) {
     console.log(error);
@@ -121,9 +117,9 @@ export const getChatroomData = async (chatroom_id: string): Promise<TChatroom> =
     const is_socket_active = rooms.has(user_id);
     chatroomUsers.push({ username, image_url, user_id, is_active, is_socket_active });
   }
+
   const { id, chatrooms } = data[0];
   const { last_message, created_at, is_group, admin, is_read } = chatrooms!;
-
   return {
     id,
     chatroom_id,
@@ -303,7 +299,7 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
           for (const img of images) {
             await deleteS3Object({
               folder: "messages",
-              file: img.content.split("")[1],
+              fileName: img.content.split("")[1],
             });
           }
         }

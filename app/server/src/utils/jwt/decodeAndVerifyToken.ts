@@ -14,7 +14,6 @@ export const decodeAndVerifyToken = (req: Request, res: Response, next?: () => v
 
   const cookies = new Cookies(req, res);
   const sessionToken = cookies.get("__session");
-
   const handleError = (status: number, error: any) => {
     if (next) {
       res.status(status).send(error);

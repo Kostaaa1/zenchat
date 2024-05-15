@@ -29,7 +29,7 @@ export const updateUserAvatar = async ({
 }) => {
   const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
   if (imageUrl?.[0]!.image_url) {
-    await deleteS3Object({ folder: "avatars", file: imageUrl[0].image_url });
+    await deleteS3Object({ folder: "avatars", fileName: imageUrl[0].image_url });
   }
 
   const { data, error } = await supabase

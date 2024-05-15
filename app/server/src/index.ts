@@ -9,6 +9,8 @@ import "dotenv/config";
 import { createContext } from "./context";
 import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
 import uploadRouter from "./routers/upload";
+import { createRouteHandler } from "uploadthing/express";
+import { uploadthingRouter } from "../src/uploadthing";
 
 const { CLIENT_URL } = process.env;
 
@@ -38,6 +40,16 @@ app.use(
   createExpressMiddleware({
     router: appRouter,
     createContext,
+  })
+);
+
+app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: uploadthingRouter,
+    config: {
+      logLevel: "debug",
+    },
   })
 );
 

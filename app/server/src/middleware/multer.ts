@@ -2,13 +2,14 @@ import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import "dotenv/config";
+import { BucketFolders } from "../types/types";
 
 const {
-  AWS_REGION,
+  AWS_REGION = "",
   AWS_ACCESS_KEY_ID = "",
   AWS_SECRET_ACCESS_KEY = "",
   AWS_S3_BUCKETNAME = "",
-  IMAGEKIT_URL_ENDPOINT,
+  AWS_BUCKET_URL = "",
 } = process.env;
 
 const s3 = new S3Client({
@@ -19,21 +20,29 @@ const s3 = new S3Client({
   },
 });
 
-export const deleteS3Object = async ({ folder, file }: { folder: string; file: string }) => {
+export const deleteS3Object = async ({
+  folder,
+  fileName,
+}: {
+  folder: BucketFolders;
+  fileName: string;
+}) => {
   try {
-    const removePrefixer = file.split(IMAGEKIT_URL_ENDPOINT as string);
-    console.log(`Deleting file ${removePrefixer} from S3:`);
+    const nameForDelete = fileName.startsWith(AWS_BUCKET_URL)
+      ? fileName.split(AWS_BUCKET_URL)[1]
+      : fileName;
 
     const params = {
       Bucket: AWS_S3_BUCKETNAME,
-      Key: `${folder}/${removePrefixer.length > 1 ? removePrefixer[1] : file}`,
+      Key: `${folder}/${nameForDelete}`,
     };
 
     const deleteCommand = new DeleteObjectCommand(params);
     await s3.send(deleteCommand);
-    console.log(`File ${file} deleted successfully !`);
+    console.log(`File ${fileName} deleted successfully!`);
   } catch (error) {
-    console.log(error);
+    console.log(`Error while deleting the file ${fileName}`, error);
+    return error;
   }
 };
 
@@ -64,7 +73,13 @@ const multerUploadPost = multer({
     s3,
     bucket: AWS_S3_BUCKETNAME,
     key: (_, file, cb) => {
-      const fullPath = "posts/" + file.originalname;
+      const folderName: BucketFolders =
+        file.mimetype.startsWith("image/") && file.originalname.startsWith("thumbnail-")
+          ? "thumbnails"
+          : "posts";
+
+      console.log("Folder", folderName, "File: ", file);
+      const fullPath = `${folderName}/` + file.originalname;
       cb(null, fullPath);
     },
   }),

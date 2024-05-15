@@ -11,6 +11,7 @@ import Post from "./Post";
 import useGeneralStore from "../../utils/state/generalStore";
 import { DashboardHeader } from "./DashboardHeader";
 import MainContainer from "../../components/MainContainer";
+import axios from "axios";
 
 type SeparatorProps = {
   className?: string;
@@ -35,6 +36,7 @@ const Dashboard = () => {
       enabled: !!userData && !!username && !!params.username,
     },
   );
+
   const loadImages = async (urls: string[]) => {
     try {
       await Promise.all(

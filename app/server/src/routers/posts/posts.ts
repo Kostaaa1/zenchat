@@ -4,7 +4,7 @@ import { z } from "zod";
 import { deletePost, uploadPost } from "../../utils/supabase/posts";
 
 export const postRouter = t.router({
-  upload: protectedProcedure.input(InputPostSchema).query(async ({ input }) => {
+  upload: protectedProcedure.input(InputPostSchema).mutation(async ({ input }) => {
     try {
       if (!input) return;
       const { data, error } = await uploadPost(input);
@@ -14,15 +14,12 @@ export const postRouter = t.router({
       throw new Error(`Error while uploading: ${error}`);
     }
   }),
-  get: protectedProcedure.input(z.string()).query(async ({ input }) => {
-    console.log("Post Id", input);
-  }),
   delete: protectedProcedure
-    .input(z.object({ id: z.string(), s3FileName: z.string() }))
+    .input(z.object({ id: z.string(), fileKeys: z.array(z.string()) }))
     .mutation(async ({ input }) => {
       try {
-        const { id, s3FileName } = input;
-        const err = await deletePost(id, s3FileName);
+        const { id, fileKeys } = input;
+        const err = await deletePost(id, fileKeys);
         if (err) console.log("HANDLE: error deleting the post");
       } catch (err) {
         console.log(err);

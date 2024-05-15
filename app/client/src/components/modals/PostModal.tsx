@@ -45,13 +45,13 @@ const PostModal: FC<ModalProps> = ({
 
   const handleDeletePost = async () => {
     try {
-      const { id, media_name, thumbnail_url } = postData;
+      const { id, media_url, thumbnail_url } = postData;
+      const fileKeys = [media_url]
+      if (thumbnail_url) fileKeys.push(thumbnail_url)
+
       await deletePostMutation.mutateAsync({
         id,
-        postUrl: media_name,
-        thumbnailUrl: thumbnail_url
-          ? `thumbnail-${media_name.replace(".mp4", ".jpg")}`
-          : null,
+        fileKeys 
       });
       setModalPostData(null);
     } catch (error) {

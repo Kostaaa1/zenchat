@@ -8,6 +8,8 @@ import {
 } from "../../utils/supabase/chatroom";
 import { MessageSchema, UserSchema } from "../../types/zodSchemas";
 
+const { AWS_BUCKET_URL = "" } = process.env;
+
 export const messageRouter = t.router({
   get: protectedProcedure
     .input(
@@ -36,6 +38,8 @@ export const messageRouter = t.router({
     }),
   send: protectedProcedure.input(MessageSchema).mutation(async ({ input: messageData }) => {
     try {
+      const { content, is_image } = messageData;
+      if (is_image) messageData["content"] = AWS_BUCKET_URL + "messages/" + content;
       await sendMessage(messageData);
     } catch (error) {
       console.log(error);

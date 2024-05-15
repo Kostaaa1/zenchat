@@ -1,11 +1,18 @@
-import React, { FC, RefObject, useMemo, useState } from "react";
+import React, {
+  FC,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Icon from "../Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
 import useModalStore from "../../utils/state/modalStore";
-import { cn, loadImage } from "../../utils/utils";
+import { cn, generateThumbnailFile, loadImage } from "../../utils/utils";
 import useUser from "../../hooks/useUser";
 import Avatar from "../avatar/Avatar";
 import { motion } from "framer-motion";
@@ -18,60 +25,16 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import useWindowSize from "../../hooks/useWindowSize";
 import { toast } from "react-toastify";
 import { nanoid } from "nanoid";
+import { generateReactHelpers, useDropzone } from "@uploadthing/react";
+import { generateClientDropzoneAccept } from "uploadthing/client";
+import { OurFileRouter } from "../../../../server/src/uploadthing";
 
 interface Props {
   onDrop: (droppedFile: File) => void;
 }
 
-const FileDropZone: FC<Props> = ({ onDrop }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: [NativeTypes.FILE],
-    drop: (_, monitor) => {
-      if (monitor) {
-        // @ts-expect-error skkd
-        const files = monitor.getItem().files;
-        const droppedFile = files[0];
-        if (onDrop) {
-          onDrop(droppedFile);
-        }
-      }
-    },
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-    }),
-  }));
-
-  return (
-    <div
-      ref={drop}
-      className="flex h-full w-full flex-col items-center justify-center space-y-2"
-    >
-      <div className="flex h-11 w-11">
-        <Upload
-          strokeWidth={1.2}
-          className={cn(
-            "h-full w-full rounded-md p-1 text-neutral-400 ring-2 ring-neutral-400",
-            isOver && "text-blue-500 ring-blue-500",
-          )}
-        />
-      </div>
-      <p className="text-xl tracking-wide">Drag photos and videos here</p>
-      <Button className="relative cursor-pointer" buttonColor="blue">
-        <label
-          className="absolute w-full cursor-pointer opacity-0"
-          htmlFor="fileInput"
-        >
-          <input
-            id="fileInput"
-            type="file"
-            onChange={(e) => onDrop(e.target.files![0])}
-          />
-        </label>
-        Select from computer
-      </Button>
-    </div>
-  );
-};
+export const { useUploadThing, uploadFiles } =
+  generateReactHelpers<OurFileRouter>();
 
 type ModalProps = {
   modalRef: RefObject<HTMLDivElement>;
@@ -79,97 +42,101 @@ type ModalProps = {
 
 const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
   const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
-  const { userData } = useUser();
-  const { getToken } = useAuth();
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const ctx = trpc.useUtils();
+  const { userData, token } = useUser();
+  const utils = trpc.useUtils();
   useOutsideClick([modalRef], "mousedown", () => clearAndClose());
   const [caption, setCaption] = useState<string>("");
   const [modalTitle, setModalTitle] = useState<
     "Create new post" | "Processing" | "Post uploaded"
   >("Create new post");
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File[] | null>(null);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
-
+  const [thumbnailSrc, setThumbnailSrc] = useState<string | null>(null);
   const FILE_LIMIT_MB = 310;
   const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024;
 
-  const generateThumbnailFile = (
-    videoUrl: string,
-    tmbName: string,
-  ): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement("video");
-
-      const handleLoadedData = () => {
-        const canvas = document.createElement("canvas");
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        const ctx = canvas.getContext("2d");
-
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const newFile = new File([blob], tmbName, { type: "image/jpeg" });
-              cleanup();
-              canvas.remove();
-              resolve(newFile);
-            } else {
-              cleanup();
-              canvas.remove();
-              reject(new Error("Failed to create blob from canvas."));
-            }
-          }, "image/jpeg");
-        } else {
-          cleanup();
-          canvas.remove();
-          reject(new Error("Failed to get canvas context."));
-        }
-      };
-
-      const handleError = (err: ErrorEvent) => {
-        cleanup();
-        reject(err);
-      };
-
-      const cleanup = () => {
-        video.removeEventListener("loadeddata", handleLoadedData);
-        video.removeEventListener("error", handleError);
-        URL.revokeObjectURL(video.src);
-        video.remove();
-      };
-
-      video.addEventListener("loadeddata", handleLoadedData);
-      video.addEventListener("error", handleError);
-
-      video.src = videoUrl;
-      video.currentTime = 1;
-    });
-  };
-
-  const handleDndFile = (dndFile: File) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const dndFile = acceptedFiles[0];
     const reader = new FileReader();
-    const isImage = dndFile.type.startsWith("image/");
-    const isVideo = dndFile.type.startsWith("video/");
     if (dndFile.size > FILE_LIMIT_BYTES) {
       toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
       return;
     }
+
     reader.onload = () => {
       const result = reader.result;
       if (!result) return;
-      if (isImage) {
-        setMediaSrc(result as string);
-      } else if (isVideo) {
-        const blob = new Blob([result], { type: dndFile.type });
-        const url = URL.createObjectURL(blob);
-        setMediaSrc(url);
-      }
+      const blob = new Blob([result], { type: dndFile.type });
+      const ulr = URL.createObjectURL(blob);
+      setMediaSrc(ulr);
     };
-    isImage ? reader.readAsDataURL(dndFile) : reader.readAsArrayBuffer(dndFile);
-    setFile(dndFile);
-  };
+    reader.readAsArrayBuffer(dndFile);
+    setFile(acceptedFiles);
+  }, []);
+
+  const uploadPostMutation = trpc.posts.upload.useMutation({
+    onSuccess: async (post) => {
+      if (!post || !mediaSrc) return;
+      if (thumbnailSrc) post["thumbnail_url"] = thumbnailSrc;
+      post["media_url"] = mediaSrc;
+
+      utils.user.get.setData(
+        {
+          data: userData!.username,
+          type: "username",
+        },
+        (state) => {
+          if (state) return { ...state, posts: [post, ...state.posts] };
+        },
+      );
+      setModalTitle("Post uploaded");
+    },
+    onError: (error) => {
+      console.log("Mutation error: ", error);
+    },
+  });
+
+  const { permittedFileInfo, startUpload, isUploading } = useUploadThing(
+    "post",
+    {
+      skipPolling: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      onClientUploadComplete: async (data) => {
+        const { name, type, size, url } = data[0];
+        const thumbnail_url =
+          data[1] && data[1].name.startsWith("thumbnail") ? data[1].url : null;
+
+        const unified = {
+          id: nanoid(),
+          user_id: userData!.id,
+          caption,
+          type,
+          media_name: name,
+          size,
+          thumbnail_url,
+          media_url: url,
+        };
+        uploadPostMutation.mutate(unified);
+      },
+      onUploadError: () => {
+        console.log("error occurred while uploading");
+      },
+      onUploadBegin: () => {
+        console.log("upload has begun");
+      },
+    },
+  );
+
+  const fileTypes = permittedFileInfo?.config
+    ? Object.keys(permittedFileInfo?.config)
+    : [];
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: fileTypes ? generateClientDropzoneAccept(fileTypes) : undefined,
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const inputValue = e.target.value;
@@ -182,70 +149,11 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
     setCaption(inputValue);
   };
 
-  const handleUploadPost = async () => {
-    try {
-      if (!file || !userData?.id) return;
-      setIsUploading(true);
-      setModalTitle("Processing");
-      const { size, name, type } = file;
-
-      let thumbnailFile: File | null = null;
-      if (type.startsWith("video/") && mediaSrc) {
-        const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
-        try {
-          thumbnailFile = await generateThumbnailFile(mediaSrc, tmbName);
-        } catch (error) {
-          console.log("Error while generating the thumbnail", error);
-        }
-      }
-
-      console.log("thumbnail file", thumbnailFile);
-      const formData = new FormData();
-      const unified: Partial<TPost> = {
-        id: nanoid(),
-        user_id: userData.id,
-        caption,
-        type,
-        media_name: name,
-        size,
-        thumbnail_url: thumbnailFile?.name ?? null,
-      };
-
-      formData.append("serialized", JSON.stringify(unified));
-      formData.append("post", file);
-      if (thumbnailFile) formData.append("post", thumbnailFile);
-
-      const { data }: { data: TPost } = await axios.post(
-        "/api/uploadMedia/post",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${await getToken()}`,
-          },
-        },
-      );
-
-      if (file.type.startsWith("image/")) {
-        await loadImage(data.media_url);
-      }
-
-      ctx.user.get.setData(
-        { data: userData.username, type: "username" },
-        (state: TUserData) => {
-          if (state) {
-            return { ...state, posts: [data, ...state.posts] };
-          }
-        },
-      );
-      setIsUploading(false);
-      setModalTitle("Post uploaded");
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const clearAndClose = () => {
+    if (isUploading) {
+      toast.warn("Uploading is in action");
+      return;
+    }
     clear();
     setIsDndUploadModalOpen(false);
   };
@@ -254,7 +162,23 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
     setCaption("");
     setFile(null);
     setMediaSrc(null);
+    setThumbnailSrc(null);
     setModalTitle("Create new post");
+  };
+
+  const handleCreatingPost = async () => {
+    if (!file || !userData?.id) return;
+    setModalTitle("Processing");
+    const { name, type } = file[0];
+    let thumbnailFile: File | null = null;
+    if (type.startsWith("video/") && mediaSrc) {
+      const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
+      const thumbnail = await generateThumbnailFile(mediaSrc, tmbName);
+      setThumbnailSrc(thumbnail.url);
+      thumbnailFile = thumbnail.file;
+    }
+    if (thumbnailFile) file.push(thumbnailFile);
+    startUpload(file);
   };
 
   const { width } = useWindowSize();
@@ -294,7 +218,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
             {file && modalTitle === "Create new post" ? (
               <p
                 className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
-                onClick={handleUploadPost}
+                onClick={handleCreatingPost}
               >
                 Upload
               </p>
@@ -316,14 +240,14 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                   className="flex h-[660px]"
                 >
                   <div>
-                    {file.type.startsWith("image/") && (
+                    {file[0].type.startsWith("image/") && (
                       <img src={mediaSrc} alt={mediaSrc} />
                     )}
-                    {file.type.startsWith("video/") && (
+                    {file[0].type.startsWith("video/") && (
                       <video
+                        loop
                         id="videoId"
                         autoPlay={true}
-                        loop
                         className="h-full w-[620px] object-cover"
                         onLoadStart={(e) => (e.currentTarget.volume = 0.05)}
                       >
@@ -355,7 +279,30 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                   </div>
                 </motion.div>
               ) : (
-                <FileDropZone onDrop={handleDndFile} />
+                <div
+                  {...getRootProps()}
+                  className="flex h-full w-full flex-col items-center justify-center space-y-2"
+                >
+                  <div className="flex h-11 w-11">
+                    <Upload
+                      strokeWidth={1.2}
+                      className={cn(
+                        "h-full w-full rounded-md p-1 text-neutral-400 ring-2 ring-neutral-400",
+                        isDragActive && "text-blue-500 ring-blue-500",
+                      )}
+                    />
+                  </div>
+                  <p className="text-xl tracking-wide">
+                    Drag photos and videos here
+                  </p>
+                  <input {...getInputProps()} />
+                  <Button
+                    className="relative cursor-pointer"
+                    buttonColor="blue"
+                  >
+                    Select from computer
+                  </Button>
+                </div>
               )}
             </>
           ) : (
@@ -364,7 +311,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                 <motion.div>div</motion.div>
               ) : (
                 <Loader2
-                  className="animate-spin"
+                  className="animate-spin bg-green-700"
                   size={60}
                   strokeWidth={1}
                   gradientTransform="linear-gradient(315deg, #9979d3 0%, #ff80cb 100%)"
