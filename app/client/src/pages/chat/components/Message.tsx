@@ -15,8 +15,9 @@ interface MessageProps {
 }
 
 const Message: FC<MessageProps> = ({ message, onClick }) => {
-  const { setShowUnsendMsgModal, setUnsendMsgData, showImageModal } =
-    useModalStore((state) => state.actions);
+  const { setUnsendMsgData, openModal } = useModalStore(
+    (state) => state.actions,
+  );
   const { userData } = useUser();
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { content, id, sender_id, is_image } = message;
@@ -40,7 +41,8 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
       {is_image ? (
         <div
           onClick={() => {
-            showImageModal(content);
+            // showImageModal(content);
+            openModal('image')
           }}
           className={cn(
             "relative h-full max-h-[400px] w-full max-w-[230px] cursor-pointer rounded-2xl",
@@ -104,7 +106,7 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
                   title="Unsend"
                   showAvatar={false}
                   className="rounded-tl-lg rounded-tr-lg p-1 font-normal"
-                  onClick={() => setShowUnsendMsgModal(true)}
+                  onClick={() => openModal("unsendmessage")}
                 />
               ) : null}
               <List

@@ -21,7 +21,7 @@ const useNavbar = () => {
   const isSearchActive = useSearchStore((state) => state.isSearchActive);
   const { userData } = useUser();
   const isResponsive = useGeneralStore((state) => state.isResponsive);
-  const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
+  const { openModal } = useModalStore((state) => state.actions);
   const { width } = useWindowSize();
   const activeNavList = useGeneralStore((state) => state.activeNavList);
   const { setIsSearchActive } = useSearchStore((state) => state.actions);
@@ -82,7 +82,7 @@ const useNavbar = () => {
     {
       iconName: "PlusSquare",
       title: isResponsive ? "" : "Create",
-      onClick: () => setIsDndUploadModalOpen(true),
+      onClick: () => openModal("uploadpost"),
     },
     {
       title: isResponsive ? "" : "Profile",

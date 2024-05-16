@@ -9,8 +9,11 @@ type PostProps = {
 
 const Post: FC<PostProps> = ({ post }) => {
   const { media_url, thumbnail_url, id } = post;
-  const { setModalPostData } = useModalStore((state) => state.actions);
+  const { setModalPostData, openModal } = useModalStore(
+    (state) => state.actions,
+  );
   const handleClick = () => {
+    openModal("post");
     setModalPostData(post);
   };
 

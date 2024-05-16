@@ -1,4 +1,4 @@
-import { FC, RefObject, useEffect, useState } from "react";
+import { FC, RefObject, forwardRef, useEffect, useState } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
 import useModalStore from "../../utils/state/modalStore";
@@ -11,11 +11,7 @@ import { cn } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "./Modals";
 
-type NewMessageModalProps = {
-  modalRef: RefObject<HTMLDivElement>;
-};
-
-const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
+const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const { userData } = useUser();
@@ -23,12 +19,7 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
   const [selectedUsers, setSelectedUsers] = useState<TUserDataState[]>([]);
   const navigate = useNavigate();
   const { user, chat } = trpc.useUtils();
-  const { setIsNewMessageModalModalOpen } = useModalStore(
-    (state) => state.actions,
-  );
-  const closeSendMessageModal = () => {
-    setIsNewMessageModalModalOpen(false);
-  };
+  const { closeModal } = useModalStore((state) => state.actions);
 
   const debounceEmit = debounce(
     async () => {
@@ -87,8 +78,9 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
     //     if (stale) return [newChat, ...stale];
     //   });
     // }
+
     if (newChatroomId) {
-      closeSendMessageModal();
+      closeModal();
       setLoading(false);
       navigate(`/inbox/${newChatroomId}`);
     }
@@ -97,7 +89,7 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
   return (
     <Modal>
       <div
-        ref={modalRef}
+        ref={ref}
         className="flex h-[640px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
       >
         <div className="relative flex w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
@@ -106,7 +98,7 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
           <Icon
             className="absolute right-0 top-0 -translate-y-1/2"
             name="X"
-            onClick={closeSendMessageModal}
+            onClick={closeModal}
           />
         </div>
         <div className="relative flex h-max w-full items-start border border-x-0 border-y-neutral-600 px-2 py-1 font-semibold">
@@ -204,6 +196,6 @@ const NewMessageModal: FC<NewMessageModalProps> = ({ modalRef }) => {
       </div>
     </Modal>
   );
-};
+});
 
 export default NewMessageModal;

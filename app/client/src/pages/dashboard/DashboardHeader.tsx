@@ -21,9 +21,8 @@ export const DashboardHeader = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
   const { chat } = trpc.useUtils();
-  const { setIsEditProfileModalOpen, showImageModal, setIsDndUploadModalOpen } =
-    useModalStore((state) => state.actions);
   const ctx = trpc.useUtils();
+  const { openModal, setImageSource } = useModalStore((state) => state.actions);
 
   const handleGetChatRoomId = async () => {
     setIsLoading(true);
@@ -41,7 +40,9 @@ export const DashboardHeader = ({
 
   const handleClick = () => {
     if (isAvatarUpdating) return;
-    showImageModal(userData?.image_url as string);
+    console.log("click");
+    setImageSource(userData.image_url);
+    openModal("image");
   };
 
   return (
@@ -65,13 +66,13 @@ export const DashboardHeader = ({
           ) : (
             <div className="space-y-1">
               <Button
-                onClick={() => setIsEditProfileModalOpen(true)}
+                onClick={() => openModal("editprofile")}
                 className="mr-1 text-xs sm:text-sm"
               >
                 Edit profile
               </Button>
               <Button
-                onClick={() => setIsDndUploadModalOpen(true)}
+                onClick={() => openModal("uploadpost")}
                 className="text-xs sm:text-sm"
               >
                 New post

@@ -24,9 +24,7 @@ const Inbox = () => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const showDetails = useChatStore((state) => state.showDetails);
   const isMobile = useGeneralStore((state) => state.isMobile);
-  const { setIsNewMessageModalModalOpen } = useModalStore(
-    (state) => state.actions,
-  );
+  const { openModal } = useModalStore((state) => state.actions);
   const { setCurrentChatroomTitle, setCurrentChatroom, setShowDetails } =
     useChatStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -103,7 +101,7 @@ const Inbox = () => {
               </p>
               <Button
                 buttonColor="blue"
-                onClick={() => setIsNewMessageModalModalOpen(true)}
+                onClick={() => openModal("newmessage")}
                 className="text-sm"
               >
                 Send message

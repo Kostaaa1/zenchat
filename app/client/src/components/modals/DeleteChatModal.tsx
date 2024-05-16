@@ -1,4 +1,4 @@
-import { FC, RefObject } from "react";
+import { FC, RefObject, forwardRef } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import useChatStore from "../../utils/state/chatStore";
 import useChatCache from "../../hooks/useChatCache";
@@ -10,9 +10,9 @@ type ModalProps = {
   modalRef: RefObject<HTMLDivElement>;
 };
 
-const DeleteChatModal: FC<ModalProps> = ({ modalRef }) => {
+const DeleteChatModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { currentChatroom } = useChatStore();
-  const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
+  const { closeModal } = useModalStore((state) => state.actions);
   const { removeChatFromUserChats } = useChatCache();
   const deleteChatMutation = trpc.chat.delete.useMutation();
   const { userData } = useUser();
@@ -20,7 +20,8 @@ const DeleteChatModal: FC<ModalProps> = ({ modalRef }) => {
   const handleDeleteConversation = async () => {
     if (!currentChatroom || !userData) return;
     const { chatroom_id } = currentChatroom;
-    setIsDeleteChatOpen(false);
+    // setIsDeleteChatOpen(false);
+    closeModal();
     removeChatFromUserChats(chatroom_id);
 
     await deleteChatMutation.mutateAsync({
@@ -32,7 +33,7 @@ const DeleteChatModal: FC<ModalProps> = ({ modalRef }) => {
   return (
     <Modal>
       <div
-        ref={modalRef}
+        ref={ref}
         className="flex h-max w-96 flex-col items-center rounded-xl bg-[#282828] px-2 py-4 pb-0 text-center"
       >
         <h4 className="py-2 text-lg">Permanently delete conversation?</h4>
@@ -45,7 +46,7 @@ const DeleteChatModal: FC<ModalProps> = ({ modalRef }) => {
               Delete
             </button>
             <button
-              onClick={() => setIsDeleteChatOpen(false)}
+              onClick={closeModal}
               className="w-full cursor-pointer rounded-bl-xl rounded-br-xl p-3 text-white active:bg-neutral-800"
             >
               Cancel
@@ -55,6 +56,6 @@ const DeleteChatModal: FC<ModalProps> = ({ modalRef }) => {
       </div>
     </Modal>
   );
-};
+});
 
 export default DeleteChatModal;

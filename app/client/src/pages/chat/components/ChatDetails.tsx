@@ -11,10 +11,10 @@ interface ChatDetailsProps {}
 const ChatDetails: FC<ChatDetailsProps> = () => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const [isMuteActive, setIsMuteActive] = useState<boolean>(false);
-  const { setIsDeleteChatOpen } = useModalStore((state) => state.actions);
+  const { openModal } = useModalStore((state) => state.actions);
   const { userData } = useUser();
   const componentLists = [
-    { list: "Delete", id: 0, fn: () => setIsDeleteChatOpen(true) },
+    { list: "Delete", id: 0, fn: () => openModal("deletechat") },
   ];
 
   return (

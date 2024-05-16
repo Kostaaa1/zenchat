@@ -35,78 +35,46 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 
 const Modals = () => {
   const modalPostData = useModalStore((state) => state.modalPostData);
-  const isImageModalOpen = useModalStore((state) => state.isImageModalOpen);
-  const imageModalSource = useModalStore((state) => state.imageModalSource);
-  const showUnsendMsgModal = useModalStore((state) => state.showUnsendMsgModal);
-  const isDeleteChatOpen = useModalStore((state) => state.isDeleteChatOpen);
-  const isNewMessageModalOpen = useModalStore(
-    (state) => state.isNewMessageModalModalOpen,
-  );
-  const isEditProfileModalOpen = useModalStore(
-    (state) => state.isEditProfileModalOpen,
-  );
-  const isDndUploadModalOpen = useModalStore(
-    (state) => state.isDndUploadModalOpen,
-  );
-  const { closeAllModals } = useModalStore((state) => state.actions);
+  const imageSource = useModalStore((state) => state.imageSource);
+  const isModalOpen = useModalStore((state) => state.isModalOpen);
+  const activeModal = useModalStore((state) => state.activeModal);
+  const { closeModal } = useModalStore((state) => state.actions);
 
-  // Refs:
-  const newMessageModalRef = useRef<HTMLDivElement>(null);
-  const imageModalRef = useRef<HTMLDivElement>(null);
-  const uploadModalRef = useRef<HTMLDivElement>(null);
-  const deleteChatModalRef = useRef<HTMLDivElement>(null);
-  const editProfileModalRef = useRef<HTMLFormElement>(null);
-  const unsendMessageModalRef = useRef<HTMLDivElement>(null);
-  const notifyModalRef = useRef<HTMLDivElement>(null);
-  const postModalRef = useRef<HTMLDivElement>(null);
-
+  // Arrows //
+  const modalRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
-
-  useOnClickOutside(
-    [
-      newMessageModalRef,
-      imageModalRef,
-      deleteChatModalRef,
-      editProfileModalRef,
-      unsendMessageModalRef,
-      notifyModalRef,
-      leftRef,
-      rightRef,
-      postModalRef,
-      // uploadModalRef,
-    ],
-    "mousedown",
-    () => {
-      closeAllModals();
-    },
-  );
+  useOnClickOutside([modalRef, leftRef, rightRef], "mousedown", () => {
+    closeModal();
+  });
 
   return (
     <div className="absolute left-0 top-0 w-full">
       <AnimatePresence>
-        {isImageModalOpen && imageModalSource && (
-          <ImageModal modalRef={imageModalRef} />
+        {isModalOpen && (
+          <>
+            {activeModal === "image" && imageSource && (
+              <ImageModal imageSource={imageSource} ref={modalRef} />
+            )}
+            {activeModal === "unsendmessage" && (
+              <UnsendMessageModal ref={modalRef} />
+            )}
+            {activeModal === "newmessage" && <NewMessageModal ref={modalRef} />}
+            {activeModal === "editprofile" && (
+              <EditProfileModal ref={modalRef} />
+            )}
+            {activeModal === "deletechat" && <DeleteChatModal ref={modalRef} />}
+            {activeModal === "post" && modalPostData && (
+              <PostModal
+                postData={modalPostData}
+                ref={modalRef}
+                leftRef={leftRef}
+                rightRef={rightRef}
+              />
+            )}
+            {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
+          </>
         )}
-        {showUnsendMsgModal && (
-          <UnsendMessageModal modalRef={unsendMessageModalRef} />
-        )}
-        {isNewMessageModalOpen && (
-          <NewMessageModal modalRef={newMessageModalRef} />
-        )}
-        {isEditProfileModalOpen && (
-          <EditProfileModal modalRef={editProfileModalRef} />
-        )}
-        {isDeleteChatOpen && <DeleteChatModal modalRef={deleteChatModalRef} />}
-        {modalPostData && (
-          <PostModal
-            postData={modalPostData}
-            modalRef={postModalRef}
-            leftRef={leftRef}
-            rightRef={rightRef}
-          />
-        )}
-        {isDndUploadModalOpen && <DndUpload modalRef={uploadModalRef} />}
       </AnimatePresence>
     </div>
   );

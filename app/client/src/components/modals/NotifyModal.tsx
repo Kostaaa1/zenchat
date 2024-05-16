@@ -1,8 +1,8 @@
-import { FC, RefObject } from "react";
+import { FC, MutableRefObject, RefObject } from "react";
 import { Modal } from "./Modals";
 
 type NotifyModalProps = {
-  modalRef: RefObject<HTMLDivElement>;
+  modalRef: MutableRefObject<HTMLDivElement>;
 };
 
 const NotifyModal: FC<NotifyModalProps> = ({ modalRef }) => {

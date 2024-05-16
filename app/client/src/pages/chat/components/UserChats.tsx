@@ -14,7 +14,7 @@ type TUserChatsProps = {
 
 const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const { userData } = useUser();
-  const { setIsNewMessageModalModalOpen } = useModalStore(
+  const { openModal } = useModalStore(
     (state) => state.actions,
   );
 
@@ -32,7 +32,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
         <Icon
           name="PenSquare"
           size="22px"
-          onClick={() => setIsNewMessageModalModalOpen(true)}
+          onClick={() => openModal("newmessage")}
           className="active:text-zinc-500"
         />
       </div>

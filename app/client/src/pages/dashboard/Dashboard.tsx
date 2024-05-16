@@ -27,7 +27,7 @@ export const Separator: FC<SeparatorProps> = ({ className }) => {
 const Dashboard = () => {
   const params = useParams<{ username: string }>();
   const { userData } = useUser();
-  const { setIsDndUploadModalOpen } = useModalStore((state) => state.actions);
+  const { openModal } = useModalStore((state) => state.actions);
   const [postsLoaded, setPostsLoaded] = useState<boolean>(false);
   const username = useGeneralStore((state) => state.username);
   const isMobile = useGeneralStore((state) => state.isMobile);
@@ -68,7 +68,7 @@ const Dashboard = () => {
 
   const openUploadModal = () => {
     if (params.username === userData!.username) {
-      setIsDndUploadModalOpen(true);
+      openModal("uploadpost");
     }
   };
 
