@@ -1,5 +1,5 @@
 import Icon from "../Icon";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import { Modal } from "./Modals";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import useUser from "../../hooks/useUser";
 import { TPost } from "../../../../server/src/types/types";
 import Avatar from "../avatar/Avatar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 type ModalProps = {
   postData: TPost;
@@ -26,6 +27,7 @@ const PostModal: FC<ModalProps> = ({
   const { media_url, type, thumbnail_url } = postData;
   const { userData } = useUser();
   const { setModalPostData } = useModalStore((state) => state.actions);
+  const params = useParams();
   const ctx = trpc.useUtils();
   const deletePostMutation = trpc.posts.delete.useMutation({
     onSuccess: () => {
@@ -43,15 +45,18 @@ const PostModal: FC<ModalProps> = ({
     },
   });
 
+  useEffect(() => {
+    console.log('params', params)
+  }, [params])
+
   const handleDeletePost = async () => {
     try {
       const { id, media_url, thumbnail_url } = postData;
-      const fileKeys = [media_url]
-      if (thumbnail_url) fileKeys.push(thumbnail_url)
-
+      const fileKeys = [media_url];
+      if (thumbnail_url) fileKeys.push(thumbnail_url);
       await deletePostMutation.mutateAsync({
         id,
-        fileKeys 
+        fileKeys,
       });
       setModalPostData(null);
     } catch (error) {

@@ -61,12 +61,15 @@ const useNavbar = () => {
       iconName: "MessageCircle",
       iconStrokeWidth: activeNavList === "inbox" ? "2" : "",
       title: isResponsive ? "" : "Messages",
-      onClick: () => handleActiveElement("inbox"),
+      onClick: () => {
+        handleActiveElement("inbox");
+        setIsSearchActive(false);
+      },
       className: `${
         location.pathname.includes("/inbox") || activeNavList === "inbox"
           ? activeListClass
           : null
-      } `,
+      }`,
     },
     {
       iconName: "Search",
@@ -83,11 +86,14 @@ const useNavbar = () => {
     },
     {
       title: isResponsive ? "" : "Profile",
-      onClick: () => handleActiveElement("user"),
+      onClick: () => {
+        handleActiveElement("user");
+        setIsSearchActive(false);
+      },
       className: `${
         // !location.pathname.includes("/inbox") || activeNavList === "user"
         location.pathname === `/${userData?.username}` ? activeListClass : null
-      } `,
+      }`,
     },
   ];
 

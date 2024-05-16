@@ -37,14 +37,10 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
         {isMobile ? (
           <BottomNavbar navListItems={navListItems} />
         ) : (
-          <motion.ul
-            initial={{ width: isResponsive ? "300px" : "80px" }}
-            animate={{ width: isResponsive ? "80px" : "300px" }}
-            exit={{ width: isResponsive ? "300px" : "80px" }}
-            transition={{ type: "spring", damping: 45, stiffness: 500 }}
+          <ul
             className={cn(
-              "fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4 py-6",
-              // isResponsive ? "w-[80px]" : "w-[300px]",
+              "fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4 py-6 transition-all duration-300",
+              isResponsive ? "w-[80px]" : "w-[300px]",
             )}
           >
             <Logo />
@@ -77,7 +73,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
               ))}
             </div>
             <NavHamburger dropdownRef={dropdownRef} iconRef={iconRef} />
-          </motion.ul>
+          </ul>
         )}
       </AnimatePresence>
     </motion.nav>

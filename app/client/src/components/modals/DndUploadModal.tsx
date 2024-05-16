@@ -8,9 +8,7 @@ import React, {
 } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
-import { Loader2, Upload } from "lucide-react";
-import { DndProvider, useDrop } from "react-dnd";
-import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
+import { Loader2, Tablet, Upload } from "lucide-react";
 import useModalStore from "../../utils/state/modalStore";
 import { cn, generateThumbnailFile, loadImage } from "../../utils/utils";
 import useUser from "../../hooks/useUser";
@@ -28,10 +26,7 @@ import { nanoid } from "nanoid";
 import { generateReactHelpers, useDropzone } from "@uploadthing/react";
 import { generateClientDropzoneAccept } from "uploadthing/client";
 import { OurFileRouter } from "../../../../server/src/uploadthing";
-
-interface Props {
-  onDrop: (droppedFile: File) => void;
-}
+import useGeneralStore from "../../utils/state/generalStore";
 
 export const { useUploadThing, uploadFiles } =
   generateReactHelpers<OurFileRouter>();
@@ -52,12 +47,15 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
   const [file, setFile] = useState<File[] | null>(null);
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [thumbnailSrc, setThumbnailSrc] = useState<string | null>(null);
+  const isMobile = useGeneralStore((state) => state.isMobile);
+
   const FILE_LIMIT_MB = 310;
   const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const dndFile = acceptedFiles[0];
     const reader = new FileReader();
+
     if (dndFile.size > FILE_LIMIT_BYTES) {
       toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
       return;
@@ -70,6 +68,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
       const ulr = URL.createObjectURL(blob);
       setMediaSrc(ulr);
     };
+
     reader.readAsArrayBuffer(dndFile);
     setFile(acceptedFiles);
   }, []);
@@ -86,7 +85,10 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
           type: "username",
         },
         (state) => {
-          if (state) return { ...state, posts: [post, ...state.posts] };
+          if (state) {
+            console.log("post", post);
+            return { ...state, posts: [post, ...state.posts] };
+          }
         },
       );
       setModalTitle("Post uploaded");
@@ -104,6 +106,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
         Authorization: `Bearer ${token}`,
       },
       onClientUploadComplete: async (data) => {
+        console.log(data);
         const { name, type, size, url } = data[0];
         const thumbnail_url =
           data[1] && data[1].name.startsWith("thumbnail") ? data[1].url : null;
@@ -170,6 +173,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
     if (!file || !userData?.id) return;
     setModalTitle("Processing");
     const { name, type } = file[0];
+
     let thumbnailFile: File | null = null;
     if (type.startsWith("video/") && mediaSrc) {
       const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
@@ -191,7 +195,6 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
   }, [width, file]);
 
   return (
-    <DndProvider backend={HTML5Backend}>
       <Modal>
         <motion.div
           ref={modalRef}
@@ -202,9 +205,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
             width: modalWidth,
           }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
-          className={cn(
-            "flex h-[660px] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center",
-          )}
+          className="flex h-[100vw] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center sm:h-[660px]"
         >
           <div className="relative flex h-12 w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
             <Icon
@@ -237,9 +238,9 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ ease: "easeInOut", duration: 0.3 }}
-                  className="flex h-[660px]"
+                  className={cn("flex h-full", isMobile && "w-full flex-col")}
                 >
-                  <div>
+                  <div className="">
                     {file[0].type.startsWith("image/") && (
                       <img src={mediaSrc} alt={mediaSrc} />
                     )}
@@ -248,14 +249,19 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                         loop
                         id="videoId"
                         autoPlay={true}
-                        className="h-full w-[620px] object-cover"
+                        className="h-full w-[650px] object-cover"
                         onLoadStart={(e) => (e.currentTarget.volume = 0.05)}
                       >
                         <source src={mediaSrc} type="video/mp4" />
                       </video>
                     )}
                   </div>
-                  <div className="w-[280px]">
+                  <div
+                    className={cn(
+                      "w-[280px]",
+                      isMobile && "sticky bottom-0 w-full bg-[#282828]",
+                    )}
+                  >
                     <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
                       <Avatar image_url={userData?.image_url} size="sm" />
                       <p className="">{userData?.username}</p>
@@ -311,7 +317,7 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
                 <motion.div>div</motion.div>
               ) : (
                 <Loader2
-                  className="animate-spin bg-green-700"
+                  className="animate-spin"
                   size={60}
                   strokeWidth={1}
                   gradientTransform="linear-gradient(315deg, #9979d3 0%, #ff80cb 100%)"
@@ -321,7 +327,6 @@ const DndUploadModal: FC<ModalProps> = ({ modalRef }) => {
           )}
         </motion.div>
       </Modal>
-    </DndProvider>
   );
 };
 

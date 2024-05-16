@@ -18,7 +18,7 @@ const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
       initial={{ x: "-100%" }}
       animate={{ x: 0 }}
       exit={{ x: "-100%" }}
-      transition={{ type: "spring", damping: 45, stiffness: 280 }}
+      transition={{ type: "spring", damping: 35, stiffness: 300 }}
     >
       {children}
     </motion.div>

@@ -11,7 +11,8 @@ import Post from "./Post";
 import useGeneralStore from "../../utils/state/generalStore";
 import { DashboardHeader } from "./DashboardHeader";
 import MainContainer from "../../components/MainContainer";
-import axios from "axios";
+import Modals from "../../components/modals/Modals";
+import { ToastContainer } from "react-toastify";
 
 type SeparatorProps = {
   className?: string;
@@ -73,83 +74,91 @@ const Dashboard = () => {
 
   return (
     <MainContainer>
-      <div
-        className={cn(
-          "ml-[80px] min-h-full w-full max-w-[1000px] px-4 py-2 lg:ml-[300px]",
-          isMobile ? "ml-0" : "",
-        )}
-      >
-        {inspectedUserData === null ? (
-          <ErrorPage />
-        ) : (
-          <>
-            {!isFetched || !postsLoaded ? (
-              <div className="mt-10 flex items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin" />
-              </div>
-            ) : (
-              <>
-                <DashboardHeader
-                  username={userData?.username}
-                  userData={inspectedUserData}
-                />
-                <Separator className="mb-8" />
-                {inspectedUserData?.posts.length === 0 ? (
-                  <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
-                    {userData?.username === params.username ? (
-                      <>
-                        <Icon
-                          name="Camera"
-                          className="cursor-pointer rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
-                          size="78px"
-                          strokeWidth="1"
-                          onClick={openUploadModal}
-                        />
-                        <div className="space-y-2 text-center">
-                          <h2 className="text-3xl font-extrabold">
-                            Your Gallery
-                          </h2>
-                          <p>
-                            The photos from gallery will appear on your profile.
-                          </p>
-                          <p
-                            className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+      <>
+        {/* <Modals /> */}
+        <div
+          className={cn(
+            "ml-[80px] min-h-full w-full max-w-[1000px] px-4 py-2 lg:ml-[300px]",
+            isMobile ? "ml-0" : "",
+          )}
+        >
+          {inspectedUserData === null ? (
+            <ErrorPage />
+          ) : (
+            <>
+              {!isFetched || !postsLoaded ? (
+                <div className="mt-10 flex items-center justify-center">
+                  <Loader2 className="h-10 w-10 animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <DashboardHeader
+                    username={userData?.username}
+                    userData={inspectedUserData}
+                  />
+                  <Separator className="mb-8" />
+                  {inspectedUserData?.posts.length === 0 ? (
+                    <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
+                      {userData?.username === params.username ? (
+                        <>
+                          <Icon
+                            name="Camera"
+                            className="cursor-pointer rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                            size="78px"
+                            strokeWidth="1"
                             onClick={openUploadModal}
-                          >
-                            Upload the photo
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Icon
-                          name="Camera"
-                          className="cursor-default rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
-                          size="78px"
-                          strokeWidth="1"
-                          onClick={openUploadModal}
-                        />
-                        <div className="space-y-2 text-center">
-                          <h2 className="text-3xl font-extrabold">
-                            No Posts Yet
-                          </h2>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  // <div className="grid grid-cols-1 flex-wrap gap-1 sm:grid-cols-2 lg:grid-cols-3">
-                  <ul className="grid grid-cols-3 gap-1">
-                    {inspectedUserData!.posts.map((post) => (
-                      <Post key={post.id} post={post} />
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
+                          />
+                          <div className="space-y-2 text-center">
+                            <h2 className="text-3xl font-extrabold">
+                              Your Gallery
+                            </h2>
+                            <p>
+                              The photos from gallery will appear on your
+                              profile.
+                            </p>
+                            <p
+                              className="cursor-pointer text-blue-500 transition-colors hover:text-blue-300"
+                              onClick={openUploadModal}
+                            >
+                              Upload the photo
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Icon
+                            name="Camera"
+                            className="cursor-default rounded-full p-3 text-neutral-700 ring ring-inset ring-neutral-600"
+                            size="78px"
+                            strokeWidth="1"
+                            onClick={openUploadModal}
+                          />
+                          <div className="space-y-2 text-center">
+                            <h2 className="text-3xl font-extrabold">
+                              No Posts Yet
+                            </h2>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <ul
+                      className={cn(
+                        "grid grid-cols-3 gap-1",
+                        isMobile && "pb-16",
+                      )}
+                    >
+                      {inspectedUserData!.posts.map((post) => (
+                        <Post key={post.id} post={post} />
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </>
     </MainContainer>
   );
 };

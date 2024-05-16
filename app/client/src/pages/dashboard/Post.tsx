@@ -1,8 +1,6 @@
 import { FC } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import { TPost } from "../../../../server/src/types/types";
-import { useNavigate } from "react-router-dom";
-import Icon from "../../components/Icon";
 import { Play } from "lucide-react";
 
 type PostProps = {
@@ -10,13 +8,10 @@ type PostProps = {
 };
 
 const Post: FC<PostProps> = ({ post }) => {
-  const { media_url, type, thumbnail_url, id } = post;
+  const { media_url, thumbnail_url, id } = post;
   const { setModalPostData } = useModalStore((state) => state.actions);
-  const navigate = useNavigate();
-
   const handleClick = () => {
     setModalPostData(post);
-    // navigate(`/p/${post.id}`);
   };
 
   return (

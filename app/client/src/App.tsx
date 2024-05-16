@@ -79,6 +79,7 @@ function App() {
     if (userData === null) createUser();
     if (userData) loadPosts(userData.posts);
   }, [userData]);
+
   return (
     <>
       <SignedIn>
@@ -87,7 +88,6 @@ function App() {
         ) : (
           <>
             <Header />
-            {/* <div className="flex w-full items-center justify-center"> */}
             <Routes location={location}>
               <Route
                 path="/sign-in/*"
@@ -101,16 +101,10 @@ function App() {
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/inbox/:chatRoomId" element={<Inbox />} />
               <Route path="/:username" element={<Dashboard />} />
-              <Route
-                path="/p/:id"
-                handle={() => console.log("Params", params)}
-                element={null}
-              />
               <Route path="*" element={<ErrorPage />} />
             </Routes>
-            {/* </div> */}
-            <ToastContainer position={"bottom-right"} className="font-bold" />
             <Modals />
+            <ToastContainer position={"bottom-right"} className="font-bold" />
           </>
         )}
       </SignedIn>
