@@ -10,7 +10,6 @@ type ChatStore = {
   showEmojiPicker: boolean;
   selectedImageFiles: File[];
   shouldFetchMoreMessages: boolean;
-  typingUser: string;
   showDetails: boolean;
   currentChatroom: TActiveChatroom | null;
   currentChatroomTitle: string | null;
@@ -21,7 +20,6 @@ type ChatStore = {
     removeSelectedFile: (id: number) => void;
     setShouldFetchMoreMessages: (val: boolean) => void;
     setShowDetails: (isOpen: boolean) => void;
-    setTypingUser: (userId: string) => void;
     setCurrentChatroom: (data: TActiveChatroom | null) => void;
     setCurrentChatroomTitle: (v: string) => void;
   };
@@ -30,7 +28,6 @@ type ChatStore = {
 const useChatStore = create<ChatStore>(
   (set): ChatStore => ({
     showDetails: false,
-    typingUser: "",
     shouldFetchMoreMessages: true,
     selectedImageFiles: [],
     showEmojiPicker: false,
@@ -51,7 +48,6 @@ const useChatStore = create<ChatStore>(
           ),
         })),
       setShowDetails: (isOpen: boolean) => set({ showDetails: isOpen }),
-      setTypingUser: (userId: string) => set({ typingUser: userId }),
       addSelectedFile: (newFile: File) =>
         set((state) => ({
           selectedImageFiles: [...state.selectedImageFiles, newFile],

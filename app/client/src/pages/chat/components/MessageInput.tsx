@@ -24,31 +24,6 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
     new_message,
   } = useChat(scrollToStart);
 
-  // const [isTyping, setIsTyping] = useState<boolean>(false);
-  // const { userData } = useUser();
-  // useEffect(() => {
-  //   if (!currentChatroom) return;
-  //   setIsTyping(currentChatroom.new_message.length > 0);
-  // }, [currentChatroom]);
-  // useEffect(() => {
-  //   if (!currentChatroom || !userData) return;
-  //   if (isTyping) {
-  //     socket.emit("isTyping", {
-  //       isTyping: true,
-  //       users: currentChatroom.users.map((user) => ({
-  //         id: user.user_id,
-  //         isTyping: userData.id === user.user_id,
-  //         typingUser: userData.username,
-  //       })),
-  //     });
-  //   } else {
-  //     socket.emit("isTyping", {
-  //       isTyping: false,
-  //       users: currentChatroom.users.map((x) => ({ id: x.user_id })),
-  //     });
-  //   }
-  // }, [isTyping]);
-
   const showEmoji = () => {
     setShowEmojiPicker(!showEmojiPicker);
   };

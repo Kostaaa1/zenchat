@@ -18,7 +18,7 @@ const Logo: FC<LogoProps> = ({ isList = true }) => {
   const isMobile = useGeneralStore((state) => state.isMobile);
 
   const handleLogoClick = () => {
-    setIsSearchActive(true);
+    setIsSearchActive(false);
     navigate("/");
   };
 

@@ -30,14 +30,9 @@ const Inbox = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    return () => {
-      setShowDetails(false);
-    };
+    return () => setShowDetails(false);
   }, []);
-
-  const scrollToStart = () => {
-    scrollRef.current?.scrollTo({ top: 0 });
-  };
+  const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
 
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import supabase from "../../config/supabase";
-import { deleteS3Object } from "../../middleware/multer";
+// import { deleteS3Object } from "../../middleware/multer";
 import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
@@ -53,7 +53,7 @@ export const unsendMessage = async ({
     const { data, error } = await supabase.from("messages").delete().eq("id", id);
     if (!data) console.log(error);
     if (imageUrl) {
-      await deleteS3Object({ folder: "messages", fileName: imageUrl });
+      // await deleteS3Object({ folder: "messages", fileName: imageUrl });
     }
   } catch (error) {
     console.log(error);
@@ -295,14 +295,14 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
           .eq("chatroom_id", chatroom_id)
           .eq("is_image", true);
 
-        if (images && images.length > 0) {
-          for (const img of images) {
-            await deleteS3Object({
-              folder: "messages",
-              fileName: img.content.split("")[1],
-            });
-          }
-        }
+        // if (images && images.length > 0) {
+        //   for (const img of images) {
+        // await deleteS3Object({
+        //   folder: "messages",
+        //   fileName: img.content.split("")[1],
+        // });
+        //   }
+        // }
 
         for (const table of tables) {
           const res = await deleteRow(table);

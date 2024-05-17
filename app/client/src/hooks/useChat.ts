@@ -12,7 +12,6 @@ import { useAuth } from "@clerk/clerk-react";
 
 const useChat = (scrollToStart?: () => void) => {
   const { userData } = useUser();
-  const [formData, setFormdata] = useState<FormData>(new FormData());
   const { chat } = trpc.useUtils();
   const { getToken } = useAuth();
   const selectedImageFiles = useChatStore((state) => state.selectedImageFiles);
@@ -26,6 +25,7 @@ const useChat = (scrollToStart?: () => void) => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const { new_message, img_urls } = currentChatroom || {};
   const sendMessageMutation = trpc.chat.messages.send.useMutation();
+  const [formData, setFormdata] = useState<FormData>(new FormData());
 
   const setMessage = (text: string) => {
     if (currentChatroom) {
@@ -89,8 +89,8 @@ const useChat = (scrollToStart?: () => void) => {
       is_image: false,
       chatroom_id,
     });
-    setMessage("");
     addNewMessageToChatCache(messageData);
+    setMessage("");
     // updateUserChatLastMessageCache(messageData);
     if (messageData) await sendMessageMutation.mutateAsync(messageData);
   };
@@ -99,7 +99,6 @@ const useChat = (scrollToStart?: () => void) => {
     e.preventDefault();
     if (scrollToStart) scrollToStart();
     if (!currentChatroom) return;
-
     const { chatroom_id, new_message, img_urls } = currentChatroom;
     if (new_message.length > 0) await sendTextMessage(new_message, chatroom_id);
     if (selectedImageFiles.length > 0 && img_urls?.length > 0) {

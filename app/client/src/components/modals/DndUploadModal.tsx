@@ -1,26 +1,19 @@
 import React, {
-  FC,
-  RefObject,
   forwardRef,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
-import { Loader2, Tablet, Upload } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import useModalStore from "../../utils/state/modalStore";
 import { cn, generateThumbnailFile, loadImage } from "../../utils/utils";
 import useUser from "../../hooks/useUser";
 import Avatar from "../avatar/Avatar";
 import { motion } from "framer-motion";
-import axios from "axios";
-import { useAuth } from "@clerk/clerk-react";
 import { trpc } from "../../utils/trpcClient";
-import { TPost, TUserData } from "../../../../server/src/types/types";
 import { Modal } from "./Modals";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import useWindowSize from "../../hooks/useWindowSize";
 import { toast } from "react-toastify";
 import { nanoid } from "nanoid";
@@ -30,26 +23,23 @@ import { OurFileRouter } from "../../../../server/src/uploadthing";
 import useGeneralStore from "../../utils/state/generalStore";
 
 const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
+  const FILE_LIMIT_MB = 310;
+  const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024;
   const { closeModal } = useModalStore((state) => state.actions);
   const { userData, token } = useUser();
   const utils = trpc.useUtils();
+  const isMobile = useGeneralStore((state) => state.isMobile);
+
+  const [file, setFile] = useState<File[] | null>(null);
+  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [caption, setCaption] = useState<string>("");
   const [modalTitle, setModalTitle] = useState<
     "Create new post" | "Processing" | "Post uploaded"
   >("Create new post");
-  const [file, setFile] = useState<File[] | null>(null);
-  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
-  const [thumbnailSrc, setThumbnailSrc] = useState<string | null>(null);
-  const isMobile = useGeneralStore((state) => state.isMobile);
-  const { useUploadThing } = generateReactHelpers<OurFileRouter>();
-
-  const FILE_LIMIT_MB = 310;
-  const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const dndFile = acceptedFiles[0];
     const reader = new FileReader();
-
     if (dndFile.size > FILE_LIMIT_BYTES) {
       toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
       return;
@@ -70,59 +60,59 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
   const uploadPostMutation = trpc.posts.upload.useMutation({
     onSuccess: async (post) => {
       if (!post || !mediaSrc) return;
-      if (thumbnailSrc) post["thumbnail_url"] = thumbnailSrc;
-      post["media_url"] = mediaSrc;
+
+      const { thumbnail_url, media_url } = post;
+      await loadImage(thumbnail_url ?? media_url);
       utils.user.get.setData(
         {
           data: userData!.username,
           type: "username",
         },
         (state) => {
-          if (state) {
-            console.log("post", post);
-            return { ...state, posts: [post, ...state.posts] };
-          }
+          if (state) return { ...state, posts: [post, ...state.posts] };
         },
       );
+
+      setMediaSrc(post.media_url);
       setModalTitle("Post uploaded");
+      setIsUploading(false);
     },
     onError: (error) => {
       console.log("Mutation error: ", error);
     },
   });
 
-  const { permittedFileInfo, startUpload, isUploading } = useUploadThing(
-    "post",
-    {
-      skipPolling: true,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      onClientUploadComplete: async (data) => {
-        const { name, type, size, url } = data[0];
-        const thumbnail_url =
-          data[1] && data[1].name.startsWith("thumbnail") ? data[1].url : null;
-
-        const unified = {
-          id: nanoid(),
-          user_id: userData!.id,
-          caption,
-          type,
-          media_name: name,
-          size,
-          thumbnail_url,
-          media_url: url,
-        };
-        uploadPostMutation.mutate(unified);
-      },
-      onUploadError: () => {
-        console.log("error occurred while uploading");
-      },
-      onUploadBegin: () => {
-        console.log("upload has begun");
-      },
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const { useUploadThing } = generateReactHelpers<OurFileRouter>();
+  const { permittedFileInfo, startUpload } = useUploadThing("post", {
+    skipPolling: true,
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+    onClientUploadComplete: async (data) => {
+      const { name, type, size, url } = data[0];
+      const thumbnail_url =
+        data[1] && data[1].name.startsWith("thumbnail") ? data[1].url : null;
+
+      const unified = {
+        id: nanoid(),
+        user_id: userData!.id,
+        caption,
+        type,
+        media_name: name,
+        size,
+        thumbnail_url,
+        media_url: url,
+      };
+      uploadPostMutation.mutate(unified);
+    },
+    onUploadError: () => {
+      console.log("error occurred while uploading");
+    },
+    onUploadBegin: () => {
+      console.log("upload has begun");
+    },
+  });
 
   const fileTypes = permittedFileInfo?.config
     ? Object.keys(permittedFileInfo?.config)
@@ -157,20 +147,19 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     setCaption("");
     setFile(null);
     setMediaSrc(null);
-    setThumbnailSrc(null);
     setModalTitle("Create new post");
   };
 
   const handleCreatingPost = async () => {
     if (!file || !userData?.id) return;
     setModalTitle("Processing");
+    setIsUploading(true);
     const { name, type } = file[0];
 
     let thumbnailFile: File | null = null;
     if (type.startsWith("video/") && mediaSrc) {
       const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
       const thumbnail = await generateThumbnailFile(mediaSrc, tmbName);
-      setThumbnailSrc(thumbnail.url);
       thumbnailFile = thumbnail.file;
     }
     if (thumbnailFile) file.push(thumbnailFile);

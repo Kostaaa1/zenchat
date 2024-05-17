@@ -1,5 +1,4 @@
 import supabase from "../../config/supabase";
-import { deleteS3Object } from "../../middleware/multer";
 import { Tables } from "../../types/supabase";
 import {
   SupabaseResponse,
@@ -7,6 +6,10 @@ import {
   TUserData,
   TUserQueryParam,
 } from "../../types/types";
+import { utapi } from "../../uploadthing";
+import env from "../../config/config";
+
+const { UPLOADTHING_URL_PREFIX } = env;
 
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
@@ -15,7 +18,6 @@ export const getUser = async ({ data, type }: TUserQueryParam) => {
     .select("*, posts(*)")
     .eq(type, data)
     .order("created_at", { foreignTable: "posts", ascending: false });
-
   if (error) throw new Error(`Error occured ${error}`);
   return userData[0] || null;
 };
@@ -28,8 +30,9 @@ export const updateUserAvatar = async ({
   image_url: string;
 }) => {
   const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
-  if (imageUrl?.[0]!.image_url) {
-    await deleteS3Object({ folder: "avatars", fileName: imageUrl[0].image_url });
+  if (imageUrl && imageUrl[0].image_url) {
+    const img = imageUrl[0].image_url.split(UPLOADTHING_URL_PREFIX)[1];
+    await utapi.deleteFiles([img]);
   }
 
   const { data, error } = await supabase

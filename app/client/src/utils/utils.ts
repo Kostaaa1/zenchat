@@ -8,21 +8,38 @@ import { TMessage } from "../../../server/src/types/types";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+export const loadImage = async (url: string, maxRetries = 5) => {
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
-export const loadImage = async (url: string) => {
-  return new Promise((resolve, reject) => {
-    if (url.startsWith("blob:")) resolve(true);
+  const loadImageWithRetry = async (url: string, retries = 0) => {
+    return new Promise((resolve) => {
+      console.log("Loading image: ", url);
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        resolve(true);
+      };
+      img.onerror = async (err) => {
+        console.log("Error loading image: ", url, err);
+        if (retries < maxRetries) {
+          const delayTime = Math.pow(2, retries) * 100; // Exponential backoff
+          console.log(
+            `Retrying in ${delayTime}ms... (Attempt ${
+              retries + 1
+            }/${maxRetries})`,
+          );
+          await delay(delayTime);
+          resolve(loadImageWithRetry(url, retries + 1));
+        } else {
+          console.log("Max retries reached. Failed to load image.");
+          resolve(false);
+        }
+      };
+    });
+  };
 
-    const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      resolve(true);
-    };
-    img.onerror = (err) => {
-      console.log("Error for ", url, err);
-      reject(false);
-    };
-  });
+  return loadImageWithRetry(url);
 };
 
 export const isImage = (type: string) => {
@@ -192,6 +209,6 @@ export const generateThumbnailFile = (
     video.addEventListener("error", handleError);
 
     video.src = videoUrl;
-    video.currentTime = 1;
+    video.currentTime = 0.1;
   });
 };

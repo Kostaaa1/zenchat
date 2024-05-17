@@ -5,7 +5,7 @@ import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
-import React, { FC, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "../../hooks/useOutsideClick";
 import PostModal from "./PostModal";
@@ -66,7 +66,7 @@ const Modals = () => {
             {activeModal === "deletechat" && <DeleteChatModal ref={modalRef} />}
             {activeModal === "post" && modalPostData && (
               <PostModal
-                postData={modalPostData}
+                post={modalPostData}
                 ref={modalRef}
                 leftRef={leftRef}
                 rightRef={rightRef}

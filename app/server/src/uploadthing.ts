@@ -12,13 +12,10 @@ export const uploadthingRouter = {
     image: { maxFileSize: "32MB", maxFileCount: 4 },
     video: { maxFileSize: "128MB", maxFileCount: 4 },
   })
-    // .input(InputPostSchema)
     .middleware(async ({ req, input }) => {
-      // console.log("Middleware", req.headers);
       return { success: "HALOOO" };
     })
     .onUploadComplete(async (data) => {
-      console.log("DATADeA", data);
       return { success: "HALOOO" };
     }),
 } satisfies FileRouter;

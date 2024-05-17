@@ -1,16 +1,17 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { renameFile, uploadMultipartForm } from "../../utils/utils";
-import { useAuth } from "@clerk/clerk-react";
+import { loadImage, renameFile } from "../../utils/utils";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
+import { generateReactHelpers } from "@uploadthing/react";
+import { OurFileRouter } from "../../../../server/src/uploadthing";
 
 export type CommonInput = {
   first_name?: string;
@@ -27,50 +28,38 @@ export type Inputs = CommonInput & {
 
 const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { user } = useClerkUser();
-  const [file, setFile] = useState<string>("");
-  const { userData, updateUserCache } = useUser();
+  const [fileUrl, setFileUrl] = useState<string>("");
+  const { userData, token, updateUserCache } = useUser();
   const navigate = useNavigate();
-  const { getToken } = useAuth();
   const utils = trpc.useUtils();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { closeModal, setIsAvatarUpdating } = useModalStore(
     (state) => state.actions,
   );
+  const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
   const {
     register,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, dirtyFields },
     setError,
     handleSubmit,
     watch,
   } = useForm<Inputs>();
 
-  const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
-    onSuccess: async (updatedAvatar) => {
-      if (updatedAvatar) {
-        await updateUserCache({ image_url: updatedAvatar });
-        setIsAvatarUpdating(false);
-      }
-    },
-  });
-
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
-    onSuccess: async (data) => {
-      closeModal();
-      setIsLoading(false);
-      const { username, last_name, first_name } = data;
-      // Updating clerk
-      await user?.update({
-        username,
-        firstName: first_name,
-        lastName: last_name,
-      });
-
-      await utils.user.get.refetch({
-        data: userData!.username,
-        type: "username",
-      });
-      navigate(`/${username}`);
-    },
+    // onSuccess: async (data) => {
+    //   console.log("On success", data);
+    // const { username, last_name, first_name } = data;
+    // await user?.update({
+    //   username,
+    //   firstName: first_name,
+    //   lastName: last_name,
+    // });
+    // await utils.user.get.refetch({
+    //   data: userData!.username,
+    //   type: "username",
+    // });
+    // navigate(`/${username}`);
+    // },
     onError: (error) => {
       const { data } = error;
       if (data?.httpStatus === 422) {
@@ -83,40 +72,80 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     },
   });
 
+  const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
+    onSuccess: async (updatedAvatar) => {
+      if (updatedAvatar) {
+        await loadImage(updatedAvatar);
+        await updateUserCache({ image_url: updatedAvatar });
+        setIsAvatarUpdating(false);
+      }
+    },
+  });
+
+  const { useUploadThing } = generateReactHelpers<OurFileRouter>();
+  const { startUpload } = useUploadThing("avatar", {
+    skipPolling: true,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    onClientUploadComplete: (data) => {
+      updateAvatarMutation.mutateAsync({
+        userId: userData!.id,
+        image_url: data[0].url,
+      });
+    },
+    onUploadError: () => {
+      console.log("error occurred while uploading");
+    },
+    onUploadBegin: () => {
+      console.log("upload has begun");
+    },
+  });
+
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
       setIsLoading(true);
-      const { file } = formData;
+
+      if (fileUrl.length > 0) {
+        setIsAvatarUpdating(true);
+        const { file } = formData;
+        const renamedFile = renameFile(file[0]);
+        startUpload([renamedFile]);
+      }
+
+      if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
+        console.log("Only file is being uploaded");
+        setIsLoading(false);
+        return;
+      }
+
       utils.user.get.invalidate({
         data: userData?.username,
         type: "username",
       });
 
-      if (file.length > 0) {
-        setIsAvatarUpdating(true);
-        const renamedFile = renameFile(file[0]);
-        const form = new FormData();
-
-        form.append("images", renamedFile);
-        const uploadedImages = await uploadMultipartForm(
-          "/api/uploadMedia/avatar",
-          form,
-          getToken,
-        );
-        updateAvatarMutation.mutate({
-          userId: userData!.id,
-          image_url: uploadedImages[0],
-        });
-      }
       // @ts-expect-error dsako
       delete formData.file;
       delete formData.image_url;
-
-      updateUserDataMutation.mutate({
+      const data = await updateUserDataMutation.mutateAsync({
         userId: userData.id,
         userData: formData,
       });
+
+      const { username, last_name, first_name } = data;
+      user?.update({
+        username,
+        firstName: first_name,
+        lastName: last_name,
+      });
+      await utils.user.get.refetch({
+        data: userData!.username,
+        type: "username",
+      });
+
+      setIsLoading(false);
+      navigate(`/${username}`);
     } catch (error) {
       console.log("From server error: ", error);
       // @ts-expect-error dskao
@@ -139,10 +168,9 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       });
       return;
     }
-
     if (newFile.length === 0) return;
     const url = URL.createObjectURL(newFile[0]);
-    setFile(url);
+    setFileUrl(url);
   }, [watch("file")]);
 
   return (
@@ -165,7 +193,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
                 <Icon name="X" className="cursor-pointer p-[2px]" size="26px" />
               </div>
             </div>
-            {isLoading ? (
+            {isAvatarUpdating || isLoading ? (
               <div className="flex w-16 cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-[2px] font-bold text-black text-opacity-70 outline-none transition-all duration-200 hover:bg-opacity-80">
                 <Loader2 className="animate-spin" />
               </div>
@@ -192,7 +220,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
                 className="hidden"
               />
               <Avatar
-                image_url={file.length > 0 ? file : userData?.image_url}
+                image_url={fileUrl.length > 0 ? fileUrl : userData?.image_url}
                 size="xl"
                 className="outline"
               />
@@ -261,7 +289,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
               cols={30}
               rows={4}
               maxLength={20}
-              defaultValue={userData!.description ?? ""}
+              defaultValue={userData?.description || ""}
               {...register("description")}
               placeholder="About you"
               className="flex w-full rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"

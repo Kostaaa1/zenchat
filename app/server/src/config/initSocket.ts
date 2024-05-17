@@ -18,21 +18,21 @@ export const initSocket = (io: Server) => {
       console.log("Joined room: ", userId, "Rooms", rooms);
     });
 
-    socket.on(
-      "isTyping",
-      (data: {
-        isTyping: boolean;
-        users: { id: string; isTyping: boolean; typingUser: string }[];
-      }) => {
-        for (const user of data.users) {
-          if (data.isTyping) {
-            io.to(user.id).emit("isTyping", { channel: "isTyping", data: user });
-          } else {
-            io.to(user.id).emit("isTyping", null);
-          }
-        }
-      }
-    );
+    // socket.on(
+    //   "isTyping",
+    //   (data: {
+    //     isTyping: boolean;
+    //     users: { id: string; isTyping: boolean; typingUser: string }[];
+    //   }) => {
+    //     for (const user of data.users) {
+    //       if (data.isTyping) {
+    //         io.to(user.id).emit("isTyping", { channel: "isTyping", data: user });
+    //       } else {
+    //         io.to(user.id).emit("isTyping", null);
+    //       }
+    //     }
+    //   }
+    // );
 
     socket.on("onMessage", () => {
       try {

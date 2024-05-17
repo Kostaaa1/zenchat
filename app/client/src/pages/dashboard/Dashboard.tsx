@@ -11,8 +11,6 @@ import Post from "./Post";
 import useGeneralStore from "../../utils/state/generalStore";
 import { DashboardHeader } from "./DashboardHeader";
 import MainContainer from "../../components/MainContainer";
-import Modals from "../../components/modals/Modals";
-import { ToastContainer } from "react-toastify";
 
 type SeparatorProps = {
   className?: string;

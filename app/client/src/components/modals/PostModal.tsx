@@ -1,5 +1,5 @@
 import Icon from "../Icon";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import { Modal } from "./Modals";
 import { motion } from "framer-motion";
@@ -8,21 +8,23 @@ import useUser from "../../hooks/useUser";
 import { TPost } from "../../../../server/src/types/types";
 import Avatar from "../avatar/Avatar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 type ModalProps = {
-  postData: TPost;
+  post: TPost;
   leftRef?: React.RefObject<HTMLDivElement>;
   rightRef?: React.RefObject<HTMLDivElement>;
 };
 
 const PostModal = forwardRef<HTMLDivElement, ModalProps>(
-  ({ postData, leftRef, rightRef }, ref) => {
+  ({ post, leftRef, rightRef }, ref) => {
     const [showMore, setShowMore] = useState(false);
-    const { media_url, type, thumbnail_url } = postData;
+    const { media_url, type, thumbnail_url } = post;
     const { userData } = useUser();
     const { setModalPostData } = useModalStore((state) => state.actions);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
     const ctx = trpc.useUtils();
+    const location = useLocation();
     const deletePostMutation = trpc.posts.delete.useMutation({
       onSuccess: () => {
         ctx.user.get.setData(
@@ -31,7 +33,7 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
             if (state) {
               return {
                 ...state,
-                posts: state.posts.filter((x) => x.id !== postData.id),
+                posts: state.posts.filter((x) => x.id !== post.id),
               };
             }
           },
@@ -42,16 +44,16 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
     const handleDeletePost = async () => {
       try {
         if (isDeleting) return;
-
         setIsDeleting(true);
-        const { id, media_url, thumbnail_url } = postData;
+
+        const { id, media_url, thumbnail_url } = post;
         const fileKeys = [media_url];
         if (thumbnail_url) fileKeys.push(thumbnail_url);
-
         await deletePostMutation.mutateAsync({
           id,
           fileKeys,
         });
+
         setModalPostData(null);
         setIsDeleting(false);
       } catch (error) {
@@ -59,30 +61,57 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
       }
     };
 
+    const inspectedUser = ctx.user.get.getData({
+      data: location.pathname.split("/")[1],
+      type: "username",
+    });
+
+    const previousPost = () => {
+      if (!inspectedUser) return;
+      const posts = inspectedUser.posts;
+      const next = posts.findIndex((x) => x.id === post.id) - 1;
+      setModalPostData(posts[next]);
+    };
+
+    const nextPost = () => {
+      if (!inspectedUser) return;
+      const posts = inspectedUser.posts;
+      const prev = posts.findIndex((x) => x.id === post.id) + 1;
+      setModalPostData(posts[prev]);
+    };
+
     return (
       <>
         <Modal>
-          <div
-            ref={leftRef}
-            className="absolute left-4 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
-          >
-            <ChevronLeft />
-          </div>
-          <div
-            ref={rightRef}
-            className="absolute right-4 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
-          >
-            <ChevronRight />
-          </div>
+          {inspectedUser?.posts[0].id !== post.id && (
+            <div
+              ref={leftRef}
+              onClick={previousPost}
+              className="absolute left-4 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
+            >
+              <ChevronLeft />
+            </div>
+          )}
+          {inspectedUser?.posts[inspectedUser?.posts.length - 1].id !==
+            post.id && (
+            <div
+              ref={rightRef}
+              onClick={nextPost}
+              className="absolute right-4 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
+            >
+              <ChevronRight />
+            </div>
+          )}
           <div className="mx-auto flex max-h-[90vh] max-w-[84%]" ref={ref}>
             <div>
               {type.startsWith("image/") ? (
-                <img src={media_url} />
+                <img key={media_url} src={media_url} />
               ) : type.startsWith("video/") ? (
                 <video
+                  key={media_url}
                   className="h-full w-full object-cover"
                   loop
-                  controls
+                  // controls
                   poster={thumbnail_url ?? ""}
                   autoPlay
                   onLoadStart={(e) => (e.currentTarget.volume = 0.05)}

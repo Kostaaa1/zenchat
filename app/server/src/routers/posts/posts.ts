@@ -20,7 +20,7 @@ export const postRouter = t.router({
       try {
         const { id, fileKeys } = input;
         const err = await deletePost(id, fileKeys);
-        if (err) console.log("HANDLE: error deleting the post");
+        if (err) console.log("HANDLE: error deleting the post", err);
       } catch (err) {
         console.log(err);
       }

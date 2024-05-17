@@ -9,9 +9,9 @@ export type MessagesChannelData = {
   };
 };
 
-export type TypingChannelData = {
-  channel: "isTyping";
-  data: boolean;
-};
+// export type TypingChannelData = {
+//   channel: "isTyping";
+//   data: boolean;
+// };
 
-export type TRecieveNewSocketMessageType = MessagesChannelData | TypingChannelData;
+export type TRecieveNewSocketMessageType = MessagesChannelData;

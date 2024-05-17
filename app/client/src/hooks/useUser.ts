@@ -44,7 +44,7 @@ const useUser = () => {
         return state;
       },
     );
-    if (image_url) await loadImage(image_url);
+    if (image_url && !image_url.startsWith("blob:")) await loadImage(image_url);
   };
 
   return {

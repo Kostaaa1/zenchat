@@ -14,8 +14,8 @@ const DeleteChatModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { currentChatroom } = useChatStore();
   const { closeModal } = useModalStore((state) => state.actions);
   const { removeChatFromUserChats } = useChatCache();
-  const deleteChatMutation = trpc.chat.delete.useMutation();
   const { userData } = useUser();
+  const deleteChatMutation = trpc.chat.delete.useMutation();
 
   const handleDeleteConversation = async () => {
     if (!currentChatroom || !userData) return;

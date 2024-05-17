@@ -10,8 +10,6 @@ import {
 import { CreateUserSchema } from "../types/zodSchemas";
 import { TRPCError } from "@trpc/server";
 
-const { AWS_BUCKET_URL } = process.env;
-
 export const userRouter = t.router({
   get: protectedProcedure
     .input(
@@ -35,7 +33,6 @@ export const userRouter = t.router({
   updateAvatar: protectedProcedure
     .input(z.object({ userId: z.string(), image_url: z.string() }))
     .mutation(async ({ input }) => {
-      input["image_url"] = AWS_BUCKET_URL + "avatars/" + input.image_url;
       const req = await updateUserAvatar(input);
       return req;
     }),

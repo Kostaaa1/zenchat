@@ -22,7 +22,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const navigate = useNavigate();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const currentChatroom = useChatStore((state) => state.currentChatroom);
-  // const typingUser = useChatStore((state) => state.typingUser);
   const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const { setUnsendMsgData } = useModalStore((state) => state.actions);
   const currentChatroomTitle = useChatStore(
@@ -75,7 +74,9 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   };
 
   useEffect(() => {
-    if (messages?.length === 0) {
+    if (!messages) return;
+
+    if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
       setShouldFetchMoreMessages(false);
       return;
     }

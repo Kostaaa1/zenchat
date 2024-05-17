@@ -31,7 +31,7 @@ export const DashboardHeader = ({
       userIds: [userData.id, loggedUser.id],
       admin: loggedUser.id,
     });
-    await ctx.chat.get.user_chatrooms.refetch(userData.id);
+    await ctx.chat.get.user_chatrooms.invalidate(userData.id);
     if (path) {
       setIsLoading(false);
       navigate(`/inbox/${path}`);
@@ -40,7 +40,6 @@ export const DashboardHeader = ({
 
   const handleClick = () => {
     if (isAvatarUpdating) return;
-    console.log("click");
     setImageSource(userData.image_url);
     openModal("image");
   };
