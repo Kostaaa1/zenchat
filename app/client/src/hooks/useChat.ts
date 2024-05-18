@@ -7,16 +7,11 @@ import getCurrentDate from "../utils/getCurrentDate";
 import useChatCache from "./useChatCache";
 import { trpc } from "../utils/trpcClient";
 import { Skin } from "@emoji-mart/data";
-// import { uploadMultipartForm } from "../utils/utils";
-import { useAuth } from "@clerk/clerk-react";
-import { generateReactHelpers } from "@uploadthing/react";
-import { OurFileRouter } from "../../../server/src/uploadthing";
-import { loadImage } from "../utils/utils";
+import { loadImage, uploadMultipartForm } from "../utils/utils";
 
 const useChat = (scrollToStart?: () => void) => {
   const { userData, token } = useUser();
   const { chat } = trpc.useUtils();
-  const { getToken } = useAuth();
   const selectedImageFiles = useChatStore((state) => state.selectedImageFiles);
   const {
     addSelectedFile,
@@ -28,7 +23,7 @@ const useChat = (scrollToStart?: () => void) => {
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const { new_message, img_urls } = currentChatroom || {};
   const sendMessageMutation = trpc.chat.messages.send.useMutation();
-  const [files, setFiles] = useState<File[]>([]);
+  const [formData, setFormdata] = useState<FormData>(new FormData());
 
   const setMessage = (text: string) => {
     if (currentChatroom) {
@@ -45,16 +40,17 @@ const useChat = (scrollToStart?: () => void) => {
   };
 
   const removeFileFromArray = (id: number) => {
+    // need better approach this sucks
     if (!img_urls) return;
-    // const currentFile = selectedImageFiles.find((_, i) => i === id);
-    // const newFormData = new FormData();
-    // formData.forEach((x) => {
-    //   if (x instanceof File && x.name !== currentFile?.name) {
-    //     newFormData.append("images", x);
-    //   }
-    // });
-    // setFormdata(newFormData);
-    setFiles((state) => state.filter((_, i) => i !== id));
+    const currentFile = selectedImageFiles.find((_, i) => i === id);
+    const newFormData = new FormData();
+    formData.forEach((x) => {
+      if (x instanceof File && x.name !== currentFile?.name) {
+        newFormData.append("images", x);
+      }
+    });
+    // setFiles((state) => state.filter((_, i) => i !== id));
+    setFormdata(newFormData);
     removeSelectedFile(id);
     const filteredData = img_urls?.filter((_, index) => index !== id);
     setImgUrls(filteredData);
@@ -79,7 +75,9 @@ const useChat = (scrollToStart?: () => void) => {
 
   const fileSetter = (newFile: File) => {
     if (!currentChatroom) return;
-    setFiles((state) => [...state, newFile]);
+    formData.append("images", newFile);
+    setFormdata(formData);
+
     const blob = URL.createObjectURL(newFile);
     setImgUrls([...currentChatroom.img_urls, blob]);
     addSelectedFile(newFile);
@@ -91,8 +89,8 @@ const useChat = (scrollToStart?: () => void) => {
       is_image: false,
       chatroom_id,
     });
-    addNewMessageToChatCache(messageData);
     setMessage("");
+    addNewMessageToChatCache(messageData);
     if (messageData) await sendMessageMutation.mutateAsync(messageData);
     // updateUserChatLastMessageCache(messageData);
   };
@@ -100,30 +98,15 @@ const useChat = (scrollToStart?: () => void) => {
   const handleSubmitMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (scrollToStart) scrollToStart();
-    if (!currentChatroom) return;
-    const { chatroom_id, new_message, img_urls } = currentChatroom;
-    if (new_message.length > 0) await sendTextMessage(new_message, chatroom_id);
-    if (selectedImageFiles.length > 0 && img_urls?.length > 0) {
-      await sendImageMessage(chatroom_id);
+    if (currentChatroom) {
+      const { chatroom_id, new_message, img_urls } = currentChatroom;
+      if (new_message.length > 0)
+        await sendTextMessage(new_message, chatroom_id);
+      if (selectedImageFiles.length > 0 && img_urls?.length > 0) {
+        await sendImageMessage(chatroom_id);
+      }
     }
   };
-
-  const { useUploadThing } = generateReactHelpers<OurFileRouter>();
-  const { startUpload } = useUploadThing("message", {
-    skipPolling: true,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    onClientUploadComplete: async (data) => {
-      console.log(data);
-    },
-    onUploadError: (err) => {
-      console.log("error occurred while uploading", err);
-    },
-    onUploadBegin: () => {
-      console.log("upload has begun");
-    },
-  });
 
   const sendImageMessage = async (chatroom_id: string) => {
     if (!img_urls) return;
@@ -142,20 +125,25 @@ const useChat = (scrollToStart?: () => void) => {
       arrayOfCreatedIds.push(messageData);
       addNewMessageToChatCache(messageData);
     }
-    const uploadedImages = await startUpload(files);
-    setFiles([]);
+
+    const uploadedImages = await uploadMultipartForm(
+      "/api/uploadMedia/message",
+      formData,
+      token,
+    );
+    console.log("Uploaded images in USE CHAT ", uploadedImages);
 
     if (uploadedImages) {
-      await Promise.all(
-        uploadedImages.map(async (x) => await loadImage(x.url)),
-      );
+      await Promise.all(uploadedImages.map(async (x) => await loadImage(x)));
       for (let i = 0; i < uploadedImages.length; i++) {
         const message = arrayOfCreatedIds[i];
-        message.content = uploadedImages[i].url;
+        message.content = uploadedImages[i];
         await sendMessageMutation.mutateAsync(message);
       }
     }
 
+    setImgUrls([]);
+    formData.delete("images");
     clearSelectedFiles();
   };
   const userChats = chat.get.user_chatrooms.getData(userData?.id);

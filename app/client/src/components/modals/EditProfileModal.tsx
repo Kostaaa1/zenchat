@@ -1,17 +1,15 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { loadImage, renameFile } from "../../utils/utils";
+import { loadImage, renameFile, uploadMultipartForm } from "../../utils/utils";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
-import { generateReactHelpers } from "@uploadthing/react";
-import { OurFileRouter } from "../../../../server/src/uploadthing";
 
 export type CommonInput = {
   first_name?: string;
@@ -46,20 +44,20 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   } = useForm<Inputs>();
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
-    // onSuccess: async (data) => {
-    //   console.log("On success", data);
-    // const { username, last_name, first_name } = data;
-    // await user?.update({
-    //   username,
-    //   firstName: first_name,
-    //   lastName: last_name,
-    // });
-    // await utils.user.get.refetch({
-    //   data: userData!.username,
-    //   type: "username",
-    // });
-    // navigate(`/${username}`);
-    // },
+    onSuccess: async (data) => {
+      console.log("On success", data);
+      const { username, last_name, first_name } = data;
+      await user?.update({
+        username,
+        firstName: first_name,
+        lastName: last_name,
+      });
+      await utils.user.get.refetch({
+        data: userData!.username,
+        type: "username",
+      });
+      navigate(`/${username}`);
+    },
     onError: (error) => {
       const { data } = error;
       if (data?.httpStatus === 422) {
@@ -73,45 +71,35 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   });
 
   const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
-    onSuccess: async (updatedAvatar) => {
-      if (updatedAvatar) {
-        await loadImage(updatedAvatar);
-        await updateUserCache({ image_url: updatedAvatar });
+    onSuccess: async (newAvatar) => {
+      if (newAvatar) {
+        await loadImage(newAvatar);
+        await updateUserCache({ image_url: newAvatar });
         setIsAvatarUpdating(false);
       }
-    },
-  });
-
-  const { useUploadThing } = generateReactHelpers<OurFileRouter>();
-  const { startUpload } = useUploadThing("avatar", {
-    skipPolling: true,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    onClientUploadComplete: (data) => {
-      updateAvatarMutation.mutateAsync({
-        userId: userData!.id,
-        image_url: data[0].url,
-      });
-    },
-    onUploadError: () => {
-      console.log("error occurred while uploading");
-    },
-    onUploadBegin: () => {
-      console.log("upload has begun");
     },
   });
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
+      const { file } = formData;
       setIsLoading(true);
 
       if (fileUrl.length > 0) {
         setIsAvatarUpdating(true);
-        const { file } = formData;
         const renamedFile = renameFile(file[0]);
-        startUpload([renamedFile]);
+        const form = new FormData();
+        form.append("images", renamedFile);
+        const uploadedImages = await uploadMultipartForm(
+          "/api/uploadMedia/avatar",
+          form,
+          token,
+        );
+        updateAvatarMutation.mutate({
+          userId: userData!.id,
+          image_url: uploadedImages[0],
+        });
       }
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
@@ -124,28 +112,13 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         data: userData?.username,
         type: "username",
       });
-
       // @ts-expect-error dsako
       delete formData.file;
       delete formData.image_url;
-      const data = await updateUserDataMutation.mutateAsync({
+      updateUserDataMutation.mutate({
         userId: userData.id,
         userData: formData,
       });
-
-      const { username, last_name, first_name } = data;
-      user?.update({
-        username,
-        firstName: first_name,
-        lastName: last_name,
-      });
-      await utils.user.get.refetch({
-        data: userData!.username,
-        type: "username",
-      });
-
-      setIsLoading(false);
-      navigate(`/${username}`);
     } catch (error) {
       console.log("From server error: ", error);
       // @ts-expect-error dskao

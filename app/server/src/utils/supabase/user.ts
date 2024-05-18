@@ -6,10 +6,6 @@ import {
   TUserData,
   TUserQueryParam,
 } from "../../types/types";
-import { utapi } from "../../uploadthing";
-import env from "../../config/config";
-
-const { UPLOADTHING_URL_PREFIX } = env;
 
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
@@ -31,8 +27,8 @@ export const updateUserAvatar = async ({
 }) => {
   const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
   if (imageUrl && imageUrl[0].image_url) {
-    const img = imageUrl[0].image_url.split(UPLOADTHING_URL_PREFIX)[1];
-    await utapi.deleteFiles([img]);
+    // const img = imageUrl[0].image_url.split(UPLOADTHING_URL_PREFIX)[1];
+    // await utapi.deleteFiles([img]);
   }
 
   const { data, error } = await supabase

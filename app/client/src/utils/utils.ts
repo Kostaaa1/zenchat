@@ -2,6 +2,7 @@ import { ClassValue, clsx } from "clsx";
 import { nanoid } from "nanoid";
 import { twMerge } from "tailwind-merge";
 import { TMessage } from "../../../server/src/types/types";
+import axios from "axios";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -86,27 +87,27 @@ export const renameFile = (
 };
 
 // ?????????
-// export const uploadMultipartForm = async (
-//   apiUrl: string,
-//   formData: FormData,
-//   getToken: (options?: GetTokenOptions | undefined) => Promise<string | null>,
-// ): Promise<string[]> => {
-//   try {
-//     const newImages = await axios.post(apiUrl, formData, {
-//       headers: {
-//         "Content-Type": "multipart/form-data",
-//         Authorization: `Bearer ${await getToken()}`,
-//       },
-//     });
-//     const uploadedImages = newImages.data.urls.map(
-//       (x: { key: string }) => x.key,
-//     );
-//     return uploadedImages;
-//   } catch (error) {
-//     console.log(error);
-//     return [];
-//   }
-// };
+export const uploadMultipartForm = async (
+  apiUrl: string,
+  formData: FormData,
+  token: string | null
+): Promise<string[]> => {
+  try {
+    const newImages = await axios.post(apiUrl, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const uploadedImages = newImages.data.urls.map(
+      (x: { key: string }) => x.key,
+    );
+    return uploadedImages;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
 
 export function convertAndFormatDate(dateString: string) {
   const date = new Date(dateString);

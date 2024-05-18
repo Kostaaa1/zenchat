@@ -1,5 +1,3 @@
-// import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
-// import uploadRouter from "./routers/upload";
 import express from "express";
 import http from "http";
 import cors from "cors";
@@ -8,10 +6,9 @@ import { appRouter } from "./routers";
 import { initSocket } from "./config/initSocket";
 import { Server } from "socket.io";
 import { createContext } from "./context";
-import { createRouteHandler } from "uploadthing/express";
-import { uploadthingRouter } from "../src/uploadthing";
 import env from "./config/config";
 import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
+import uploadRouter from "./routers/upload";
 
 const { CLIENT_URL, PORT } = env;
 const app = express();
@@ -25,15 +22,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-const io = new Server(server, {
-  cors: {
-    origin: CLIENT_URL,
-    methods: ["GET", "POST"],
-  },
-});
-initSocket(io);
-
+app.use("/api/uploadMedia", decodeAndVerifyToken, uploadRouter);
 app.use(
   "/api/trpc",
   createExpressMiddleware({
@@ -42,17 +31,13 @@ app.use(
   })
 );
 
-app.use(
-  "/api/uploadthing",
-  decodeAndVerifyToken,
-  createRouteHandler({
-    router: uploadthingRouter,
-    config: {
-      logLevel: "debug",
-    },
-  })
-);
-
+const io = new Server(server, {
+  cors: {
+    origin: CLIENT_URL,
+    methods: ["GET", "POST"],
+  },
+});
+initSocket(io);
 const port = PORT || 8000;
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
