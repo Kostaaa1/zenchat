@@ -1,4 +1,4 @@
-import { FC, forwardRef } from "react";
+import { FC, forwardRef, useEffect } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import useChatCache from "../../hooks/useChatCache";
 import useChatStore from "../../utils/state/chatStore";
@@ -13,6 +13,7 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
 
   const handleConfirm = async () => {
+    console.log("delete message", unsendMsgData);
     if (unsendMsgData && currentChatroom) {
       removeMessageCache(unsendMsgData.id, currentChatroom.chatroom_id);
       closeModal();

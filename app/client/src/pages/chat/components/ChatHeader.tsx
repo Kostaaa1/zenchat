@@ -28,7 +28,7 @@ const ChatHeader = () => {
   };
 
   return (
-    <div className="flex h-full max-h-[90px] cursor-pointer items-center justify-between border-b border-[#262626] p-6 px-4">
+    <div className="z-10 flex h-full max-h-[90px] cursor-pointer items-center justify-between border-b border-[#262626] bg-black p-6 px-4">
       <div className="flex items-center space-x-4" onClick={handleNavigate}>
         <RenderAvatar
           avatarSize="md"

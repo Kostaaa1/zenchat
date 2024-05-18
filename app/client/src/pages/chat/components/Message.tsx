@@ -15,7 +15,7 @@ interface MessageProps {
 }
 
 const Message: FC<MessageProps> = ({ message, onClick }) => {
-  const { setUnsendMsgData, openModal } = useModalStore(
+  const { setUnsendMsgData, setImageSource, openModal } = useModalStore(
     (state) => state.actions,
   );
   const { userData } = useUser();
@@ -23,9 +23,9 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
   const { content, id, sender_id, is_image } = message;
   const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const moreDropdownRef = useRef<HTMLDivElement>(null);
-  useOutsideClick([moreDropdownRef], "mousedown", () => {
-    setUnsendMsgData(null);
-  });
+  // useOutsideClick([moreDropdownRef], "mousedown", () => {
+  //   setUnsendMsgData(null);
+  // });
 
   return (
     <li
@@ -41,19 +41,15 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
       {is_image ? (
         <div
           onClick={() => {
-            // showImageModal(content);
-            openModal('image')
+            openModal("image");
+            setImageSource(content);
           }}
           className={cn(
             "relative h-full max-h-[400px] w-full max-w-[230px] cursor-pointer rounded-2xl",
           )}
         >
-          <div className="absolute z-10 h-full w-full rounded-2xl transition-all duration-150 hover:bg-white hover:bg-opacity-10"></div>
-          {content.split("blob").length > 1 ? (
-            <img className="rounded-2xl" src={content} />
-          ) : (
-            <img className="rounded-2xl" src={content} />
-          )}
+          <div className="absolute h-full w-full rounded-2xl transition-all duration-150 hover:bg-white hover:bg-opacity-10"></div>
+          <img className="rounded-2xl" src={content} />
         </div>
       ) : (
         <div className="flex items-center justify-center">
@@ -82,7 +78,7 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
             size="18px"
             onClick={onClick}
             className={cn(
-              "absolute -translate-y-1/2 rotate-90 hover:text-white",
+              "absolute z-[1000] -translate-y-1/2 rotate-90 hover:text-white",
               sender_id === userData!.id ? "right-0" : "left-0",
             )}
           />

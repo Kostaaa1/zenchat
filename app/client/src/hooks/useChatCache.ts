@@ -6,6 +6,7 @@ import { trpc } from "../utils/trpcClient";
 import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
 import { useNavigate } from "react-router-dom";
+import { loadImage } from "../utils/utils";
 
 const useChatCache = () => {
   const ctx = trpc.useUtils();

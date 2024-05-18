@@ -5,6 +5,9 @@ import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
+import { utapi } from "../../uploadthing";
+
+const { UPLOADTHING_URL_PREFIX = "" } = process.env;
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -54,6 +57,7 @@ export const unsendMessage = async ({
     if (!data) console.log(error);
     if (imageUrl) {
       // await deleteS3Object({ folder: "messages", fileName: imageUrl });
+      await utapi.deleteFiles([imageUrl.split(UPLOADTHING_URL_PREFIX)[1]]);
     }
   } catch (error) {
     console.log(error);

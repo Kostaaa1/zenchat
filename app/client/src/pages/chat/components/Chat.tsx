@@ -10,7 +10,10 @@ import useUser from "../../../hooks/useUser";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import Message from "./Message";
 import useModalStore from "../../../utils/state/modalStore";
-import { loadImagesAndStructureMessages } from "../../../utils/utils";
+import {
+  loadImage,
+  loadImagesAndStructureMessages,
+} from "../../../utils/utils";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -23,6 +26,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const unsendMsgData = useModalStore((state) => state.unsendMsgData);
+  const { openModal } = useModalStore((state) => state.actions);
+  const [loading, setLoading] = useState<boolean>(true);
   const { setUnsendMsgData } = useModalStore((state) => state.actions);
   const currentChatroomTitle = useChatStore(
     (state) => state.currentChatroomTitle,
@@ -61,6 +66,32 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     { enabled: !!chatRoomId },
   );
 
+  // useEffect(() => {
+  //   if (
+  //     !messages ||
+  //     messages.length === 0 ||
+  //     messages.length < MESSAGE_FETCH_LIMIT
+  //   ) {
+  //     setLoading(false);
+  //     setShouldFetchMoreMessages(false);
+  //     return;
+  //   }
+
+  //   // if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
+  //   //   setShouldFetchMoreMessages(false);
+  //   // }
+  //   setLastMessageDate(messages[messages.length - 1].created_at);
+  //   const loadImages = async () => {
+  //     await Promise.all(
+  //       messages
+  //         .filter((x) => x.is_image)
+  //         .map(async (msg) => await loadImage(msg.content)),
+  //     );
+  //     setLoading(false);
+  //   };
+  //   loadImages();
+  // }, [messages]);
+
   const fetchLoadedImages = async (messages: TMessage[]) => {
     try {
       const loadedImages = await loadImagesAndStructureMessages(messages);
@@ -68,6 +99,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
         { chatroom_id: chatRoomId as string },
         loadedImages,
       );
+      setLoading(false);
     } catch (error) {
       console.log(error);
     }
@@ -75,17 +107,16 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
 
   useEffect(() => {
     if (!messages) return;
-
     if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
       setShouldFetchMoreMessages(false);
+      setLoading(false);
       return;
     }
 
-    if (messages) {
-      fetchLoadedImages(messages);
-      if (messages.length > 0) {
-        setLastMessageDate(messages[messages.length - 1].created_at);
-      }
+    const msgImgs = messages.filter((x) => x.is_image);
+    fetchLoadedImages(msgImgs);
+    if (messages.length > 0) {
+      setLastMessageDate(messages[messages.length - 1].created_at);
     }
   }, [messages]);
 
@@ -95,10 +126,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     const handleScroll = debounce(() => {
       const { scrollTop, clientHeight, scrollHeight } = container;
       const scrollTolerance = 40;
-      if (
-        Math.abs(scrollTop) >= scrollHeight - clientHeight - scrollTolerance &&
-        shouldFetchMoreMessages
-      ) {
+      const diff = scrollHeight - clientHeight - scrollTolerance;
+      if (Math.abs(scrollTop) >= diff && shouldFetchMoreMessages) {
         getMoreMutation({
           chatroom_id: chatRoomId,
           lastMessageDate: lastMessageDate,
@@ -114,14 +143,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
 
   const handlePressMore = (message: TMessage) => {
     const { is_image, content, id } = message;
+    console.log("yo");
     if (!unsendMsgData) {
-      // const imageKitPrefix = import.meta.env.VITE_S3_URL;
-      // const imageUrl = is_image ? content.split(imageKitPrefix)[1] : null;
-      // const msgData = {
-      //   id,
-      //   imageUrl,
-      // };
-      console.log("Message content: ", content);
       setUnsendMsgData(
         unsendMsgData ? null : { id, imageUrl: is_image ? content : null },
       );
@@ -132,14 +155,14 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {!messages ? (
+      {loading ? (
         <div className="flex w-full items-center justify-center py-4">
           <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
         </div>
       ) : (
         <div
-          ref={scrollRef}
           className="flex h-full flex-col-reverse justify-between overflow-y-auto overflow-x-hidden"
+          ref={scrollRef}
         >
           <ul className="flex flex-col-reverse p-3">
             {messages?.map((message) => (

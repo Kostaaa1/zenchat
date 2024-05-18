@@ -1,6 +1,4 @@
 import { createUploadthing, type FileRouter } from "uploadthing/express";
-import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
-import { InputPostSchema } from "./types/zodSchemas";
 import { UTApi } from "uploadthing/server";
 
 const f = createUploadthing();
@@ -11,6 +9,15 @@ export const uploadthingRouter = {
   post: f({
     image: { maxFileSize: "32MB", maxFileCount: 4 },
     video: { maxFileSize: "128MB", maxFileCount: 4 },
+  })
+    .middleware(async ({ req, input }) => {
+      return { success: "HALOOO", message: "hello" as const };
+    })
+    .onUploadComplete(async ({ metadata }) => {
+      console.log("METADATA", metadata);
+    }),
+  message: f({
+    image: { maxFileSize: "32MB", maxFileCount: 4 },
   })
     .middleware(async ({ req, input }) => {
       return { success: "HALOOO" };

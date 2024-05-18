@@ -1,5 +1,3 @@
-import { GetTokenOptions } from "@clerk/types";
-import axios from "axios";
 import { ClassValue, clsx } from "clsx";
 import { nanoid } from "nanoid";
 import { twMerge } from "tailwind-merge";
@@ -14,7 +12,6 @@ export const loadImage = async (url: string, maxRetries = 5) => {
 
   const loadImageWithRetry = async (url: string, retries = 0) => {
     return new Promise((resolve) => {
-      console.log("Loading image: ", url);
       const img = new Image();
       img.src = url;
       img.onload = () => {
@@ -61,7 +58,6 @@ export const loadImagesAndStructureMessages = (
 ): Promise<TMessage[]> => {
   return Promise.all(
     messages.map((data) => {
-      if (!data.is_image) return data;
       const src = data.content;
       return new Promise<TMessage>((resolve) => {
         const img = new Image();
@@ -90,27 +86,27 @@ export const renameFile = (
 };
 
 // ?????????
-export const uploadMultipartForm = async (
-  apiUrl: string,
-  formData: FormData,
-  getToken: (options?: GetTokenOptions | undefined) => Promise<string | null>,
-): Promise<string[]> => {
-  try {
-    const newImages = await axios.post(apiUrl, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${await getToken()}`,
-      },
-    });
-    const uploadedImages = newImages.data.urls.map(
-      (x: { key: string }) => x.key,
-    );
-    return uploadedImages;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
+// export const uploadMultipartForm = async (
+//   apiUrl: string,
+//   formData: FormData,
+//   getToken: (options?: GetTokenOptions | undefined) => Promise<string | null>,
+// ): Promise<string[]> => {
+//   try {
+//     const newImages = await axios.post(apiUrl, formData, {
+//       headers: {
+//         "Content-Type": "multipart/form-data",
+//         Authorization: `Bearer ${await getToken()}`,
+//       },
+//     });
+//     const uploadedImages = newImages.data.urls.map(
+//       (x: { key: string }) => x.key,
+//     );
+//     return uploadedImages;
+//   } catch (error) {
+//     console.log(error);
+//     return [];
+//   }
+// };
 
 export function convertAndFormatDate(dateString: string) {
   const date = new Date(dateString);
