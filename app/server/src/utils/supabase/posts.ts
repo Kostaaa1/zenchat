@@ -1,9 +1,8 @@
 import supabase from "../../config/supabase";
 import { InputPostSchema } from "../../types/zodSchemas";
 import { z } from "zod";
-import env from "../../config/config";
-
-// const { UPLOADTHING_URL_PREFIX } = env;
+import { env } from "../../config/config";
+import { deleteS3Object } from "../s3";
 
 export const uploadPost = async (uploadData: z.infer<typeof InputPostSchema>) => {
   const { data, error } = await supabase.from("posts").insert(uploadData).select("*");
@@ -21,6 +20,9 @@ export const deletePost = async (id: string, fileKeys: string[]) => {
 
     // Deleting upladed files
     // await utapi.deleteFiles(fileKeys.map((x) => x.split(UPLOADTHING_URL_PREFIX)[1]));
+    for (const key of fileKeys) {
+      await deleteS3Object(key);
+    }
 
     return { success: true };
   } catch (err) {

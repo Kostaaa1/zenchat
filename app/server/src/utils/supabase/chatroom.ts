@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import supabase from "../../config/supabase";
-// import { deleteS3Object } from "../../middleware/multer";
 import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
-
+import { deleteS3Object } from "../s3";
 // const { UPLOADTHING_URL_PREFIX = "" } = process.env;
+
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
     .from("messages")
@@ -39,7 +39,6 @@ export const getMoreMessages = async (
       message: `Error when fetching all messages: ${error.message}`,
     });
   }
-
   return data;
 };
 
@@ -54,7 +53,7 @@ export const unsendMessage = async ({
     const { data, error } = await supabase.from("messages").delete().eq("id", id);
     if (!data) console.log(error);
     if (imageUrl) {
-      // await deleteS3Object({ folder: "messages", fileName: imageUrl });
+      await deleteS3Object(imageUrl);
       // await utapi.deleteFiles([imageUrl.split(UPLOADTHING_URL_PREFIX)[1]]);
     }
   } catch (error) {
@@ -63,6 +62,7 @@ export const unsendMessage = async ({
 };
 
 export const sendMessage = async (messageData: TMessage) => {
+  console.log("messagedata", messageData);
   const { chatroom_id, content, created_at } = messageData;
   const { error: newMessageError } = await supabase.from("messages").insert(messageData);
   if (messageData.is_image) return;
@@ -78,8 +78,8 @@ export const sendMessage = async (messageData: TMessage) => {
   const { error } = await supabase
     .from("chatroom_users")
     .update({ is_active: true })
-    .eq("chatroom_id", chatroom_id)
-    .neq("user_id", messageData.sender_id);
+    .eq("chatroom_id", chatroom_id);
+  // .neq("user_id", messageData.sender_id);
 
   if (error) console.log(error);
   if (lastMessageUpdateError) {

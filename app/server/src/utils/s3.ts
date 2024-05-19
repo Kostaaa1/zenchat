@@ -1,11 +1,8 @@
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { Readable } from "stream";
-const {
-  AWS_REGION,
-  AWS_ACCESS_KEY_ID = "",
-  AWS_SECRET_ACCESS_KEY = "",
-  AWS_S3_BUCKETNAME = "",
-} = process.env;
+import { BucketFolders, env } from "../config/config";
+
+const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_BUCKETNAME, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_URL } =
+  env;
 
 const s3 = new S3Client({
   region: AWS_REGION,
@@ -15,17 +12,32 @@ const s3 = new S3Client({
   },
 });
 
-export const deleteS3Object = async ({ folder, file }: { folder: string; file: string }) => {
-  try {
-    const params = {
-      Bucket: AWS_S3_BUCKETNAME,
-      Key: `${folder}/${file}`,
-    };
-    const deleteCommand = new DeleteObjectCommand(params);
-    await s3.send(deleteCommand);
-  } catch (error) {
-    console.log(error);
+export const s3KeyConstructor = (data: { folder: BucketFolders; name: string }) => {
+  const { name, folder } = data;
+  return `${AWS_BUCKET_URL}/${folder}/${name}`;
+};
+
+export const s3KeyExtractor = (name: string) => {
+  if (name.startsWith(AWS_BUCKET_URL)) {
+    const p = name.split(AWS_BUCKET_URL)[1];
+    const id = p.indexOf("/");
+    return p.slice(id + 1);
+  } else {
+    return name;
   }
+};
+
+export const deleteS3Object = async (key: string) => {
+  let name = key;
+  if (key.startsWith(AWS_BUCKET_URL)) {
+    name = s3KeyExtractor(name);
+  }
+  const params = {
+    Bucket: AWS_BUCKETNAME,
+    Key: name,
+  };
+  const deleteCommand = new DeleteObjectCommand(params);
+  await s3.send(deleteCommand);
 };
 
 export const uploadToS3 = async ({
@@ -39,7 +51,7 @@ export const uploadToS3 = async ({
 }) => {
   try {
     const params = {
-      Bucket: AWS_S3_BUCKETNAME,
+      Bucket: AWS_BUCKETNAME,
       Key: `${folder}/${file}`,
       Body: data,
     };

@@ -127,7 +127,7 @@ const useChat = (scrollToStart?: () => void) => {
     }
 
     const uploadedImages = await uploadMultipartForm(
-      "/api/uploadMedia/message",
+      "/api/upload/message",
       formData,
       token,
     );

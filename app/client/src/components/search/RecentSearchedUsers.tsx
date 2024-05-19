@@ -41,8 +41,8 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   };
 
   return (
-    <div className="flex h-full w-full flex-col">
-      <div className="flex select-none items-center justify-between p-6 py-2 font-semibold md:py-6">
+    <div className="flex h-full w-full flex-col p-6 py-2 md:py-6">
+      <div className="flex select-none items-center justify-between font-semibold">
         <h3>Recent</h3>
         {searchedChats && searchedChats?.length > 0 ? (
           <p
@@ -70,13 +70,15 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                   onClick={() => navigateToUserDashboard(chat?.users!.username)}
                   hover="darker"
                   title={chat.users!.username}
-                  subtitle={`${chat.users!.first_name} ${chat.users!.last_name}`}
+                  subtitle={`${chat.users!.first_name} ${
+                    chat.users!.last_name
+                  }`}
                   icon={<Icon name="X" size="28px" />}
                 />
               ))}
             </>
           ) : (
-            <div className="flex h-full items-center justify-center">
+            <div className="flex h-full items-center justify-center pb-3">
               <p className="text-md font-semibold text-neutral-400">
                 No recent searches
               </p>

@@ -1,12 +1,15 @@
 import supabase from "../../config/supabase";
 import { Tables } from "../../types/supabase";
+import { deleteS3Object, s3KeyConstructor } from "../s3";
 import {
   SupabaseResponse,
   TCreateUserInput,
   TUserData,
   TUserQueryParam,
 } from "../../types/types";
+import { s3Buckets } from "../../config/config";
 
+const { AWS_BUCKET_URL = "" } = process.env;
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
   const { data: userData, error } = await supabase
@@ -27,13 +30,15 @@ export const updateUserAvatar = async ({
 }) => {
   const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
   if (imageUrl && imageUrl[0].image_url) {
-    // const img = imageUrl[0].image_url.split(UPLOADTHING_URL_PREFIX)[1];
-    // await utapi.deleteFiles([img]);
+    const oldImageName = imageUrl[0].image_url
+      .split(AWS_BUCKET_URL)[1]
+      .split(s3Buckets.AVATARS)[1];
+    await deleteS3Object(oldImageName);
   }
 
   const { data, error } = await supabase
     .from("users")
-    .update({ image_url })
+    .update({ image_url: s3KeyConstructor({ folder: "avatars", name: image_url }) })
     .eq("id", userId)
     .select("image_url");
 
@@ -50,7 +55,6 @@ export const updateUserData = async (
     image_url?: string | undefined;
   }
 ): Promise<SupabaseResponse<Tables<"users">>> => {
-  console.log("To update: ", userId, "Data: ", userData);
   const { data, error } = await supabase
     .from("users")
     .update({ ...userData })

@@ -7,7 +7,6 @@ import Icon from "../../../components/Icon";
 import { motion } from "framer-motion";
 import List from "../../../components/List";
 import { Separator } from "../../dashboard/Dashboard";
-import useOutsideClick from "../../../hooks/useOutsideClick";
 
 interface MessageProps {
   message: TMessage;
@@ -23,9 +22,6 @@ const Message: FC<MessageProps> = ({ message, onClick }) => {
   const { content, id, sender_id, is_image } = message;
   const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const moreDropdownRef = useRef<HTMLDivElement>(null);
-  // useOutsideClick([moreDropdownRef], "mousedown", () => {
-  //   setUnsendMsgData(null);
-  // });
 
   return (
     <li

@@ -29,13 +29,10 @@ const Inbox = () => {
     useChatStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    return () => setShowDetails(false);
-  }, []);
   const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
-
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
+    refetchOnMount: "always",
   });
 
   const userChats = useMemo(() => {
@@ -44,6 +41,14 @@ const Inbox = () => {
     );
     return filteredChats;
   }, [data]);
+
+  useEffect(() => {
+    console.log("data", data);
+  }, [data]);
+
+  useEffect(() => {
+    return () => setShowDetails(false);
+  }, []);
 
   useEffect(() => {
     if (!userChats || userChats.length === 0 || !userData) return;

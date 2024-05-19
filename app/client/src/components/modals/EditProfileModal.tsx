@@ -41,6 +41,8 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     setError,
     handleSubmit,
     watch,
+    reset,
+    setValue,
   } = useForm<Inputs>();
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
@@ -56,6 +58,9 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         data: userData!.username,
         type: "username",
       });
+      setFileUrl("");
+      setIsLoading(false);
+      reset();
       navigate(`/${username}`);
     },
     onError: (error) => {
@@ -76,6 +81,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         await loadImage(newAvatar);
         await updateUserCache({ image_url: newAvatar });
         setIsAvatarUpdating(false);
+        setFileUrl(newAvatar);
       }
     },
   });
@@ -83,28 +89,31 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
+      console.log("Frodamd data", formData);
       const { file } = formData;
       setIsLoading(true);
 
-      if (fileUrl.length > 0) {
+      if (file && file.length > 0) {
+        console.log("There is a file updating avatar........", file);
         setIsAvatarUpdating(true);
         const renamedFile = renameFile(file[0]);
         const form = new FormData();
         form.append("images", renamedFile);
+
         const uploadedImages = await uploadMultipartForm(
-          "/api/uploadMedia/avatar",
+          "/api/upload/avatar",
           form,
           token,
         );
-        updateAvatarMutation.mutate({
+        await updateAvatarMutation.mutateAsync({
           userId: userData!.id,
           image_url: uploadedImages[0],
         });
       }
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
-        console.log("Only file is being uploaded");
         setIsLoading(false);
+        reset()
         return;
       }
 
@@ -112,6 +121,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         data: userData?.username,
         type: "username",
       });
+
       // @ts-expect-error dsako
       delete formData.file;
       delete formData.image_url;

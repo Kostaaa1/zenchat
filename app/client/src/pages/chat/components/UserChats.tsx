@@ -14,10 +14,7 @@ type TUserChatsProps = {
 
 const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const { userData } = useUser();
-  const { openModal } = useModalStore(
-    (state) => state.actions,
-  );
-
+  const { openModal } = useModalStore((state) => state.actions);
   return (
     <div
       className={cn(
@@ -41,16 +38,19 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
           <div className="flex h-full items-center justify-center">
             <p className="text-neutral-400">No messages found.</p>
           </div>
-        ) : null}
-        {isLoading ? (
-          Array(2)
-            .fill("")
-            .map((_, id) => <List key={id} isLoading={isLoading} />)
         ) : (
           <>
-            {userChats?.map((chat) => (
-              <ChatList key={chat.chatroom_id} chat={chat} />
-            ))}
+            {isLoading ? (
+              Array(2)
+                .fill("")
+                .map((_, id) => <List key={id} isLoading={isLoading} />)
+            ) : (
+              <>
+                {userChats?.map((chat) => (
+                  <ChatList key={chat.chatroom_id} chat={chat} />
+                ))}
+              </>
+            )}
           </>
         )}
       </ul>

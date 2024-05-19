@@ -31,10 +31,10 @@ export const DashboardHeader = ({
       userIds: [userData.id, loggedUser.id],
       admin: loggedUser.id,
     });
-    await ctx.chat.get.user_chatrooms.invalidate(userData.id);
+    await ctx.chat.get.user_chatrooms.prefetch(userData.id);
     if (path) {
       setIsLoading(false);
-      navigate(`/inbox/${path}`);
+      navigate(`/inbox`);
     }
   };
 

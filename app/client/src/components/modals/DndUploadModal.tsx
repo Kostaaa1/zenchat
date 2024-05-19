@@ -87,26 +87,6 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
   >("Create new post");
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const dndFile = acceptedFiles[0];
-    const reader = new FileReader();
-    if (dndFile.size > FILE_LIMIT_BYTES) {
-      toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
-      return;
-    }
-
-    reader.onload = () => {
-      const result = reader.result;
-      if (!result) return;
-      const blob = new Blob([result], { type: dndFile.type });
-      const ulr = URL.createObjectURL(blob);
-      setMediaSrc(ulr);
-    };
-
-    reader.readAsArrayBuffer(dndFile);
-    setFile(acceptedFiles[0]);
-  }, []);
-
   const handleDndFile = (dndFile: File) => {
     const reader = new FileReader();
     if (dndFile.size > FILE_LIMIT_BYTES) {
@@ -179,20 +159,19 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     formData.append("serialized", JSON.stringify(unified));
     formData.append("post", file);
     if (thumbnailFile) formData.append("post", thumbnailFile);
+    const url = `/api/upload/post/${
+      type.startsWith("video/") ? "video" : "image"
+    }`;
 
-    const { data }: { data: TPost } = await axios.post(
-      "/api/uploadMedia/post",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
+    const { data }: { data: TPost } = await axios.post(url, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
       },
-    );
-    console.log("Data", data)
+    });
+    console.log("data", data);
 
-    if (file.type.startsWith("image/")) await loadImage(data.media_url);
+    await loadImage(data.thumbnail_url ?? data.media_url);
     utils.user.get.setData(
       { data: userData.username, type: "username" },
       (state: TUserData) => {
@@ -226,7 +205,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
             width: modalWidth,
           }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
-          className="flex h-[100vw] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center sm:h-[660px]"
+          className="flex max-h-[90vh] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center sm:h-[660px]"
         >
           <div className="relative flex h-12 w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
             <Icon

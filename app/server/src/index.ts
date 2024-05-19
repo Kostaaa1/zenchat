@@ -6,9 +6,9 @@ import { appRouter } from "./routers";
 import { initSocket } from "./config/initSocket";
 import { Server } from "socket.io";
 import { createContext } from "./context";
-import env from "./config/config";
 import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
 import uploadRouter from "./routers/upload";
+import { env } from "./config/config";
 
 const { CLIENT_URL, PORT } = env;
 const app = express();
@@ -22,7 +22,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use("/api/uploadMedia", decodeAndVerifyToken, uploadRouter);
+app.use("/api/upload", decodeAndVerifyToken, uploadRouter);
 app.use(
   "/api/trpc",
   createExpressMiddleware({
