@@ -2,7 +2,6 @@ import { VariantProps, cva } from "class-variance-authority";
 import { FC } from "react";
 import { cn } from "../../utils/utils";
 import { Loader2, User } from "lucide-react";
-import useGeneralStore from "../../utils/state/generalStore";
 
 const avatarVariance = cva(
   "relative flex cursor-pointer items-center justify-center text-white overflow-hidden rounded-full",
@@ -47,7 +46,7 @@ const Avatar: FC<AvatarProps> = ({
   enableHover = false,
 }) => {
   return (
-    <div>
+    <div className="inline-flex cursor-pointer select-none items-center justify-center space-x-2">
       <div
         className={cn(avatarVariance({ size, className }), "bg-neutral-300")}
         onClick={onClick}

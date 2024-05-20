@@ -1,4 +1,4 @@
-import React, { FC, forwardRef, useCallback, useMemo, useState } from "react";
+import React, { FC, forwardRef,  useMemo, useState } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
@@ -17,6 +17,7 @@ import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
 import { nanoid } from "nanoid";
 import { TPost, TUserData } from "../../../../server/src/types/types";
 import axios from "axios";
+import Video from "../Video";
 
 interface Props {
   onDrop: (droppedFile: File) => void;
@@ -93,7 +94,6 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
       toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
       return;
     }
-
     reader.onload = () => {
       const result = reader.result;
       if (result) {
@@ -102,7 +102,6 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
         setMediaSrc(url);
       }
     };
-
     reader.readAsArrayBuffer(dndFile);
     setFile(dndFile);
   };
@@ -159,19 +158,18 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     formData.append("serialized", JSON.stringify(unified));
     formData.append("post", file);
     if (thumbnailFile) formData.append("post", thumbnailFile);
+
     const url = `/api/upload/post/${
       type.startsWith("video/") ? "video" : "image"
     }`;
-
     const { data }: { data: TPost } = await axios.post(url, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("data", data);
 
-    await loadImage(data.thumbnail_url ?? data.media_url);
+    await loadImage(data.thumbnail_url || data.media_url);
     utils.user.get.setData(
       { data: userData.username, type: "username" },
       (state: TUserData) => {
@@ -245,15 +243,11 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                       <img src={mediaSrc} alt={mediaSrc} />
                     )}
                     {file.type.startsWith("video/") && (
-                      <video
-                        loop
-                        id="videoId"
-                        autoPlay={true}
+                      <Video
+                        media_url={mediaSrc}
+                        controls={false}
                         className="h-full w-[650px] object-cover"
-                        onLoadStart={(e) => (e.currentTarget.volume = 0.05)}
-                      >
-                        <source src={mediaSrc} type="video/mp4" />
-                      </video>
+                      />
                     )}
                   </div>
                   <div

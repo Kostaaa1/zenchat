@@ -3,18 +3,31 @@ import { useAuth } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { trpc } from "../../utils/trpcClient";
 import { useNavigate } from "react-router-dom";
-import useGeneralStore from "../../utils/state/generalStore";
-import { cn } from "../../utils/utils";
 
-interface UserDropdownProps {
+type UserDropdownProps = {
   dropdownRef: React.RefObject<HTMLDivElement>;
-}
+};
+
+type LiProps = {
+  text: string;
+  onClick: () => void;
+};
+
+const Li: FC<LiProps> = ({ onClick, text }) => {
+  return (
+    <li
+      onClick={onClick}
+      className="h-full w-full cursor-pointer rounded-lg p-2 transition-colors duration-100 hover:bg-zinc-400 hover:bg-opacity-30"
+    >
+      {text}
+    </li>
+  );
+};
 
 const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
   const { signOut } = useAuth();
   const ctx = trpc.useUtils();
   const navigate = useNavigate();
-  const isMobile = useGeneralStore((state) => state.isMobile);
 
   const handleLogOut = async () => {
     navigate("/");
@@ -23,33 +36,20 @@ const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
   };
 
   return (
-    <div ref={dropdownRef}>
+    <>
       <motion.div
+        ref={dropdownRef}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 20, opacity: 0 }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-        style={{
-          position: "absolute",
-          bottom: "120px",
-          zIndex: 10000,
-        }}
+        exit={{ y: 10, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="right-15 absolute bottom-14 w-[200px] rounded-lg bg-neutral-800 p-2"
       >
-        <ul
-          className={cn(
-            "absolute z-[100] flex w-[200px] flex-col rounded-lg bg-neutral-700 p-2",
-            isMobile ? "-right-12" : "left-0",
-          )}
-        >
-          <li
-            onClick={handleLogOut}
-            className="h-full w-full cursor-pointer rounded-lg p-2 transition-colors duration-100 hover:bg-zinc-400 hover:bg-opacity-30"
-          >
-            Log out
-          </li>
+        <ul>
+          <Li text="Log out" onClick={handleLogOut} />
         </ul>
       </motion.div>
-    </div>
+    </>
   );
 };
 

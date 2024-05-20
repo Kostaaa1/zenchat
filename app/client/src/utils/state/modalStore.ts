@@ -24,7 +24,9 @@ type Store = {
   isMessageDropdownActive: boolean;
   isAvatarUpdating: boolean;
   activeModal: Modals;
+  isModalOptionsOpen: boolean;
   actions: {
+    triggerModalOptions: () => void;
     openModal: (activeModal: Modals) => void;
     closeModal: () => void;
     setImageSource: (src: string) => void;
@@ -44,17 +46,27 @@ const useModalStore = create<Store>(
     isMessageDropdownActive: false,
     imageSource: null,
     modalPostData: null,
+    isModalOptionsOpen: false,
     actions: {
+      triggerModalOptions: () =>
+        set((state) => ({ isModalOptionsOpen: !state.isModalOptionsOpen })),
       openModal: (activeModal: Modals) =>
         set({ isModalOpen: true, activeModal }),
       closeModal: () =>
-        set({
-          imageSource: null,
-          modalPostData: null,
-          isMessageDropdownActive: false,
-          isAvatarUpdating: false,
-          isModalOpen: false,
-          activeModal: null,
+        set((state) => {
+          if (state.isModalOptionsOpen) {
+            return { ...state, isModalOptionsOpen: !state.isModalOptionsOpen };
+          } else {
+            return {
+              ...state,
+              imageSource: null,
+              modalPostData: null,
+              isMessageDropdownActive: false,
+              isAvatarUpdating: false,
+              isModalOpen: false,
+              activeModal: null,
+            };
+          }
         }),
       //////
       setImageSource: (imageSource: string) => set({ imageSource }),

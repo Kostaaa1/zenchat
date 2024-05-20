@@ -8,7 +8,6 @@ import { trpc } from "../../utils/trpcClient";
 interface RecentSearchedUsersProps {
   navigateToUserDashboard: (username: string) => void;
 }
-
 const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   navigateToUserDashboard,
 }) => {
@@ -41,8 +40,8 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   };
 
   return (
-    <div className="flex h-full w-full flex-col p-6 py-2 md:py-6">
-      <div className="flex select-none items-center justify-between font-semibold">
+    <div className="flex h-full w-full flex-col">
+      <div className="flex select-none items-center justify-between px-6 py-3 font-semibold">
         <h3>Recent</h3>
         {searchedChats && searchedChats?.length > 0 ? (
           <p

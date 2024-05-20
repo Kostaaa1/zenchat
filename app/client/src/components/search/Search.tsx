@@ -23,7 +23,7 @@ const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
       {children}
     </motion.div>
   ) : (
-    <motion.div className="absolute right-4 top-14 z-[1000] h-max w-[50vw] max-w-[300px] overflow-auto rounded-2xl bg-neutral-800 outline outline-1">
+    <motion.div className="absolute right-4 top-14 z-[1000] h-max w-[50vw] max-w-[300px] overflow-auto rounded-2xl bg-neutral-800">
       {children}
     </motion.div>
   );

@@ -35,15 +35,15 @@ const Inbox = () => {
     refetchOnMount: "always",
   });
 
+  useEffect(() => {
+    console.log("data", data);
+  }, [data]);
+
   const userChats = useMemo(() => {
     const filteredChats = data?.filter((x) =>
       x.users.some((y) => y.username === userData?.username && y.is_active),
     );
     return filteredChats;
-  }, [data]);
-
-  useEffect(() => {
-    console.log("data", data);
   }, [data]);
 
   useEffect(() => {

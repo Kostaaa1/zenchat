@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import Icon from "../Icon";
 import NavList from "../NavList";
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,7 +8,6 @@ import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import useGeneralStore from "../../utils/state/generalStore";
 import BottomNavbar from "./BottomNav";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import NavHamburger from "./NavHamburger";
 import { NavListItems } from "../../hooks/useNavbar";
 
@@ -19,14 +18,8 @@ type NavbarProps = {
 const Navbar: FC<NavbarProps> = ({ navListItems }) => {
   const isMobile = useGeneralStore((state) => state.isMobile);
   const isResponsive = useGeneralStore((state) => state.isResponsive);
-  const { setShowDropdown } = useGeneralStore((state) => state.actions);
   const { userData } = useUser();
-  const iconRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<"list" | "default">("default");
-  useOutsideClick([iconRef, dropdownRef], "click", () =>
-    setShowDropdown(false),
-  );
   useEffect(() => {
     setList(isResponsive ? "default" : "list");
   }, [isResponsive]);
@@ -72,7 +65,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
                 </div>
               ))}
             </div>
-            <NavHamburger dropdownRef={dropdownRef} iconRef={iconRef} />
+            <NavHamburger />
           </ul>
         )}
       </AnimatePresence>

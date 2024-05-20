@@ -7,7 +7,7 @@ import getCurrentDate from "../utils/getCurrentDate";
 import useChatCache from "./useChatCache";
 import { trpc } from "../utils/trpcClient";
 import { Skin } from "@emoji-mart/data";
-import { loadImage, uploadMultipartForm } from "../utils/utils";
+import { uploadMultipartForm } from "../utils/utils";
 
 const useChat = (scrollToStart?: () => void) => {
   const { userData, token } = useUser();
@@ -131,10 +131,8 @@ const useChat = (scrollToStart?: () => void) => {
       formData,
       token,
     );
-    console.log("Uploaded images in USE CHAT ", uploadedImages);
 
     if (uploadedImages) {
-      await Promise.all(uploadedImages.map(async (x) => await loadImage(x)));
       for (let i = 0; i < uploadedImages.length; i++) {
         const message = arrayOfCreatedIds[i];
         message.content = uploadedImages[i];

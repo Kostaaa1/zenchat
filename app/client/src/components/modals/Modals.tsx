@@ -5,10 +5,11 @@ import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "../../hooks/useOutsideClick";
 import PostModal from "./PostModal";
+import ModalOptions from "./ModalOptions";
 
 type ModalProps = {
   children?: React.ReactNode;
@@ -35,6 +36,7 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 
 const Modals = () => {
   const modalPostData = useModalStore((state) => state.modalPostData);
+  const isModalOptionsOpen = useModalStore((state) => state.isModalOptionsOpen);
   const imageSource = useModalStore((state) => state.imageSource);
   const isModalOpen = useModalStore((state) => state.isModalOpen);
   const activeModal = useModalStore((state) => state.activeModal);
@@ -42,11 +44,16 @@ const Modals = () => {
 
   // Arrows //
   const modalRef = useRef<HTMLDivElement>(null);
+  const modalOptionRef = useRef<HTMLUListElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside([modalRef, leftRef, rightRef], "mousedown", () => {
-    closeModal();
-  });
+  useOnClickOutside(
+    [modalRef, modalOptionRef, leftRef, rightRef],
+    "mousedown",
+    () => {
+      closeModal();
+    },
+  );
 
   return (
     <div className="absolute left-0 top-0 w-full">
@@ -73,6 +80,7 @@ const Modals = () => {
               />
             )}
             {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
+            {isModalOptionsOpen && <ModalOptions ref={modalOptionRef} />}
           </>
         )}
       </AnimatePresence>

@@ -42,7 +42,6 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     handleSubmit,
     watch,
     reset,
-    setValue,
   } = useForm<Inputs>();
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
@@ -92,19 +91,18 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       console.log("Frodamd data", formData);
       const { file } = formData;
       setIsLoading(true);
-
       if (file && file.length > 0) {
-        console.log("There is a file updating avatar........", file);
         setIsAvatarUpdating(true);
+
         const renamedFile = renameFile(file[0]);
         const form = new FormData();
         form.append("images", renamedFile);
-
         const uploadedImages = await uploadMultipartForm(
           "/api/upload/avatar",
           form,
           token,
         );
+
         await updateAvatarMutation.mutateAsync({
           userId: userData!.id,
           image_url: uploadedImages[0],
@@ -113,7 +111,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
         setIsLoading(false);
-        reset()
+        reset();
         return;
       }
 

@@ -87,7 +87,7 @@ export const createUser = async ({
     .insert({
       username,
       email,
-      image_url: "",
+      image_url: null,
       first_name: firstName,
       last_name: lastName,
     })

@@ -38,18 +38,10 @@ const ChatDetails: FC<ChatDetailsProps> = () => {
             ></div>
           </div>
         </div>
-        {/* {currentChatroom?.is_group && (
-          <div className="my-2 flex w-full items-center justify-between pb-6">
-            <p className="text-sm">Change group name</p>
-            <Button size="sm" className="ml-2 text-sm">
-              Change
-            </Button>
-          </div>
-        )} */}
       </div>
       <div className="w-full border border-x-0 border-t-0 border-[#262626]"></div>
       <div className="flex h-full flex-col overflow-auto">
-        <h4 className="p-6 font-semibold">Members</h4>
+        <h4 className="p-6 py-3 font-semibold">Members</h4>
         {currentChatroom!.users
           .filter((x) => x.username !== userData!.username)
           .map((user) => (

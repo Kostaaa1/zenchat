@@ -4,7 +4,7 @@ import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import "dotenv/config";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
-import { deleteS3Object } from "../s3";
+import { deleteS3Object, s3KeyConstructor } from "../s3";
 // const { UPLOADTHING_URL_PREFIX = "" } = process.env;
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
@@ -63,7 +63,8 @@ export const unsendMessage = async ({
 
 export const sendMessage = async (messageData: TMessage) => {
   console.log("messagedata", messageData);
-  const { chatroom_id, content, created_at } = messageData;
+  const { chatroom_id, content, created_at, is_image } = messageData;
+  if (is_image) messageData["content"] = s3KeyConstructor({ folder: "messages", name: content });
   const { error: newMessageError } = await supabase.from("messages").insert(messageData);
   if (messageData.is_image) return;
 
@@ -97,7 +98,7 @@ export const sendMessage = async (messageData: TMessage) => {
   }
 };
 
-export const getChatroomData = async (chatroom_id: string): Promise<TChatroom> => {
+export const getChatroomData = async (chatroom_id: string): Promise<TChatroom | null> => {
   const { data, error } = await supabase
     .from("chatroom_users")
     .select(
@@ -115,23 +116,28 @@ export const getChatroomData = async (chatroom_id: string): Promise<TChatroom> =
   const chatroomUsers = [];
   for (const item of data) {
     const { users, user_id, is_active } = item;
-    const { image_url, username } = users!;
-    const is_socket_active = rooms.has(user_id);
-    chatroomUsers.push({ username, image_url, user_id, is_active, is_socket_active });
+    if (users) {
+      const { image_url, username } = users;
+      const is_socket_active = rooms.has(user_id);
+      chatroomUsers.push({ username, image_url, user_id, is_active, is_socket_active });
+    }
   }
 
   const { id, chatrooms } = data[0];
-  const { last_message, created_at, is_group, admin, is_read } = chatrooms!;
-  return {
+  if (!chatrooms) return null;
+
+  const result = {
     id,
     chatroom_id,
-    last_message,
-    created_at,
-    is_group,
-    is_read,
-    admin,
-    users: chatroomUsers.sort((a, y) => a.image_url!.length - y.image_url!.length),
+    ...chatrooms,
+    users: chatroomUsers.sort((a, b) => {
+      if (a.image_url && b.image_url) {
+        return a.image_url.length - b.image_url.length;
+      }
+      return 0;
+    }),
   };
+  return result;
 };
 
 export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => {
@@ -140,11 +146,8 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
       .from("chatroom_users")
       .select("chatroom_id")
       .eq("user_id", userId);
-    // .eq("is_active", true);
+    if (!chatData) throw new Error(`Error while getting user chatrooms: ${error}`);
 
-    if (!chatData) {
-      throw new Error(`Error while getting user chatrooms: ${error}`);
-    }
     const chatrooms = await Promise.all(
       chatData.map(async (chatroom) => {
         const s = await getChatroomData(chatroom.chatroom_id);
@@ -152,13 +155,14 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
       })
     );
 
-    chatrooms.sort((a, b) => {
+    const validChatrooms = chatrooms.filter((x) => x !== null);
+    validChatrooms.sort((a, b) => {
       const dateA = new Date(a!.created_at).getTime();
       const dateB = new Date(b!.created_at).getTime();
       return dateB - dateA;
     });
 
-    return chatrooms;
+    return validChatrooms as TChatroom[];
   } catch (error) {
     console.error(error);
     return [];

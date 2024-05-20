@@ -33,7 +33,7 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   isRead?: boolean;
   isLoading?: boolean;
   showAvatar?: boolean;
-  isActive?: boolean
+  isActive?: boolean;
   onIconClick?: () => void;
 }
 

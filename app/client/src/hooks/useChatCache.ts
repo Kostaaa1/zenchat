@@ -6,6 +6,7 @@ import { trpc } from "../utils/trpcClient";
 import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
 import { useNavigate } from "react-router-dom";
+import { loadImage } from "../utils/utils";
 
 const useChatCache = () => {
   const ctx = trpc.useUtils();
@@ -103,10 +104,12 @@ const useChatCache = () => {
         // });
         // await ctx.chat.get.user_chatrooms.refetch(userData!.id)
         const { message, shouldActivate, user_id } = data;
+        if (message.is_image) await loadImage(message.content);
         if (shouldActivate) {
           await ctx.chat.get.user_chatrooms.refetch(user_id);
           return;
         }
+
         updateUserChatLastMessageCache(message);
         const { is_image, sender_id } = message;
         if (!is_image) {

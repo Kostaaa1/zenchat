@@ -8,7 +8,9 @@ type Store = {
   isResponsive: boolean;
   isMobile: boolean;
   username: string | null;
+  volume: number;
   actions: {
+    setVolume: (volume: number) => void;
     setIsMobile: (v: boolean) => void;
     setUsername: (s: string) => void;
     setIsResponsive: (isResponsive: boolean) => void;
@@ -24,7 +26,9 @@ const useGeneralStore = create<Store>(
     isResponsive: window.innerWidth <= 1024,
     isMobile: window.innerWidth <= 768,
     username: null,
+    volume: 0.05,
     actions: {
+      setVolume: (volume: number) => set({ volume }),
       setUsername: (username: string) => set({ username }),
       setIsResponsive: (isResponsive: boolean) => set({ isResponsive }),
       setIsMobile: (isMobile: boolean) => set({ isMobile }),
