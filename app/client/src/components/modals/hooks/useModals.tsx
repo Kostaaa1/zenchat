@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import useModalStore from "../../../utils/state/modalStore";
 import { trpc } from "../../../utils/trpcClient";
 import useUser from "../../../hooks/useUser";
+import { downloadImage } from "../../../utils/downloadImage";
 
 const useModals = () => {
   const { setModalPostData, triggerModalOptions } = useModalStore(
@@ -43,18 +44,7 @@ const useModals = () => {
     }
   }, []);
 
-  const modalOptionsData = {
-    POST: [
-      {
-        id: 0,
-        text: "Delete",
-        className: "text-red-500",
-        fn: deletePost,
-      },
-    ],
-  };
-
-  return { deletePost, modalOptionsData };
+  return { deletePost,  };
 };
 
 export default useModals;

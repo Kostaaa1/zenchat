@@ -18,7 +18,7 @@ type ModalProps = {
 export const Modal: FC<ModalProps> = ({ children }) => {
   return (
     <motion.div
-      className="fixed z-[1000] flex h-screen w-screen items-center justify-center bg-black bg-opacity-75"
+      className="fixed z-[1000] flex h-screen w-screen items-center justify-center bg-black bg-opacity-40"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -28,6 +28,7 @@ export const Modal: FC<ModalProps> = ({ children }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
       >
+        {" "}
         {children}
       </motion.div>
     </motion.div>
@@ -80,7 +81,9 @@ const Modals = () => {
               />
             )}
             {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
-            {isModalOptionsOpen && <ModalOptions ref={modalOptionRef} />}
+            {isModalOptionsOpen && modalPostData && (
+              <ModalOptions ref={modalOptionRef} />
+            )}
           </>
         )}
       </AnimatePresence>

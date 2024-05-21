@@ -10,13 +10,13 @@ import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
 import uploadRouter from "./routers/upload";
 import { env } from "./config/config";
 
-const { CLIENT_URL, PORT } = env;
+const { PORT } = env;
 const app = express();
 const server = http.createServer(app);
 
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: "*",
     credentials: true,
   })
 );
@@ -33,13 +33,14 @@ app.use(
 
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 initSocket(io);
 const port = PORT || 8000;
-server.listen(port, () => {
+// @ts-ignore
+server.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on port ${port}`);
 });
 

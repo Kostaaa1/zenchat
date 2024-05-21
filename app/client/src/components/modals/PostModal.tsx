@@ -8,6 +8,8 @@ import Avatar from "../avatar/Avatar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import Video from "../Video";
+import { cn } from "../../utils/utils";
+import useGeneralStore from "../../utils/state/generalStore";
 
 type ModalProps = {
   post: TPost;
@@ -54,28 +56,49 @@ const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({
   );
 };
 
+const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
+  const { triggerModalOptions } = useModalStore((state) => state.actions);
+  return (
+    <div
+      className={
+        "relative flex items-center justify-between border-[1px] border-x-0 border-t-0 border-neutral-800 bg-black p-3"
+      }
+    >
+      <div className="flex w-full items-center space-x-2">
+        <Avatar image_url={userData?.image_url} size="md" />
+        <h3 className="text-normal cursor-pointer font-bold text-white active:text-opacity-60">
+          {userData?.username}
+        </h3>
+      </div>
+      <Icon
+        name="MoreHorizontal"
+        className="rounded-full p-1 text-white transition-colors duration-200 hover:bg-white  hover:bg-opacity-20"
+        onClick={triggerModalOptions}
+        size="30px"
+      />
+    </div>
+  );
+};
+
 const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
   post,
   userData,
 }) => {
-  const { triggerModalOptions } = useModalStore((state) => state.actions);
+  const isMobile = useGeneralStore((state) => state.isMobile);
   return (
-    <div className="flex w-[400px] min-w-[400px] flex-col bg-black">
-      <div className="relative flex items-center justify-between border-[1px] border-x-0 border-t-0 border-neutral-800 p-3">
-        <div className="flex w-full items-center space-x-2">
-          <Avatar image_url={userData?.image_url} size="md" />
-          <h3 className="text-normal cursor-pointer font-bold text-white active:text-opacity-60">
-            {userData?.username}
-          </h3>
-        </div>
-        <Icon
-          name="MoreHorizontal"
-          className="rounded-full p-1 text-white transition-colors duration-200 hover:bg-white  hover:bg-opacity-20"
-          onClick={triggerModalOptions}
-          size="30px"
-        />
-      </div>
-      <div className="h-[70vw] overflow-auto text-sm leading-4">
+    <div
+      className={cn(
+        "flex flex-col bg-black",
+        isMobile ? "w-full" : "w-[400px] min-w-[400px]",
+      )}
+    >
+      {isMobile ? null : <PostHeader userData={userData} />}
+      <div
+        className={cn(
+          "overflow-auto text-sm leading-4",
+          isMobile ? "h-[140px]" : "h-[70vw]",
+        )}
+      >
         <ul className="p-3">
           <>
             <li className="flex items-start space-x-2 py-3">
@@ -89,7 +112,7 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
                 </p>
               </div>
             </li>
-            {/* {Array(6)
+            {Array(6)
               .fill("")
               .map((_, id) => (
                 <li key={id} className="flex items-start space-x-2 py-3">
@@ -105,7 +128,7 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
                     </p>
                   </div>
                 </li>
-              ))} */}
+              ))}
           </>
         </ul>
       </div>
@@ -116,6 +139,7 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
 const PostModal = forwardRef<HTMLDivElement, ModalProps>(
   ({ post, leftRef, rightRef }, ref) => {
     const location = useLocation();
+    const isMobile = useGeneralStore((state) => state.isMobile);
     const utils = trpc.useUtils();
     const inspectedUser = utils.user.get.getData({
       data: location.pathname.split("/")[1],
@@ -126,7 +150,10 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
       <Modal>
         {inspectedUser && post && (
           <div
-            className="relative mx-auto flex h-full max-h-[84vh] max-w-[90vw]"
+            className={cn(
+              "relative mx-auto flex h-full",
+              isMobile ? "w-[78vw] flex-col" : "max-h-[84vh] max-w-[90vw]",
+            )}
             ref={ref}
           >
             <ArrowCursors
@@ -135,14 +162,27 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
               post={post}
               posts={inspectedUser.posts}
             />
-            <div>
+            {isMobile ? <PostHeader userData={inspectedUser} /> : null}
+            <div className={cn(isMobile ? "max-h-[400px]" : "")}>
               {post.type.startsWith("image/") ? (
-                <img key={post.media_url} src={post.media_url} />
+                <img
+                  key={post.media_url}
+                  src={post.media_url}
+                  className={cn(
+                    isMobile
+                      ? "aspect-square object-cover"
+                      : "h-full w-full object-cover",
+                  )}
+                />
               ) : (
                 <Video
                   media_url={post.media_url}
                   poster={post.thumbnail_url}
-                  className="h-full w-full object-cover"
+                  className={cn(
+                    isMobile
+                      ? "aspect-square object-cover"
+                      : "h-full w-full object-cover",
+                  )}
                 />
               )}
             </div>

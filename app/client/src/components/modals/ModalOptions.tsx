@@ -2,6 +2,9 @@ import { FC, forwardRef } from "react";
 import { Modal } from "./Modals";
 import { cn } from "../../utils/utils";
 import useModals from "./hooks/useModals";
+import useModalStore from "../../utils/state/modalStore";
+import { downloadImage } from "../../utils/downloadImage";
+import { trpc } from "../../utils/trpcClient";
 
 type ListProps = {
   text: string;
@@ -24,13 +27,30 @@ const List: FC<ListProps> = ({ text, onClick, className }) => {
 };
 
 const ModalOptions = forwardRef<HTMLUListElement>((_, ref) => {
-  const { modalOptionsData } = useModals();
+  const { deletePost } = useModals();
+  const { modalPostData } = useModalStore();
+  const utils = trpc.useUtils();
+  const inspectedUser = utils.user.get.getData({
+    data: location.pathname.split("/")[1],
+    type: "username",
+  });
+
   return (
     <Modal>
       <ul ref={ref} className="h-max w-[380px] rounded-lg bg-neutral-800">
-        {modalOptionsData.POST.map(({ className, fn, id, text }) => (
-          <List key={id} text={text} onClick={fn} className={className} />
-        ))}
+        {inspectedUser?.id === modalPostData?.user_id && (
+          <List
+            text="Delete"
+            onClick={() => deletePost()}
+            className="text-red-500"
+          />
+        )}
+        {modalPostData && (
+          <List
+            text="Download"
+            onClick={() => downloadImage(modalPostData.media_url)}
+          />
+        )}
       </ul>
     </Modal>
   );
