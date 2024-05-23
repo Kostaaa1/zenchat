@@ -62,7 +62,6 @@ export const unsendMessage = async ({
 };
 
 export const sendMessage = async (messageData: TMessage) => {
-  console.log("messagedata", messageData);
   const { chatroom_id, content, created_at, is_image } = messageData;
   if (is_image) messageData["content"] = s3KeyConstructor({ folder: "messages", name: content });
   const { error: newMessageError } = await supabase.from("messages").insert(messageData);
@@ -98,12 +97,10 @@ export const sendMessage = async (messageData: TMessage) => {
   }
 };
 
-export const getChatroomData = async (chatroom_id: string): Promise<TChatroom | null> => {
+export const getChatroomData = async (chatroom_id: string) => {
   const { data, error } = await supabase
     .from("chatroom_users")
-    .select(
-      "*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin, is_read)"
-    )
+    .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)")
     .eq("chatroom_id", chatroom_id);
   // .neq("user_id", currentUser_id);
 
@@ -115,11 +112,18 @@ export const getChatroomData = async (chatroom_id: string): Promise<TChatroom | 
 
   const chatroomUsers = [];
   for (const item of data) {
-    const { users, user_id, is_active } = item;
+    const { users, user_id, is_active, is_message_seen } = item;
     if (users) {
       const { image_url, username } = users;
       const is_socket_active = rooms.has(user_id);
-      chatroomUsers.push({ username, image_url, user_id, is_active, is_socket_active });
+      chatroomUsers.push({
+        username,
+        image_url,
+        is_message_seen,
+        user_id,
+        is_active,
+        is_socket_active,
+      });
     }
   }
 
@@ -294,21 +298,17 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
       }
 
       try {
-        // Delete s3 messages that blonged to room???
         const { data: images } = await supabase
           .from("messages")
           .select("content")
           .eq("chatroom_id", chatroom_id)
           .eq("is_image", true);
 
-        // if (images && images.length > 0) {
-        //   for (const img of images) {
-        // await deleteS3Object({
-        //   folder: "messages",
-        //   fileName: img.content.split("")[1],
-        // });
-        //   }
-        // }
+        if (images && images.length > 0) {
+          for (const img of images) {
+            await deleteS3Object(img.content);
+          }
+        }
 
         for (const table of tables) {
           const res = await deleteRow(table);
@@ -326,4 +326,12 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
   } catch (error) {
     console.log(error);
   }
+};
+
+export const triggerReadMessages = async (id: string) => {
+  const { data, error } = await supabase
+    .from("chatroom_users")
+    .update({ is_message_seen: true })
+    .eq("user_id", id);
+  if (error) throw new Error(`Error while triggering Read Messages value: ${error.message}`);
 };

@@ -28,7 +28,6 @@ export type TChatroom = {
   chatroom_id: string;
   last_message: string | null;
   created_at: string;
-  is_read: boolean;
   is_group: boolean;
   admin: string;
   users: {
@@ -36,6 +35,7 @@ export type TChatroom = {
     image_url: string | null;
     user_id: string;
     is_active: boolean;
+    is_message_seen: boolean;
     is_socket_active: boolean;
   }[];
 };

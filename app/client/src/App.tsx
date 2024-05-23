@@ -24,6 +24,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/home/Home";
 import ErrorPage from "./pages/ErrorPage";
 import PostModal from "./components/modals/PostModal";
+import useChatStore from "./utils/state/chatStore";
 
 function App() {
   const { user } = useUser();
@@ -34,6 +35,7 @@ function App() {
   const location = useLocation();
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const params = useParams();
+  const { setUnreadMessagesCount } = useChatStore((state) => state.actions);
   useChatSocket();
 
   useEffect(() => {
@@ -77,7 +79,10 @@ function App() {
 
   useEffect(() => {
     if (userData === null) createUser();
-    if (userData) loadPosts(userData.posts);
+    if (userData) {
+      loadPosts(userData.posts);
+      setUnreadMessagesCount(userData.unread_messages_count);
+    }
   }, [userData]);
 
   return (

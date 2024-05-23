@@ -4,6 +4,8 @@ import List from "../List";
 import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../utils/trpcClient";
+import { cn } from "../../utils/utils";
+import useGeneralStore from "../../utils/state/generalStore";
 
 interface RecentSearchedUsersProps {
   navigateToUserDashboard: (username: string) => void;
@@ -12,6 +14,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   navigateToUserDashboard,
 }) => {
   const { chat } = trpc.useUtils();
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const { userData } = useUser();
   const removeUserMutation = trpc.chat.history.removeUser.useMutation();
   const clearChatHistoryMutation =
@@ -63,21 +66,22 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
               {searchedChats!.map((chat) => (
                 <List
                   key={chat.id}
+                  hover="darker"
                   isHoverDisabled={true}
                   image_url={[chat.users!.image_url]}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}
                   onClick={() => navigateToUserDashboard(chat?.users!.username)}
-                  hover="darker"
+                  allowResizableAVatars={true}
                   title={chat.users!.username}
+                  icon={<Icon name="X" size="28px" />}
                   subtitle={`${chat.users!.first_name} ${
                     chat.users!.last_name
                   }`}
-                  icon={<Icon name="X" size="28px" />}
                 />
               ))}
             </>
           ) : (
-            <div className="flex h-full items-center justify-center pb-3">
+            <div className="flex h-full items-center justify-center px-6 pb-3">
               <p className="text-md font-semibold text-neutral-400">
                 No recent searches
               </p>

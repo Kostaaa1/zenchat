@@ -1,18 +1,18 @@
-import { FC, forwardRef } from "react";
+import { FC, ReactNode, forwardRef } from "react";
 import { Modal } from "./Modals";
 import { cn } from "../../utils/utils";
 import useModals from "./hooks/useModals";
 import useModalStore from "../../utils/state/modalStore";
-import { downloadImage } from "../../utils/downloadImage";
-import { trpc } from "../../utils/trpcClient";
+import { Link } from "react-router-dom";
+import useUser from "../../hooks/useUser";
 
 type ListProps = {
-  text: string;
-  onClick: () => void;
+  children: ReactNode;
+  onClick?: () => void;
   className?: string;
 };
 
-const List: FC<ListProps> = ({ text, onClick, className }) => {
+const List: FC<ListProps> = ({ onClick, className, children }) => {
   return (
     <li
       onClick={onClick}
@@ -21,7 +21,7 @@ const List: FC<ListProps> = ({ text, onClick, className }) => {
         className,
       )}
     >
-      {text}
+      {children}
     </li>
   );
 };
@@ -29,27 +29,22 @@ const List: FC<ListProps> = ({ text, onClick, className }) => {
 const ModalOptions = forwardRef<HTMLUListElement>((_, ref) => {
   const { deletePost } = useModals();
   const { modalPostData } = useModalStore();
-  const utils = trpc.useUtils();
-  const inspectedUser = utils.user.get.getData({
-    data: location.pathname.split("/")[1],
-    type: "username",
-  });
-
+  const { userData } = useUser();
   return (
     <Modal>
-      <ul ref={ref} className="h-max w-[380px] rounded-lg bg-neutral-800">
-        {inspectedUser?.id === modalPostData?.user_id && (
-          <List
-            text="Delete"
-            onClick={() => deletePost()}
-            className="text-red-500"
-          />
+      <ul
+        ref={ref}
+        className="h-max w-[90vw] max-w-[320px] rounded-lg bg-neutral-800"
+      >
+        {userData?.id === modalPostData?.user_id && (
+          <List onClick={() => deletePost()} className="text-red-500">
+            Delete
+          </List>
         )}
         {modalPostData && (
-          <List
-            text="Download"
-            onClick={() => downloadImage(modalPostData.media_url)}
-          />
+          <List>
+            <Link to={modalPostData.media_url}>Download</Link>
+          </List>
         )}
       </ul>
     </Modal>

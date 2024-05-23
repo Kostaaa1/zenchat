@@ -158,9 +158,9 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     <Modal>
       <div ref={ref}>
         <form
+          onSubmit={() => handleSubmit(onSubmit)}
           autoComplete="off"
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex h-max w-[450px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
+          className="w- flex w-[90vw] max-w-[450px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
         >
           <div className="flex w-full items-center justify-between">
             <div className="relative flex items-center justify-between">
@@ -192,7 +192,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
               <label
                 htmlFor="file"
                 className="absolute left-0 top-0 z-10 block h-full w-full cursor-pointer rounded-full bg-black bg-opacity-0 
-        outline transition-all duration-200 hover:bg-opacity-20"
+        transition-all duration-200 hover:bg-opacity-20"
               ></label>
               <input
                 id="file"

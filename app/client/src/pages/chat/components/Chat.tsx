@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import Button from "../../../components/Button";
 import { TMessage } from "../../../../../server/src/types/types";
 import { Loader2 } from "lucide-react";
@@ -10,10 +10,8 @@ import useUser from "../../../hooks/useUser";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import Message from "./Message";
 import useModalStore from "../../../utils/state/modalStore";
-import {
-  loadImage,
-  loadImagesAndStructureMessages,
-} from "../../../utils/utils";
+import { loadImage } from "../../../utils/utils";
+import useOutsideClick from "../../../hooks/useOutsideClick";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -26,7 +24,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
   const currentChatroom = useChatStore((state) => state.currentChatroom);
   const unsendMsgData = useModalStore((state) => state.unsendMsgData);
-  const { openModal } = useModalStore((state) => state.actions);
   const [loading, setLoading] = useState<boolean>(true);
   const { setUnsendMsgData } = useModalStore((state) => state.actions);
   const currentChatroomTitle = useChatStore(
@@ -34,10 +31,16 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   );
   const { userData } = useUser();
   const ctx = trpc.useUtils();
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const shouldFetchMoreMessages = useChatStore(
     (state) => state.shouldFetchMoreMessages,
   );
-  const { setShouldFetchMoreMessages } = useChatStore((state) => state.actions);
+  const {
+    setShouldFetchMoreMessages,
+    setCurrentChatroom,
+    decrementUnreadMessagesCount,
+  } = useChatStore((state) => state.actions);
+  // const readMessagesMutation = trpc.chat.
   const { mutateAsync: getMoreMutation } =
     trpc.chat.messages.getMore.useMutation({
       mutationKey: [
@@ -66,39 +69,47 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     { enabled: !!chatRoomId },
   );
 
-  // useEffect(() => {
-  //   if (
-  //     !messages ||
-  //     messages.length === 0 ||
-  //     messages.length < MESSAGE_FETCH_LIMIT
-  //   ) {
-  //     setLoading(false);
-  //     setShouldFetchMoreMessages(false);
-  //     return;
-  //   }
+  const triggerReadMessagesMutation =
+    trpc.chat.messages.triggerReadMessages.useMutation({
+      onSuccess: () => {
+        console.log("Triggered");
+        decrementUnreadMessagesCount();
+      },
+      onError: (err) => {
+        console.log("error", err);
+      },
+    });
 
-  //   // if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
-  //   //   setShouldFetchMoreMessages(false);
-  //   // }
-  //   setLastMessageDate(messages[messages.length - 1].created_at);
-  //   const loadImages = async () => {
-  //     await Promise.all(
-  //       messages
-  //         .filter((x) => x.is_image)
-  //         .map(async (msg) => await loadImage(msg.content)),
-  //     );
-  //     setLoading(false);
-  //   };
-  //   loadImages();
-  // }, [messages]);
+  useOutsideClick([dropdownRef], "mousedown", () => {
+    setUnsendMsgData(null);
+  });
 
-  const fetchLoadedImages = async (messages: TMessage[]) => {
-    try {
-      const loadedImages = await loadImagesAndStructureMessages(messages);
-      ctx.chat.messages.get.setData(
-        { chatroom_id: chatRoomId as string },
-        loadedImages,
+  useEffect(() => {
+    return () => {
+      console.log("Unmounting, setting current chatroom to null.");
+      setCurrentChatroom(null);
+    };
+  }, []);
+
+  useEffect(() => {
+    // console.log("currentChatroom", currentChatroom);
+    if (currentChatroom && userData) {
+      const foundUser = currentChatroom.users.find(
+        (x) => x.user_id === userData.id,
       );
+      if (foundUser && !foundUser.is_message_seen)
+        triggerReadMessagesMutation.mutate(userData.id);
+    }
+  }, [currentChatroom]);
+
+  const loadImagesAndPrep = async (messages: TMessage[]) => {
+    try {
+      await Promise.all(
+        messages
+          .filter((x) => x.is_image)
+          .map(async (msg) => await loadImage(msg.content)),
+      );
+
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -107,14 +118,13 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
 
   useEffect(() => {
     if (!messages) return;
+    const msgImgs = messages.filter((x) => x.is_image);
+    loadImagesAndPrep(msgImgs);
+
     if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
       setShouldFetchMoreMessages(false);
-      setLoading(false);
       return;
     }
-
-    const msgImgs = messages.filter((x) => x.is_image);
-    fetchLoadedImages(msgImgs);
     if (messages.length > 0) {
       setLastMessageDate(messages[messages.length - 1].created_at);
     }
@@ -143,7 +153,6 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
 
   const handlePressMore = (message: TMessage) => {
     const { is_image, content, id } = message;
-    console.log("yo");
     if (!unsendMsgData) {
       setUnsendMsgData(
         unsendMsgData ? null : { id, imageUrl: is_image ? content : null },
@@ -168,6 +177,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
             {messages?.map((message) => (
               <Message
                 key={message.id}
+                ref={dropdownRef}
                 message={message}
                 onClick={() => handlePressMore(message)}
               />

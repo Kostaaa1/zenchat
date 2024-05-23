@@ -13,7 +13,6 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
 
   const handleConfirm = async () => {
-    console.log("delete message", unsendMsgData);
     if (unsendMsgData && currentChatroom) {
       removeMessageCache(unsendMsgData.id, currentChatroom.chatroom_id);
       closeModal();

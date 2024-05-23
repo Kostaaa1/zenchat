@@ -1,4 +1,11 @@
-import React, { FC, forwardRef,  useMemo, useState } from "react";
+import React, {
+  FC,
+  forwardRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Icon from "../Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
@@ -67,7 +74,7 @@ const Dropzone: FC<Props> = ({ onDrop }) => {
             onChange={(e) => onDrop(e.target.files![0])}
           />
         </label>
-        Select from computer
+        Select from your device
       </Button>
     </div>
   );
@@ -87,24 +94,31 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     "Create new post" | "Processing" | "Post uploaded"
   >("Create new post");
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleDndFile = (dndFile: File) => {
-    const reader = new FileReader();
     if (dndFile.size > FILE_LIMIT_BYTES) {
       toast.error(`The maximux file size is ${FILE_LIMIT_MB}MB`);
       return;
     }
-    reader.onload = () => {
-      const result = reader.result;
-      if (result) {
-        const blob = new Blob([result], { type: dndFile.type });
-        const url = URL.createObjectURL(blob);
-        setMediaSrc(url);
-      }
-    };
-    reader.readAsArrayBuffer(dndFile);
+    if (mediaSrc) URL.revokeObjectURL(mediaSrc);
     setFile(dndFile);
+    setMediaSrc(URL.createObjectURL(dndFile));
   };
+
+  const triggerFileError = () => {
+    toast.error(
+      "Error selecting the video. The format may not be supported or file may be corrupted.",
+    );
+    setFile(null);
+    setMediaSrc(null);
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.addEventListener("error", triggerFileError);
+    }
+  }, [mediaSrc]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const inputValue = e.target.value;
@@ -140,8 +154,12 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     let thumbnailFile: File | null = null;
     if (type.startsWith("video/") && mediaSrc) {
       const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
-      const thumbnail = await generateThumbnailFile(mediaSrc, tmbName);
-      thumbnailFile = thumbnail.file;
+      try {
+        const thumbnail = await generateThumbnailFile(mediaSrc, tmbName);
+        thumbnailFile = thumbnail.file;
+      } catch (error) {
+        console.log("Generating thumbnail failed..", error);
+      }
     }
 
     const formData = new FormData();
@@ -162,32 +180,36 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     const url = `/api/upload/post/${
       type.startsWith("video/") ? "video" : "image"
     }`;
-    const { data }: { data: TPost } = await axios.post(url, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
-    });
 
-    await loadImage(data.thumbnail_url || data.media_url);
-    utils.user.get.setData(
-      { data: userData.username, type: "username" },
-      (state: TUserData) => {
-        if (state) {
-          return { ...state, posts: [data, ...state.posts] };
-        }
-      },
-    );
-    setIsUploading(false);
-    setModalTitle("Post uploaded");
+    try {
+      const { data }: { data: TPost } = await axios.post(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      await loadImage(data.thumbnail_url ?? data.media_url);
+      utils.user.get.setData(
+        { data: userData.username, type: "username" },
+        (state: TUserData) => {
+          if (state) {
+            return { ...state, posts: [data, ...state.posts] };
+          }
+        },
+      );
+      setIsUploading(false);
+      setModalTitle("Post uploaded");
+    } catch (error) {
+      console.log("Error uploading post", error);
+    }
   };
 
   const { width } = useWindowSize();
   const modalWidth = useMemo(() => {
     if (file) {
-      return width > 920 ? (file ? "880px" : "660px") : "calc(100vw - 40px)";
+      return width > 940 ? (file ? "880px" : "700px") : "calc(100vw - 60px)";
     } else {
-      return width > 700 ? (file ? "880px" : "660px") : "calc(100vw - 40px)";
+      return width > 720 ? (file ? "880px" : "700px") : "calc(100vw - 60px)";
     }
   }, [width, file]);
 
@@ -203,9 +225,9 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
             width: modalWidth,
           }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
-          className="flex max-h-[90vh] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center sm:h-[660px]"
+          className="flex h-[90vw] max-h-[90vh] flex-col items-start overflow-hidden rounded-xl bg-[#282828] pb-0 text-center md:h-[700px]"
         >
-          <div className="relative flex h-12 w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
+          <div className="relative flex h-12 w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
             <Icon
               className={cn(!mediaSrc ? "hidden" : "")}
               name="ArrowLeft"
@@ -236,7 +258,10 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ ease: "easeInOut", duration: 0.3 }}
-                  className={cn("flex h-full", isMobile && "w-full flex-col")}
+                  className={cn(
+                    "relative flex h-full",
+                    isMobile && "w-full flex-col",
+                  )}
                 >
                   <div className="">
                     {file.type.startsWith("image/") && (
@@ -244,16 +269,19 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                     )}
                     {file.type.startsWith("video/") && (
                       <Video
+                        ref={videoRef}
                         media_url={mediaSrc}
                         controls={false}
-                        className="h-full w-[650px] object-cover"
+                        autoPlay={true}
+                        className="h-full w-[700px] object-cover"
                       />
                     )}
                   </div>
                   <div
                     className={cn(
                       "w-[280px]",
-                      isMobile && "sticky bottom-0 w-full bg-[#282828]",
+                      isMobile &&
+                        "absolute bottom-0 h-[244px] w-full bg-[#282828]",
                     )}
                   >
                     <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
@@ -268,7 +296,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                         value={caption}
                         placeholder="Write a caption..."
                         onChange={(e) => handleInputChange(e)}
-                        className="text-md bg-[#282828] p-1 outline-none placeholder:text-neutral-500"
+                        className="text-md bg-[#282828] p-1 outline-none ring-[#282828] placeholder:text-neutral-500"
                       >
                         {caption}
                       </textarea>

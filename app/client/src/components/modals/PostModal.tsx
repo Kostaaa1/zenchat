@@ -163,7 +163,7 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
               posts={inspectedUser.posts}
             />
             {isMobile ? <PostHeader userData={inspectedUser} /> : null}
-            <div className={cn(isMobile ? "max-h-[400px]" : "")}>
+            <div className={cn(isMobile ? "max-h-[500px]" : "")}>
               {post.type.startsWith("image/") ? (
                 <img
                   key={post.media_url}
@@ -177,6 +177,8 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
               ) : (
                 <Video
                   media_url={post.media_url}
+                  controls={true}
+                  autoPlay={true}
                   poster={post.thumbnail_url}
                   className={cn(
                     isMobile

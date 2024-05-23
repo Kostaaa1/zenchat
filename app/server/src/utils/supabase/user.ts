@@ -10,17 +10,32 @@ import {
 import { s3Buckets } from "../../config/config";
 
 const { AWS_BUCKET_URL = "" } = process.env;
+
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
+
   const { data: userData, error } = await supabase
     .from("users")
     .select("*, posts(*)")
     .eq(type, data)
     .order("created_at", { foreignTable: "posts", ascending: false });
-  if (error) throw new Error(`Error occured ${error}`);
-  return userData[0] || null;
-};
 
+  if (error) throw new Error(`Error occurred ${error}`);
+  if (!userData || userData.length === 0) return null;
+
+  const { error: countError, count } = await supabase
+    .from("chatroom_users")
+    .select("*", { count: "exact", head: true })
+    .eq("is_message_seen", false)
+    .eq("user_id", userData[0].id);
+
+  if (countError) {
+    throw new Error(`Error occurred when getting the count of unread messages ${countError}`);
+  }
+
+  const returnData = { ...userData[0], unread_messages_count: count ?? 0 };
+  return returnData;
+};
 export const updateUserAvatar = async ({
   userId,
   image_url,

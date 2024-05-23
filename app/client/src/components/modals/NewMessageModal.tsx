@@ -90,7 +90,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
     <Modal>
       <div
         ref={ref}
-        className="flex h-[640px] w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
+        className="flex h-[80vw] max-h-[640px] w-[90vw] max-w-[520px] flex-col items-start rounded-xl bg-[#282828] pb-0 text-center"
       >
         <div className="relative flex w-full items-center justify-between border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-3">
           <span></span>

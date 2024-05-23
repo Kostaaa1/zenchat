@@ -100,6 +100,7 @@ const Search = () => {
                         title={user?.username}
                         key={user?.id}
                         image_url={[user?.image_url]}
+                        allowResizableAVatars={true}
                         hover="darker"
                         subtitle={`${user?.first_name} ${user?.last_name}`}
                         onClick={() => {

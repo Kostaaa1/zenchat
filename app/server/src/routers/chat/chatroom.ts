@@ -19,7 +19,6 @@ export const chatRouter = t.router({
     user_chatrooms: protectedProcedure
       .input(z.string().nullish())
       .query(async ({ input: userId }) => {
-        console.log("Called user_chatrooms", userId);
         if (!userId) return;
         const chatrooms = await getUserChatRooms(userId);
         return chatrooms;

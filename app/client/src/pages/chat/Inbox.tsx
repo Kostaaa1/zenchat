@@ -25,19 +25,15 @@ const Inbox = () => {
   const showDetails = useChatStore((state) => state.showDetails);
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { openModal } = useModalStore((state) => state.actions);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { setCurrentChatroomTitle, setCurrentChatroom, setShowDetails } =
     useChatStore((state) => state.actions);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
     refetchOnMount: "always",
   });
-
-  useEffect(() => {
-    console.log("data", data);
-  }, [data]);
 
   const userChats = useMemo(() => {
     const filteredChats = data?.filter((x) =>
@@ -47,7 +43,9 @@ const Inbox = () => {
   }, [data]);
 
   useEffect(() => {
-    return () => setShowDetails(false);
+    return () => {
+      setShowDetails(false);
+    };
   }, []);
 
   useEffect(() => {
@@ -72,23 +70,26 @@ const Inbox = () => {
       <div
         ref={scrollRef}
         className={cn(
-          "flex h-[95vh] w-full md:h-screen",
-          isMobile ? "" : "pl-20",
+          "flex h-[100svh] w-full md:h-screen",
+          isMobile ? "pb-16" : "pl-20",
         )}
       >
-        <UserChats userChats={userChats} isLoading={isLoading} />
+        {/* <UserChats userChats={userChats} isLoading={isLoading} /> */}
+        {currentChatroom ? null : (
+          <UserChats userChats={userChats} isLoading={isLoading} />
+        )}
         {location.pathname !== "/inbox" && currentChatroom && chatRoomId && (
-          <div className="w-full">
-            <div className="relative flex h-full w-full flex-col justify-between pb-4">
-              <ChatHeader />
-              <Chat chatRoomId={chatRoomId} scrollRef={scrollRef} />
-              <MessageInput scrollToStart={scrollToStart} iconRef={iconRef} />
-            </div>
+          <div className={"relative flex w-full flex-col justify-between"}>
+            <ChatHeader />
+            <Chat chatRoomId={chatRoomId} scrollRef={scrollRef} />
+            <MessageInput scrollToStart={scrollToStart} iconRef={iconRef} />
           </div>
         )}
         {showDetails && currentChatroom && <ChatDetails />}
-        {location.pathname === "/inbox" ? (
-          <div className="flex h-full w-full flex-col items-center justify-center text-center">
+        {!isMobile &&
+        location.pathname.includes("/inbox") &&
+        !currentChatroom ? (
+          <div className="flex w-full flex-col items-center justify-center text-center">
             <Icon
               name="MessageCircle"
               size="100px"

@@ -3,9 +3,11 @@ import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
 import { motion } from "framer-motion";
+import useGeneralStore from "../utils/state/generalStore";
+import useWindowSize from "../hooks/useWindowSize";
 
 export const listVariants = cva(
-  "flex cursor-pointer w-full justify-between px-6 py-2 items-center",
+  "flex cursor-pointer w-full justify-between py-2 items-center",
   {
     variants: {
       hover: {
@@ -35,6 +37,7 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   showAvatar?: boolean;
   isActive?: boolean;
   onIconClick?: () => void;
+  allowResizableAVatars?: boolean;
 }
 
 const List: FC<ListProps> = ({
@@ -52,14 +55,16 @@ const List: FC<ListProps> = ({
   isRead = true,
   showAvatar = true,
   isLoading = false,
+  allowResizableAVatars,
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const isMobile = useGeneralStore((state) => state.isMobile);
+  const { width } = useWindowSize();
   const handleHoverList = () => {
     if (isHoverDisabled) return;
     setIsHovered(!isHovered);
   };
-
   return (
     <li
       onMouseEnter={handleHoverList}
@@ -67,6 +72,7 @@ const List: FC<ListProps> = ({
       className={cn(
         icon ? "relative" : null,
         listVariants({ className, hover }),
+        isMobile ? "px-4" : "px-6",
       )}
       {...props}
     >
@@ -78,7 +84,7 @@ const List: FC<ListProps> = ({
           {children}
           {showAvatar && (
             <RenderAvatar
-              avatarSize="lg"
+              avatarSize={width < 480 && allowResizableAVatars ? "md" : "lg"}
               isActive={isActive}
               image_urls={{
                 image_url_1: image_url?.[0],
@@ -107,13 +113,13 @@ const List: FC<ListProps> = ({
           </div>
         </div>
       )}
-      {icon ? (
+      {!isMobile && icon ? (
         <motion.div
           initial={{ opacity: 0, x: 20, y: "50%" }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ ease: "easeInOut", duration: 0.3 }}
           onClick={onIconClick}
-          className="absolute bottom-1/2 right-6 flex translate-y-1/2 items-center rounded-full p-[2px] text-zinc-500 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
+          className="absolute bottom-1/2 right-6 flex translate-y-1/2 items-center rounded-full text-zinc-500"
         >
           {icon}
         </motion.div>

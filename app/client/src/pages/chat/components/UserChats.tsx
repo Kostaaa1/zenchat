@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../../components/Icon";
 import List from "../../../components/List";
@@ -6,6 +6,7 @@ import useModalStore from "../../../utils/state/modalStore";
 import useUser from "../../../hooks/useUser";
 import ChatList from "../../../components/ChatList";
 import { cn } from "../../../utils/utils";
+import useGeneralStore from "../../../utils/state/generalStore";
 
 type TUserChatsProps = {
   userChats: TChatroom[] | undefined;
@@ -15,13 +16,20 @@ type TUserChatsProps = {
 const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const { userData } = useUser();
   const { openModal } = useModalStore((state) => state.actions);
+  const isMobile = useGeneralStore((state) => state.isMobile);
   return (
     <div
       className={cn(
-        "flex h-full w-full max-w-sm flex-col border-r border-[#262626] bg-black",
+        "flex h-full w-full flex-col border-r border-[#262626] bg-black",
+        isMobile ? "" : "max-w-sm",
       )}
     >
-      <div className="flex h-full max-h-[90px] items-center justify-between border-b border-[#262626] p-6">
+      <div
+        className={cn(
+          "flex h-full max-h-[90px] items-center justify-between border-b border-[#262626]",
+          isMobile ? "h-[70px] p-4" : "h-full p-6",
+        )}
+      >
         <div className="flex cursor-pointer items-center active:text-zinc-500">
           <h1 className="mr-1 text-xl font-bold"> {userData?.username} </h1>
           <Icon name="ChevronDown" size="20px" />

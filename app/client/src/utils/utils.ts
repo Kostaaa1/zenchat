@@ -54,21 +54,6 @@ export const getMediaType = (type: string) => {
   }
 };
 
-export const loadImagesAndStructureMessages = (
-  messages: TMessage[],
-): Promise<TMessage[]> => {
-  return Promise.all(
-    messages.map((data) => {
-      const src = data.content;
-      return new Promise<TMessage>((resolve) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve({ ...data, content: img.currentSrc });
-      });
-    }),
-  );
-};
-
 export const renameFile = (
   fileImage: File,
   chatroom_id?: string,
@@ -86,11 +71,10 @@ export const renameFile = (
   return newFile;
 };
 
-// ?????????
 export const uploadMultipartForm = async (
   apiUrl: string,
   formData: FormData,
-  token: string | null
+  token: string | null,
 ): Promise<string[]> => {
   try {
     const newImages = await axios.post(apiUrl, formData, {
@@ -159,7 +143,6 @@ export const generateThumbnailFile = (
   videoUrl: string,
   tmbName: string,
 ): Promise<{ file: File; url: string }> => {
-  console.log("generating thumbnail called");
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
     const handleLoadedData = () => {

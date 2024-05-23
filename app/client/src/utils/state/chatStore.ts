@@ -13,7 +13,10 @@ type ChatStore = {
   showDetails: boolean;
   currentChatroom: TActiveChatroom | null;
   currentChatroomTitle: string | null;
+  unreadMessagesCount: number;
   actions: {
+    decrementUnreadMessagesCount: () => void;
+    setUnreadMessagesCount: (v: number) => void;
     setShowEmojiPicker: (bool: boolean) => void;
     addSelectedFile: (file: File) => void;
     clearSelectedFiles: () => void;
@@ -33,7 +36,19 @@ const useChatStore = create<ChatStore>(
     showEmojiPicker: false,
     currentChatroom: null,
     currentChatroomTitle: null,
+    unreadMessagesCount: 0,
     actions: {
+      decrementUnreadMessagesCount: () =>
+        set((state) => {
+          const count = state.unreadMessagesCount;
+          if (count > 0) {
+            return { ...state, unreadMessagesCount: count - 1 };
+          } else {
+            return state;
+          }
+        }),
+      setUnreadMessagesCount: (unreadMessagesCount: number) =>
+        set({ unreadMessagesCount }),
       clearSelectedFiles: () => set({ selectedImageFiles: [] }),
       setCurrentChatroomTitle: (currentChatroomTitle) =>
         set({ currentChatroomTitle }),

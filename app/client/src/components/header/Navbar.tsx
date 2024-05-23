@@ -10,6 +10,7 @@ import useGeneralStore from "../../utils/state/generalStore";
 import BottomNavbar from "./BottomNav";
 import NavHamburger from "./NavHamburger";
 import { NavListItems } from "../../hooks/useNavbar";
+import useChatStore from "../../utils/state/chatStore";
 
 type NavbarProps = {
   navListItems: NavListItems[];
@@ -20,6 +21,10 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
   const isResponsive = useGeneralStore((state) => state.isResponsive);
   const { userData } = useUser();
   const [list, setList] = useState<"list" | "default">("default");
+  const unreadMessagesCount = useChatStore(
+    (state) => state.unreadMessagesCount,
+  );
+
   useEffect(() => {
     setList(isResponsive ? "default" : "list");
   }, [isResponsive]);
@@ -44,7 +49,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
               )}
             >
               {navListItems.map((li, id) => (
-                <div key={id} ref={li.ref}>
+                <div key={id} ref={li.ref} className="relative">
                   <NavList
                     variant={list}
                     onClick={li.onClick}
@@ -62,6 +67,12 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
                       <Avatar image_url={userData?.image_url} size="sm" />
                     )}
                   </NavList>
+                  {li.iconName === "MessageCircle" &&
+                    unreadMessagesCount > 0 && (
+                      <span className="absolute left-[2px] top-[2px] flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-base">
+                        {unreadMessagesCount}
+                      </span>
+                    )}
                 </div>
               ))}
             </div>

@@ -48,6 +48,7 @@ uploadRouter.post(
   "/post/video",
   multerUploadPost.array("post"),
   async (req: Request, res: Response) => {
+    console.log("Uploading video, ", req.files);
     await handleFileUpload(req, res, "video");
   }
 );

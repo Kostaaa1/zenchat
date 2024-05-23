@@ -4,6 +4,7 @@ import {
   getMessages,
   getMoreMessages,
   sendMessage,
+  triggerReadMessages,
   unsendMessage,
 } from "../../utils/supabase/chatroom";
 import { MessageSchema, UserSchema } from "../../types/zodSchemas";
@@ -48,7 +49,7 @@ export const messageRouter = t.router({
     .mutation(async ({ input }) => {
       await unsendMessage(input);
     }),
-  sendGroupMessage: protectedProcedure.input(z.array(UserSchema)).mutation(({ input }) => {
-    console.log(input);
+  triggerReadMessages: protectedProcedure.input(z.string()).mutation(async ({ input: id }) => {
+    await triggerReadMessages(id);
   }),
 });

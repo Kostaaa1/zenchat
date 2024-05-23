@@ -9,17 +9,19 @@ interface RenderAvatarProps {
   };
   avatarSize: "sm" | "md" | "lg" | "xl";
   isActive?: boolean;
+  className?: string;
 }
 
 const RenderAvatar: FC<RenderAvatarProps> = ({
   image_urls,
   avatarSize,
   isActive,
+  className,
 }) => {
   const { image_url_1, image_url_2 } = image_urls;
   const hasImage2 = image_url_2 === undefined;
   return (
-    <div className="relative flex h-full">
+    <div className={cn("relative flex h-full", className)}>
       {hasImage2 ? (
         <Avatar image_url={image_url_1} size={avatarSize} />
       ) : (
@@ -29,8 +31,8 @@ const RenderAvatar: FC<RenderAvatarProps> = ({
             avatarSize === "md"
               ? "-m-3 scale-75"
               : avatarSize === "xl"
-                ? "my-8 scale-[2]"
-                : "",
+              ? "my-8 scale-[2]"
+              : "",
           )}
         >
           <Avatar image_url={image_url_1} className="absolute left-0 top-0" />
