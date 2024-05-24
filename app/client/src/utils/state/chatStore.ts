@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { TChatroom } from "../../../../server/src/types/types";
 
-type TActiveChatroom = TChatroom & {
+export type TActiveChatroom = TChatroom & {
   img_urls: string[];
   new_message: string;
 };
@@ -11,8 +11,8 @@ type ChatStore = {
   selectedImageFiles: File[];
   shouldFetchMoreMessages: boolean;
   showDetails: boolean;
-  currentChatroom: TActiveChatroom | null;
-  currentChatroomTitle: string | null;
+  activeChatroom: TActiveChatroom | null;
+  activeChatroomTitle: string | null;
   unreadMessagesCount: number;
   actions: {
     decrementUnreadMessagesCount: () => void;
@@ -23,8 +23,8 @@ type ChatStore = {
     removeSelectedFile: (id: number) => void;
     setShouldFetchMoreMessages: (val: boolean) => void;
     setShowDetails: (isOpen: boolean) => void;
-    setCurrentChatroom: (data: TActiveChatroom | null) => void;
-    setCurrentChatroomTitle: (v: string) => void;
+    setActiveChatroom: (data: TActiveChatroom | null) => void;
+    setActiveChatroomTitle: (v: string) => void;
   };
 };
 
@@ -34,8 +34,8 @@ const useChatStore = create<ChatStore>(
     shouldFetchMoreMessages: true,
     selectedImageFiles: [],
     showEmojiPicker: false,
-    currentChatroom: null,
-    currentChatroomTitle: null,
+    activeChatroom: null,
+    activeChatroomTitle: null,
     unreadMessagesCount: 0,
     actions: {
       decrementUnreadMessagesCount: () =>
@@ -50,10 +50,10 @@ const useChatStore = create<ChatStore>(
       setUnreadMessagesCount: (unreadMessagesCount: number) =>
         set({ unreadMessagesCount }),
       clearSelectedFiles: () => set({ selectedImageFiles: [] }),
-      setCurrentChatroomTitle: (currentChatroomTitle) =>
-        set({ currentChatroomTitle }),
-      setCurrentChatroom: (currentChatroom: TActiveChatroom | null) =>
-        set({ currentChatroom }),
+      setActiveChatroomTitle: (activeChatroomTitle) =>
+        set({ activeChatroomTitle }),
+      setActiveChatroom: (activeChatroom: TActiveChatroom | null) =>
+        set({ activeChatroom }),
       setShowEmojiPicker: (bool: boolean) =>
         set((state) => ({ ...state, showEmojiPicker: bool })),
       removeSelectedFile: (id: number) =>

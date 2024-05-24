@@ -1,5 +1,5 @@
 import Icon from "../../components/Icon";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../components/Button";
 import { useLocation, useParams } from "react-router-dom";
 import MessageInput from "./components/MessageInput";
@@ -21,19 +21,23 @@ const Inbox = () => {
   const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
-  const currentChatroom = useChatStore((state) => state.currentChatroom);
-  const showDetails = useChatStore((state) => state.showDetails);
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { openModal } = useModalStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { setCurrentChatroomTitle, setCurrentChatroom, setShowDetails } =
-    useChatStore((state) => state.actions);
-
-  const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
+  const { activeChatroom, showDetails } = useChatStore((state) => ({
+    activeChatroom: state.activeChatroom,
+    showDetails: state.showDetails,
+  }));
+  const { setActiveChatroomTitle, setActiveChatroom } = useChatStore(
+    (state) => state.actions,
+  );
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
-    refetchOnMount: "always",
   });
+
+  const scrollToStart = useCallback(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [scrollRef.current]);
 
   const userChats = useMemo(() => {
     const filteredChats = data?.filter((x) =>
@@ -43,19 +47,13 @@ const Inbox = () => {
   }, [data]);
 
   useEffect(() => {
-    return () => {
-      setShowDetails(false);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!userChats || userChats.length === 0 || !userData) return;
     const currentChat = userChats.find(
       (chat) => chat.chatroom_id === chatRoomId,
     );
     if (currentChat) {
-      setCurrentChatroom({ ...currentChat, img_urls: [], new_message: "" });
-      setCurrentChatroomTitle(
+      setActiveChatroom({ ...currentChat, img_urls: [], new_message: "" });
+      setActiveChatroomTitle(
         currentChat.users
           .filter((chat) => chat.username !== userData.username)
           .map((chat) => chat.username)
@@ -74,21 +72,24 @@ const Inbox = () => {
           isMobile ? "pb-16" : "pl-20",
         )}
       >
-        {/* <UserChats userChats={userChats} isLoading={isLoading} /> */}
-        {currentChatroom ? null : (
+        {activeChatroom ? null : (
           <UserChats userChats={userChats} isLoading={isLoading} />
         )}
-        {location.pathname !== "/inbox" && currentChatroom && chatRoomId && (
+        {location.pathname !== "/inbox" && activeChatroom && chatRoomId && (
           <div className={"relative flex w-full flex-col justify-between"}>
             <ChatHeader />
-            <Chat chatRoomId={chatRoomId} scrollRef={scrollRef} />
+            <Chat
+              chatRoomId={chatRoomId}
+              activeChatroom={activeChatroom}
+              scrollRef={scrollRef}
+            />
             <MessageInput scrollToStart={scrollToStart} iconRef={iconRef} />
           </div>
         )}
-        {showDetails && currentChatroom && <ChatDetails />}
+        {showDetails && activeChatroom && <ChatDetails />}
         {!isMobile &&
         location.pathname.includes("/inbox") &&
-        !currentChatroom ? (
+        !activeChatroom ? (
           <div className="flex w-full flex-col items-center justify-center text-center">
             <Icon
               name="MessageCircle"

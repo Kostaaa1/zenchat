@@ -1,4 +1,4 @@
-import { FC, RefObject, forwardRef } from "react";
+import { forwardRef } from "react";
 import useModalStore from "../../utils/state/modalStore";
 import useChatStore from "../../utils/state/chatStore";
 import useChatCache from "../../hooks/useChatCache";
@@ -6,24 +6,18 @@ import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import useUser from "../../hooks/useUser";
 
-type ModalProps = {
-  modalRef: RefObject<HTMLDivElement>;
-};
-
 const DeleteChatModal = forwardRef<HTMLDivElement>((_, ref) => {
-  const { currentChatroom } = useChatStore();
+  const activeChatroom = useChatStore((state) => state.activeChatroom);
   const { closeModal } = useModalStore((state) => state.actions);
   const { removeChatFromUserChats } = useChatCache();
   const { userData } = useUser();
   const deleteChatMutation = trpc.chat.delete.useMutation();
 
   const handleDeleteConversation = async () => {
-    if (!currentChatroom || !userData) return;
-    const { chatroom_id } = currentChatroom;
-    // setIsDeleteChatOpen(false);
+    if (!activeChatroom || !userData) return;
+    const { chatroom_id } = activeChatroom;
     closeModal();
     removeChatFromUserChats(chatroom_id);
-
     await deleteChatMutation.mutateAsync({
       user_id: userData.id,
       chatroom_id,

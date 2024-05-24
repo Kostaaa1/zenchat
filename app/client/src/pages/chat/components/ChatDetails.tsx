@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { useState } from "react";
 import List from "../../../components/List";
 import { Link } from "react-router-dom";
 import { cn } from "../../../utils/utils";
@@ -6,10 +6,8 @@ import useModalStore from "../../../utils/state/modalStore";
 import useChatStore from "../../../utils/state/chatStore";
 import useUser from "../../../hooks/useUser";
 
-interface ChatDetailsProps {}
-
-const ChatDetails: FC<ChatDetailsProps> = () => {
-  const currentChatroom = useChatStore((state) => state.currentChatroom);
+const ChatDetails = () => {
+  const activeChatroom = useChatStore((state) => state.activeChatroom);
   const [isMuteActive, setIsMuteActive] = useState<boolean>(false);
   const { openModal } = useModalStore((state) => state.actions);
   const { userData } = useUser();
@@ -42,7 +40,7 @@ const ChatDetails: FC<ChatDetailsProps> = () => {
       <div className="w-full border border-x-0 border-t-0 border-[#262626]"></div>
       <div className="flex h-full flex-col overflow-auto">
         <h4 className="p-6 py-3 font-semibold">Members</h4>
-        {currentChatroom!.users
+        {activeChatroom!.users
           .filter((x) => x.username !== userData!.username)
           .map((user) => (
             <Link key={user.user_id} to={`/${user.username}`}>

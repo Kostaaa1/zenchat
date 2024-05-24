@@ -13,7 +13,7 @@ interface MessageInputProps {
 const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
   const showEmojiPicker = useChatStore((state) => state.showEmojiPicker);
   const { setShowEmojiPicker } = useChatStore((state) => state.actions);
-  const { currentChatroom } = useChat();
+  const activeChatroom = useChatStore((state) => state.activeChatroom);
   const emojiRef = useRef<HTMLDivElement>(null);
   const {
     handleSubmitMessage,
@@ -30,7 +30,7 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e?.target?.files?.[0];
-    if (file) renameFile(file, currentChatroom?.chatroom_id, fileSetter);
+    if (file) renameFile(file, activeChatroom?.chatroom_id, fileSetter);
     e.target.value = "";
   };
 
@@ -114,7 +114,7 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
           <input
             type="text"
             placeholder="Send Message..."
-            value={currentChatroom?.new_message}
+            value={activeChatroom?.new_message}
             onChange={handleInputChange}
             className={cn(
               img_urls.length === 0 ? "" : "pt-[69px]",
@@ -127,7 +127,7 @@ const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart }) => {
               "absolute bottom-1/2 right-10 translate-y-1/2",
             )}
           >
-            {currentChatroom?.new_message !== "" && (
+            {activeChatroom?.new_message !== "" && (
               <input
                 type="submit"
                 value="Send"

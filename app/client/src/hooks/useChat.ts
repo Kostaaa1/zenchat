@@ -16,23 +16,23 @@ const useChat = (scrollToStart?: () => void) => {
   const {
     addSelectedFile,
     removeSelectedFile,
-    setCurrentChatroom,
+    setActiveChatroom,
     clearSelectedFiles,
   } = useChatStore((state) => state.actions);
   const { addNewMessageToChatCache } = useChatCache();
-  const currentChatroom = useChatStore((state) => state.currentChatroom);
-  const { new_message, img_urls } = currentChatroom || {};
-  const sendMessageMutation = trpc.chat.messages.send.useMutation();
+  const activeChatroom = useChatStore((state) => state.activeChatroom);
+  const { new_message, img_urls } = activeChatroom || {};
   const [formData, setFormdata] = useState<FormData>(new FormData());
+  const sendMessageMutation = trpc.chat.messages.send.useMutation();
 
   const setMessage = (text: string) => {
-    if (currentChatroom) {
-      setCurrentChatroom({ ...currentChatroom, new_message: text });
+    if (activeChatroom) {
+      setActiveChatroom({ ...activeChatroom, new_message: text });
     }
   };
 
   const setImgUrls = (img_urls: string[]) => {
-    if (currentChatroom) setCurrentChatroom({ ...currentChatroom, img_urls });
+    if (activeChatroom) setActiveChatroom({ ...activeChatroom, img_urls });
   };
 
   const handleSelectEmoji = (e: Skin) => {
@@ -40,7 +40,6 @@ const useChat = (scrollToStart?: () => void) => {
   };
 
   const removeFileFromArray = (id: number) => {
-    // need better approach this sucks
     if (!img_urls) return;
     const currentFile = selectedImageFiles.find((_, i) => i === id);
     const newFormData = new FormData();
@@ -49,7 +48,7 @@ const useChat = (scrollToStart?: () => void) => {
         newFormData.append("images", x);
       }
     });
-    // setFiles((state) => state.filter((_, i) => i !== id));
+
     setFormdata(newFormData);
     removeSelectedFile(id);
     const filteredData = img_urls?.filter((_, index) => index !== id);
@@ -59,27 +58,27 @@ const useChat = (scrollToStart?: () => void) => {
   const createNewMessage = (data: {
     content: string;
     chatroom_id: string;
-    is_image?: boolean;
+    is_image: boolean;
     id?: string;
-  }): TMessage => {
+  }) => {
     const { content, id, chatroom_id, is_image } = data;
     return {
-      id: id || uuidv4(),
+      id: id ?? uuidv4(),
       sender_id: userData!.id,
       created_at: getCurrentDate(),
-      is_image: is_image || false,
+      is_image,
       chatroom_id,
       content,
     };
   };
 
   const fileSetter = (newFile: File) => {
-    if (!currentChatroom) return;
+    if (!activeChatroom) return;
     formData.append("images", newFile);
     setFormdata(formData);
 
     const blob = URL.createObjectURL(newFile);
-    setImgUrls([...currentChatroom.img_urls, blob]);
+    setImgUrls([...activeChatroom.img_urls, blob]);
     addSelectedFile(newFile);
   };
 
@@ -98,10 +97,11 @@ const useChat = (scrollToStart?: () => void) => {
   const handleSubmitMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (scrollToStart) scrollToStart();
-    if (currentChatroom) {
-      const { chatroom_id, new_message, img_urls } = currentChatroom;
-      if (new_message.length > 0)
+    if (activeChatroom) {
+      const { chatroom_id, new_message, img_urls } = activeChatroom;
+      if (new_message.length > 0) {
         await sendTextMessage(new_message, chatroom_id);
+      }
       if (selectedImageFiles.length > 0 && img_urls?.length > 0) {
         await sendImageMessage(chatroom_id);
       }
@@ -111,8 +111,8 @@ const useChat = (scrollToStart?: () => void) => {
   const sendImageMessage = async (chatroom_id: string) => {
     if (!img_urls) return;
     setImgUrls([]);
-    const arrayOfCreatedIds: TMessage[] = [];
 
+    const newMessagesStack: TMessage[] = [];
     for (const fileUrl of img_urls) {
       const id = uuidv4();
       const messageData = createNewMessage({
@@ -122,7 +122,7 @@ const useChat = (scrollToStart?: () => void) => {
         is_image: true,
       });
       messageData.content = fileUrl;
-      arrayOfCreatedIds.push(messageData);
+      newMessagesStack.push(messageData);
       addNewMessageToChatCache(messageData);
     }
 
@@ -134,7 +134,7 @@ const useChat = (scrollToStart?: () => void) => {
 
     if (uploadedImages) {
       for (let i = 0; i < uploadedImages.length; i++) {
-        const message = arrayOfCreatedIds[i];
+        const message = newMessagesStack[i];
         message.content = uploadedImages[i];
         await sendMessageMutation.mutateAsync(message);
       }
@@ -156,7 +156,6 @@ const useChat = (scrollToStart?: () => void) => {
     img_urls,
     fileSetter,
     new_message,
-    currentChatroom,
     sendTextMessage,
   };
 };

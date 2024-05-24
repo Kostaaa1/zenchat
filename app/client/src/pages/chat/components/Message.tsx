@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { RefObject, forwardRef, useState } from "react";
 import { cn, convertAndFormatDate } from "../../../utils/utils";
 import useUser from "../../../hooks/useUser";
 import useModalStore from "../../../utils/state/modalStore";
@@ -10,10 +10,11 @@ import { Separator } from "../../dashboard/Dashboard";
 interface MessageProps {
   message: TMessage;
   onClick: () => void;
+  lastMessageRef?: RefObject<HTMLLIElement> | null;
 }
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(
-  ({ message, onClick }, ref) => {
+  ({ message, onClick, lastMessageRef }, ref) => {
     const { setImageSource, openModal } = useModalStore(
       (state) => state.actions,
     );
@@ -24,6 +25,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
 
     return (
       <li
+        ref={lastMessageRef}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(

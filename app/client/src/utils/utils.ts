@@ -36,7 +36,6 @@ export const loadImage = async (url: string, maxRetries = 5) => {
       };
     });
   };
-
   return loadImageWithRetry(url);
 };
 
@@ -61,7 +60,6 @@ export const renameFile = (
 ): File => {
   const uniquePrefix = nanoid();
   const chatroomPrefix = chatroom_id?.split("-")[0] || null;
-
   const filename = [chatroomPrefix, uniquePrefix, fileImage.name]
     .filter(Boolean)
     .join("-");
@@ -97,37 +95,17 @@ export function convertAndFormatDate(dateString: string) {
   const date = new Date(dateString);
   const dayOptions = { weekday: "short" };
   const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
-  // @ts-expect-error sko
+  // @ts-expect-error ???
   const dayOfWeek = date.toLocaleDateString("en-US", dayOptions);
-  // @ts-expect-error sko
+  // @ts-expect-error ???
   const formattedTime = date.toLocaleTimeString("en-US", timeOptions);
   const result = `${dayOfWeek} ${formattedTime}`;
   return result;
 }
 
-export const snapImage = (video: HTMLVideoElement, url: string) => {
-  const canvas = document.createElement("canvas");
-  canvas.height = video.height;
-  canvas.width = video.width;
-  canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const image = canvas.toDataURL();
-  const success = image.length > 100000;
-  if (success) {
-    const img = document.createElement("img");
-    img.src = image;
-    const div = document.getElementById("custom-id");
-    div!.appendChild(img);
-    URL.revokeObjectURL(url);
-  }
-
-  return success;
-};
-
 export const convertBytes = (bytes: number) => {
   const KB = bytes / 1024;
   const MB = KB / 1024;
-
   const result = {
     bytes: bytes.toString(),
     KB: KB.toFixed(2),

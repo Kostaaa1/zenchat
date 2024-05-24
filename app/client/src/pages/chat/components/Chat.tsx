@@ -3,7 +3,7 @@ import Button from "../../../components/Button";
 import { TMessage } from "../../../../../server/src/types/types";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import useChatStore from "../../../utils/state/chatStore";
+import useChatStore, { TActiveChatroom } from "../../../utils/state/chatStore";
 import { trpc } from "../../../utils/trpcClient";
 import { debounce } from "lodash";
 import useUser from "../../../hooks/useUser";
@@ -12,35 +12,66 @@ import Message from "./Message";
 import useModalStore from "../../../utils/state/modalStore";
 import { loadImage } from "../../../utils/utils";
 import useOutsideClick from "../../../hooks/useOutsideClick";
+import useChatCache from "../../../hooks/useChatCache";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
   chatRoomId: string;
+  activeChatroom: TActiveChatroom;
 };
 
-const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
+const Chat: FC<ChatProps> = ({ chatRoomId, activeChatroom, scrollRef }) => {
   const MESSAGE_FETCH_LIMIT = 22;
   const navigate = useNavigate();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
-  const currentChatroom = useChatStore((state) => state.currentChatroom);
-  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const [loading, setLoading] = useState<boolean>(true);
+  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
   const { setUnsendMsgData } = useModalStore((state) => state.actions);
-  const currentChatroomTitle = useChatStore(
-    (state) => state.currentChatroomTitle,
-  );
   const { userData } = useUser();
-  const ctx = trpc.useUtils();
+  const utils = trpc.useUtils();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const shouldFetchMoreMessages = useChatStore(
-    (state) => state.shouldFetchMoreMessages,
+  const lastMessageRef = useRef<HTMLLIElement>(null);
+  const { activeChatroomTitle, shouldFetchMoreMessages } = useChatStore(
+    (state) => ({
+      shouldFetchMoreMessages: state.shouldFetchMoreMessages,
+      activeChatroomTitle: state.activeChatroomTitle,
+    }),
   );
+  const { updateUserReadMessage } = useChatCache();
   const {
-    setShouldFetchMoreMessages,
-    setCurrentChatroom,
     decrementUnreadMessagesCount,
+    setShouldFetchMoreMessages,
+    setActiveChatroom,
+    setShowDetails,
   } = useChatStore((state) => state.actions);
-  // const readMessagesMutation = trpc.chat.
+
+  const triggerReadMessagesMutation =
+    trpc.chat.messages.triggerReadMessages.useMutation({
+      onSuccess: () => {
+        console.log("Triggered", activeChatroom);
+        if (activeChatroom) {
+          decrementUnreadMessagesCount();
+          updateUserReadMessage(activeChatroom.chatroom_id, true);
+        }
+      },
+      onError: (err) => {
+        console.log("error", err);
+      },
+    });
+
+  // When does user see the message? on original mount of /inbox/... chat component, and when its scrolled into the message
+  useEffect(() => {
+    if (activeChatroom && userData) {
+      const foundUser = activeChatroom.users.find(
+        (x) => x.user_id === userData.id,
+      );
+      if (foundUser && !foundUser.is_message_seen) {
+        console.log("Should trigger");
+        triggerReadMessagesMutation.mutate(foundUser.id);
+      }
+    }
+  }, []);
+
   const { mutateAsync: getMoreMutation } =
     trpc.chat.messages.getMore.useMutation({
       mutationKey: [
@@ -50,7 +81,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
       ],
       onSuccess: (messages) => {
         if (!messages || !shouldFetchMoreMessages) return;
-        ctx.chat.messages.get.setData(
+        utils.chat.messages.get.setData(
           {
             chatroom_id: chatRoomId,
           },
@@ -69,47 +100,24 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
     { enabled: !!chatRoomId },
   );
 
-  const triggerReadMessagesMutation =
-    trpc.chat.messages.triggerReadMessages.useMutation({
-      onSuccess: () => {
-        console.log("Triggered");
-        decrementUnreadMessagesCount();
-      },
-      onError: (err) => {
-        console.log("error", err);
-      },
-    });
-
   useOutsideClick([dropdownRef], "mousedown", () => {
     setUnsendMsgData(null);
   });
 
   useEffect(() => {
     return () => {
-      console.log("Unmounting, setting current chatroom to null.");
-      setCurrentChatroom(null);
+      setActiveChatroom(null);
+      setShowDetails(false);
     };
   }, []);
 
-  useEffect(() => {
-    // console.log("currentChatroom", currentChatroom);
-    if (currentChatroom && userData) {
-      const foundUser = currentChatroom.users.find(
-        (x) => x.user_id === userData.id,
-      );
-      if (foundUser && !foundUser.is_message_seen)
-        triggerReadMessagesMutation.mutate(userData.id);
-    }
-  }, [currentChatroom]);
-
-  const loadImagesAndPrep = async (messages: TMessage[]) => {
+  const loadImages = async (messages: TMessage[]) => {
     try {
       await Promise.all(
         messages
           .filter((x) => x.is_image)
           .map(async (msg) => await loadImage(msg.content)),
       );
-
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -119,8 +127,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   useEffect(() => {
     if (!messages) return;
     const msgImgs = messages.filter((x) => x.is_image);
-    loadImagesAndPrep(msgImgs);
-
+    loadImages(msgImgs);
     if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
       setShouldFetchMoreMessages(false);
       return;
@@ -133,7 +140,8 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-    const handleScroll = debounce(() => {
+
+    const fetchMoreMessagesObserver = debounce(() => {
       const { scrollTop, clientHeight, scrollHeight } = container;
       const scrollTolerance = 40;
       const diff = scrollHeight - clientHeight - scrollTolerance;
@@ -144,10 +152,20 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
         });
       }
     }, 300);
-    container.addEventListener("scroll", handleScroll);
+
+    // const firstMessageObserver = (e: Event) => {
+    //   if (e.currentTarget && e.currentTarget.scrollTop === 0 && userData) {
+    //     console.log("FOund event FOUND LAST MESSAGE::::", e);
+    //     triggerReadMessagesMutation.mutate(userData.id);
+    //   }
+    // };
+
+    // container.addEventListener("scroll", firstMessageObserver);
+    container.addEventListener("scroll", fetchMoreMessagesObserver);
     return () => {
-      container.removeEventListener("scroll", handleScroll);
-      handleScroll.cancel();
+      // container.removeEventListener("scroll", firstMessageObserver);
+      container.removeEventListener("scroll", fetchMoreMessagesObserver);
+      fetchMoreMessagesObserver.cancel();
     };
   });
 
@@ -163,7 +181,7 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div id="chatdiv" className="flex h-full flex-col overflow-hidden">
       {loading ? (
         <div className="flex w-full items-center justify-center py-4">
           <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
@@ -174,9 +192,10 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
           ref={scrollRef}
         >
           <ul className="flex flex-col-reverse p-3">
-            {messages?.map((message) => (
+            {messages?.map((message, id) => (
               <Message
                 key={message.id}
+                lastMessageRef={id === 0 ? lastMessageRef : null}
                 ref={dropdownRef}
                 message={message}
                 onClick={() => handlePressMore(message)}
@@ -190,18 +209,18 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
                 <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
               </div>
             ))}
-          {!shouldFetchMoreMessages && currentChatroom && (
+          {!shouldFetchMoreMessages && activeChatroom && (
             <div className="flex flex-col items-center pb-8 pt-4">
               <RenderAvatar
                 avatarSize="xl"
                 image_urls={
-                  currentChatroom.is_group
+                  activeChatroom.is_group
                     ? {
-                        image_url_1: currentChatroom.users[0]?.image_url,
-                        image_url_2: currentChatroom.users[1]?.image_url,
+                        image_url_1: activeChatroom.users[0]?.image_url,
+                        image_url_2: activeChatroom.users[1]?.image_url,
                       }
                     : {
-                        image_url_1: currentChatroom.users.find(
+                        image_url_1: activeChatroom.users.find(
                           (x) => x.user_id !== userData?.id,
                         )?.image_url,
                       }
@@ -209,16 +228,16 @@ const Chat: FC<ChatProps> = ({ chatRoomId, scrollRef }) => {
               />
               <div className="flex flex-col items-center pt-4">
                 <h3 className="text-md py-1 font-semibold">
-                  {currentChatroom && currentChatroom?.users.length > 1
-                    ? currentChatroomTitle
-                    : currentChatroom?.users[0].username}
+                  {activeChatroom && activeChatroom?.users.length > 1
+                    ? activeChatroomTitle
+                    : activeChatroom?.users[0].username}
                 </h3>
-                {!currentChatroom?.is_group ? (
+                {!activeChatroom?.is_group ? (
                   <Button
                     size="sm"
                     className="text-sm font-semibold"
                     onClick={() =>
-                      navigate(`/${currentChatroom?.users[0].username}`)
+                      navigate(`/${activeChatroom?.users[0].username}`)
                     }
                   >
                     View profile

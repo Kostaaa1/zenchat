@@ -1,4 +1,4 @@
-import { FC, RefObject, forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
 import useModalStore from "../../utils/state/modalStore";
@@ -61,23 +61,15 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
     setSelectedUsers((state) => state.filter((x) => x.id !== id));
   };
 
-  const handleClickChat = async () => {
+  const handlaCreateChatroom = async () => {
     setLoading(true);
+    console.log("clicked chat");
     const userIds = selectedUsers.map((x) => x.id);
     const newChatroomId = await chat.get.chatroom_id.fetch({
       userIds: [...userIds, userData!.id],
       admin: userData!.id,
     });
     await chat.get.user_chatrooms.refetch(userData!.id);
-    // const newChat = await chat.get.currentChatRoom.fetch({
-    //   chatroom_id: newChatroomId as string,
-    //   user_id: userData!.id,
-    // });
-    // if (newChat) {
-    //   chat.get.user_chatrooms.setData(userData!.id, (stale) => {
-    //     if (stale) return [newChat, ...stale];
-    //   });
-    // }
 
     if (newChatroomId) {
       closeModal();
@@ -187,7 +179,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
             disabled={
               (selectedUsers.length === 0 && search.length === 0) || loading
             }
-            onClick={handleClickChat}
+            onClick={handlaCreateChatroom}
             isLoading={loading}
           >
             Chat

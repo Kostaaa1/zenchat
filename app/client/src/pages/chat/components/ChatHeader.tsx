@@ -8,18 +8,22 @@ import Icon from "../../../components/Icon";
 import { cn } from "../../../utils/utils";
 
 const ChatHeader = () => {
-  const currentChatroom = useChatStore((state) => state.currentChatroom);
-  const currentChatroomTitle = useChatStore(
-    (state) => state.currentChatroomTitle,
+  const { activeChatroom, activeChatroomTitle, showDetails } = useChatStore(
+    (state) => ({
+      activeChatroom: state.activeChatroom,
+      activeChatroomTitle: state.activeChatroomTitle,
+      showDetails: state.showDetails,
+    }),
   );
-  const { setShowDetails } = useChatStore((state) => state.actions);
-  const showDetails = useChatStore((state) => state.showDetails);
+  const { setShowDetails, setActiveChatroom } = useChatStore(
+    (state) => state.actions,
+  );
   const { userData } = useUser();
   const navigate = useNavigate();
-  const iconSize = showDetails ? 30 : 26;
   const isMobile = useGeneralStore((state) => state.isMobile);
+
+  const iconSize = showDetails ? 30 : 26;
   const fillColor = showDetails ? "white" : "";
-  const { setCurrentChatroom } = useChatStore((state) => state.actions);
   const color = showDetails ? "black" : "white";
 
   const handleIconClick = () => {
@@ -27,14 +31,14 @@ const ChatHeader = () => {
   };
 
   const navigateToPrevious = () => {
-    setCurrentChatroom(null);
+    setActiveChatroom(null);
     navigate("/inbox");
   };
 
   const handleNavigate = () => {
-    currentChatroom?.is_group
+    activeChatroom?.is_group
       ? setShowDetails(true)
-      : navigate(`/${currentChatroom?.users[0].username}`);
+      : navigate(`/${activeChatroom?.users[0].username}`);
   };
 
   return (
@@ -50,20 +54,20 @@ const ChatHeader = () => {
           <RenderAvatar
             avatarSize="md"
             image_urls={
-              currentChatroom?.is_group
+              activeChatroom?.is_group
                 ? {
-                    image_url_1: currentChatroom.users[0]?.image_url,
-                    image_url_2: currentChatroom.users[1]?.image_url,
+                    image_url_1: activeChatroom.users[0]?.image_url,
+                    image_url_2: activeChatroom.users[1]?.image_url,
                   }
                 : {
-                    image_url_1: currentChatroom?.users.find(
+                    image_url_1: activeChatroom?.users.find(
                       (x) => x.user_id !== userData!.id,
                     )?.image_url,
                   }
             }
           />
         )}
-        <h1 className="text-lg font-semibold">{currentChatroomTitle}</h1>
+        <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       </div>
       <Info
         onClick={handleIconClick}

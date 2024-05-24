@@ -75,13 +75,17 @@ export const sendMessage = async (messageData: TMessage) => {
     })
     .eq("id", chatroom_id);
 
-  const { error } = await supabase
+  await supabase
     .from("chatroom_users")
     .update({ is_active: true })
     .eq("chatroom_id", chatroom_id);
-  // .neq("user_id", messageData.sender_id);
 
-  if (error) console.log(error);
+  await supabase
+    .from("chatroom_users")
+    .update({ is_message_seen: false })
+    .eq("chatroom_id", chatroom_id)
+    .neq("user_id", messageData.sender_id);
+
   if (lastMessageUpdateError) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -102,7 +106,6 @@ export const getChatroomData = async (chatroom_id: string) => {
     .from("chatroom_users")
     .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)")
     .eq("chatroom_id", chatroom_id);
-  // .neq("user_id", currentUser_id);
 
   if (!data) {
     throw new Error(
@@ -112,11 +115,12 @@ export const getChatroomData = async (chatroom_id: string) => {
 
   const chatroomUsers = [];
   for (const item of data) {
-    const { users, user_id, is_active, is_message_seen } = item;
+    const { users, user_id, id, is_active, is_message_seen } = item;
     if (users) {
       const { image_url, username } = users;
       const is_socket_active = rooms.has(user_id);
       chatroomUsers.push({
+        id,
         username,
         image_url,
         is_message_seen,
@@ -127,11 +131,10 @@ export const getChatroomData = async (chatroom_id: string) => {
     }
   }
 
-  const { id, chatrooms } = data[0];
+  const { chatrooms } = data[0];
   if (!chatrooms) return null;
 
   const result = {
-    id,
     chatroom_id,
     ...chatrooms,
     users: chatroomUsers.sort((a, b) => {
@@ -150,6 +153,7 @@ export const getUserChatRooms = async (userId: string): Promise<TChatroom[]> => 
       .from("chatroom_users")
       .select("chatroom_id")
       .eq("user_id", userId);
+
     if (!chatData) throw new Error(`Error while getting user chatrooms: ${error}`);
 
     const chatrooms = await Promise.all(
@@ -329,9 +333,10 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
 };
 
 export const triggerReadMessages = async (id: string) => {
+  // console.log("trigger called for this chatrooms", id);
   const { data, error } = await supabase
     .from("chatroom_users")
     .update({ is_message_seen: true })
-    .eq("user_id", id);
+    .eq("id", id);
   if (error) throw new Error(`Error while triggering Read Messages value: ${error.message}`);
 };

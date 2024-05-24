@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { TChatroom } from "../../../server/src/types/types";
 import List from "./List";
 import { cn } from "../utils/utils";
@@ -36,7 +36,9 @@ const ChatList: FC<ChatListProps> = ({ chat }) => {
       hover="darker"
       title={chatTitle}
       subtitle={chat.last_message}
-      // isRead={chat.is_read}
+      isRead={
+        chat.users.find((x) => x.user_id === userData?.id)?.is_message_seen
+      }
       onClick={() => handleChatUserClick(chat.chatroom_id)}
       isActive={
         chat.users.filter((x) => x.username !== userData?.username)[0]

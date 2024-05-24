@@ -24,13 +24,13 @@ const populatedChat = supabase
   .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)");
 export type TPopulatedChat = QueryData<typeof populatedChat>[0];
 export type TChatroom = {
-  id: string;
   chatroom_id: string;
   last_message: string | null;
   created_at: string;
   is_group: boolean;
   admin: string;
   users: {
+    id: string;
     username: string;
     image_url: string | null;
     user_id: string;
