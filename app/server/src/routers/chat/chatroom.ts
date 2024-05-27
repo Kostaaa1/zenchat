@@ -13,6 +13,7 @@ export const chatRouter = t.router({
     chatroom_id: protectedProcedure
       .input(z.object({ userIds: z.array(z.string()), admin: z.string() }))
       .query(async ({ input: { userIds, admin } }) => {
+        console.log("Called getChatRoomId");
         const chatroomId = await getChatroomId(userIds, admin);
         return chatroomId;
       }),

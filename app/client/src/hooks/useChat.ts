@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
 import { v4 as uuidv4 } from "uuid";
@@ -8,51 +8,71 @@ import useChatCache from "./useChatCache";
 import { trpc } from "../utils/trpcClient";
 import { Skin } from "@emoji-mart/data";
 import { uploadMultipartForm } from "../utils/utils";
+import useChatMapStore from "../utils/state/chatMapStore";
 
 const useChat = (scrollToStart?: () => void) => {
   const { userData, token } = useUser();
   const { chat } = trpc.useUtils();
-  const selectedImageFiles = useChatStore((state) => state.selectedImageFiles);
-  const {
-    addSelectedFile,
-    removeSelectedFile,
-    setActiveChatroom,
-    clearSelectedFiles,
-  } = useChatStore((state) => state.actions);
+  const inputImages = useChatMapStore((state) => state.inputImages);
+  const inputMessages = useChatMapStore((state) => state.inputMessages);
+  const { addChatInputImage, removeChatInputImage } = useChatMapStore(
+    (state) => state.actions,
+  );
+  const { activeChatroom } = useChatStore((state) => ({
+    activeChatroom: state.activeChatroom,
+  }));
   const { addNewMessageToChatCache } = useChatCache();
-  const activeChatroom = useChatStore((state) => state.activeChatroom);
-  const { new_message, img_urls } = activeChatroom || {};
   const [formData, setFormdata] = useState<FormData>(new FormData());
   const sendMessageMutation = trpc.chat.messages.send.useMutation();
+  const [trackFiles, setTrackFiles] = useState<File[]>([]);
 
-  const setMessage = (text: string) => {
+  const handleSelectEmoji = (e: Skin) => {
     if (activeChatroom) {
-      setActiveChatroom({ ...activeChatroom, new_message: text });
+      const { chatroom_id } = activeChatroom;
+      const input_message = inputMessages.get(chatroom_id);
+      inputMessages.set(chatroom_id, `${input_message}${e.native}`);
     }
   };
 
-  const setImgUrls = (img_urls: string[]) => {
-    if (activeChatroom) setActiveChatroom({ ...activeChatroom, img_urls });
-  };
+  const fileSetter = (newFile: File) => {
+    if (!activeChatroom) return;
+    formData.append("images", newFile);
+    setFormdata(formData);
 
-  const handleSelectEmoji = (e: Skin) => {
-    setMessage(`${new_message}${e.native}`);
+    const blob = URL.createObjectURL(newFile);
+    addChatInputImage(activeChatroom.chatroom_id, blob);
+
+    const added = [...trackFiles, newFile];
+    setTrackFiles(added);
   };
 
   const removeFileFromArray = (id: number) => {
-    if (!img_urls) return;
-    const currentFile = selectedImageFiles.find((_, i) => i === id);
-    const newFormData = new FormData();
-    formData.forEach((x) => {
-      if (x instanceof File && x.name !== currentFile?.name) {
-        newFormData.append("images", x);
-      }
-    });
+    if (activeChatroom) {
+      const chatroomID = activeChatroom.chatroom_id;
+      const imageUrls = inputImages.get(chatroomID);
+      // if (!imageUrls) return;
 
-    setFormdata(newFormData);
-    removeSelectedFile(id);
-    const filteredData = img_urls?.filter((_, index) => index !== id);
-    setImgUrls(filteredData);
+      // const updatedImageUrls = imageUrls?.filter((url, index) => {
+      //   if (index === id) {
+      //     URL.revokeObjectURL(url);
+      //     return false;
+      //   }
+      //   return true;
+      // });
+
+      // console.log("updated image ulrs", updatedImageUrls);
+      // inputImages.set(chatroomID, updatedImageUrls);
+      removeChatInputImage(chatroomID, id);
+      setTrackFiles((state) => state.filter((_, index) => index !== id));
+
+      const newFormData = new FormData();
+      formData.forEach((value) => {
+        if (value instanceof File && value.name !== trackFiles[id].name) {
+          newFormData.append("images", value);
+        }
+      });
+      setFormdata(newFormData);
+    }
   };
 
   const createNewMessage = (data: {
@@ -72,48 +92,44 @@ const useChat = (scrollToStart?: () => void) => {
     };
   };
 
-  const fileSetter = (newFile: File) => {
-    if (!activeChatroom) return;
-    formData.append("images", newFile);
-    setFormdata(formData);
-
-    const blob = URL.createObjectURL(newFile);
-    setImgUrls([...activeChatroom.img_urls, blob]);
-    addSelectedFile(newFile);
-  };
-
-  const sendTextMessage = async (new_message: string, chatroom_id: string) => {
+  const sendTextMessage = async (
+    input_message: string,
+    chatroom_id: string,
+  ) => {
     const messageData = createNewMessage({
-      content: new_message,
+      content: input_message,
       is_image: false,
       chatroom_id,
     });
-    setMessage("");
+    inputMessages.set(chatroom_id, "");
     addNewMessageToChatCache(messageData);
     if (messageData) await sendMessageMutation.mutateAsync(messageData);
-    // updateUserChatLastMessageCache(messageData);
   };
 
   const handleSubmitMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (scrollToStart) scrollToStart();
     if (activeChatroom) {
-      const { chatroom_id, new_message, img_urls } = activeChatroom;
-      if (new_message.length > 0) {
-        await sendTextMessage(new_message, chatroom_id);
+      const { chatroom_id } = activeChatroom;
+      const input_message = inputMessages.get(chatroom_id);
+      const input_images = inputImages.get(chatroom_id);
+
+      if (input_message) {
+        await sendTextMessage(input_message, chatroom_id);
       }
-      if (selectedImageFiles.length > 0 && img_urls?.length > 0) {
+      if (input_images && input_images.length > 0) {
         await sendImageMessage(chatroom_id);
       }
     }
   };
 
   const sendImageMessage = async (chatroom_id: string) => {
-    if (!img_urls) return;
-    setImgUrls([]);
-
+    const input_images = inputImages.get(chatroom_id);
+    if (!input_images) return;
     const newMessagesStack: TMessage[] = [];
-    for (const fileUrl of img_urls) {
+
+    inputImages.set(chatroom_id, []);
+    for (const fileUrl of input_images) {
       const id = uuidv4();
       const messageData = createNewMessage({
         id,
@@ -140,23 +156,22 @@ const useChat = (scrollToStart?: () => void) => {
       }
     }
 
-    setImgUrls([]);
     formData.delete("images");
-    clearSelectedFiles();
+    // clearSelectedFiles();
   };
-  const userChats = chat.get.user_chatrooms.getData(userData?.id);
 
   return {
     handleSubmitMessage,
-    setMessage,
-    setImgUrls,
-    removeFileFromArray,
-    handleSelectEmoji,
-    userChats,
-    img_urls,
     fileSetter,
-    new_message,
-    sendTextMessage,
+    removeFileFromArray,
+    // setMessage,
+    // setImgUrls,
+    // removeFileFromArray,
+    // handleSelectEmoji,
+    // sendTextMessage,
+    // userChats,
+    // input_images,
+    // input_message,
   };
 };
 

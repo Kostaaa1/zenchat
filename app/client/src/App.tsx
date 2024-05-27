@@ -34,7 +34,6 @@ function App() {
   const username = useGeneralStore((state) => state.username);
   const location = useLocation();
   const [isFetched, setIsFetched] = useState<boolean>(false);
-  const params = useParams();
   const { setUnreadMessagesCount } = useChatStore((state) => state.actions);
   useChatSocket();
 

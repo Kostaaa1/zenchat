@@ -13,11 +13,13 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
 
   const handleConfirmUnsend = async () => {
-    if (unsendMsgData && activeChatroom) {
-      removeMessageCache(unsendMsgData.id, activeChatroom.chatroom_id);
-      closeModal();
-      await unsendMessageMutation.mutateAsync(unsendMsgData);
-    }
+    console.log(unsendMsgData);
+    // if (unsendMsgData && activeChatroom) {
+    //   const {id, content, is_image} =unsendMsgData
+    //   removeMessageCache(unsendMsgData.id, activeChatroom.chatroom_id);
+    //   closeModal();
+    //   await unsendMessageMutation.mutateAsync({id, imageUrl: is_image ? content : null});
+    // }
   };
 
   return (

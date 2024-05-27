@@ -1,4 +1,4 @@
-import { RefObject, forwardRef, useState } from "react";
+import { forwardRef, useState } from "react";
 import { cn, convertAndFormatDate } from "../../../utils/utils";
 import useUser from "../../../hooks/useUser";
 import useModalStore from "../../../utils/state/modalStore";
@@ -10,22 +10,22 @@ import { Separator } from "../../dashboard/Dashboard";
 interface MessageProps {
   message: TMessage;
   onClick: () => void;
-  lastMessageRef?: RefObject<HTMLLIElement> | null;
+  rounded1: boolean;
+  rounded2: boolean;
 }
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(
-  ({ message, onClick, lastMessageRef }, ref) => {
-    const { setImageSource, openModal } = useModalStore(
-      (state) => state.actions,
-    );
+  ({ message, rounded1, rounded2, onClick }, ref) => {
     const { userData } = useUser();
     const [isHovered, setIsHovered] = useState<boolean>(false);
     const { content, created_at, id, sender_id, is_image } = message;
     const unsendMsgData = useModalStore((state) => state.unsendMsgData);
+    const { setImageSource, openModal, setUnsendMsgData } = useModalStore(
+      (state) => state.actions,
+    );
 
     return (
       <li
-        ref={lastMessageRef}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
@@ -52,10 +52,12 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
           <div className="flex items-center justify-center">
             <div
               className={cn(
-                "max-w-[300px] px-2 py-1",
+                "max-w-[300px] rounded-[3px] px-2 py-1",
                 sender_id === userData!.id
-                  ? "rounded-3xl bg-lightBlue"
-                  : "rounded-3xl bg-neutral-700",
+                  ? " rounded-l-3xl bg-lightBlue pl-3"
+                  : "rounded-r-3xl bg-neutral-700 pr-3",
+                rounded1 && "rounded-t-3xl",
+                rounded2 && "rounded-b-3xl",
               )}
             >
               {content}
@@ -96,7 +98,10 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                 <Separator className="my-1 bg-neutral-600" />
                 {sender_id === userData!.id ? (
                   <li
-                    onClick={() => openModal("unsendmessage")}
+                    onClick={() => {
+                      openModal("unsendmessage");
+                      setUnsendMsgData(message);
+                    }}
                     className="rounded-tl-lg rounded-tr-lg bg-white bg-opacity-0 p-1 font-normal transition-colors hover:bg-opacity-10"
                   >
                     Unsend

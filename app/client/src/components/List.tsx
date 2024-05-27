@@ -7,7 +7,7 @@ import useGeneralStore from "../utils/state/generalStore";
 import useWindowSize from "../hooks/useWindowSize";
 
 export const listVariants = cva(
-  "flex cursor-pointer w-full justify-between py-2 items-center",
+  "flex cursor-pointer w-full py-2 justify-between items-center overflow-hidden whitespace-nowrap",
   {
     variants: {
       hover: {
@@ -15,9 +15,15 @@ export const listVariants = cva(
           "transition-colors duration-100 hover:bg-white hover:bg-opacity-10",
         blank: "",
       },
+      padding: {
+        sm: "px-2",
+        md: "px-4",
+        lg: "px-6",
+      },
     },
     defaultVariants: {
       hover: "darker",
+      padding: "sm",
     },
   },
 );
@@ -34,6 +40,7 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   icon?: ReactNode;
   isRead?: boolean;
   isLoading?: boolean;
+  // padding?: string;
   showAvatar?: boolean;
   isActive?: boolean;
   onIconClick?: () => void;
@@ -49,6 +56,7 @@ const List: FC<ListProps> = ({
   hover,
   className,
   children,
+  padding,
   isHoverDisabled,
   icon,
   isActive = false,
@@ -65,66 +73,71 @@ const List: FC<ListProps> = ({
     if (isHoverDisabled) return;
     setIsHovered(!isHovered);
   };
+
   return (
-    <li
-      onMouseEnter={handleHoverList}
-      onMouseLeave={handleHoverList}
-      className={cn(
-        icon ? "relative" : null,
-        listVariants({ className, hover }),
-        isMobile ? "px-4" : "px-6",
-      )}
-      {...props}
-    >
+    <>
       {!isLoading ? (
-        <div
-          className={cn("flex w-full items-center space-x-3")}
-          onClick={onClick}
-        >
-          {children}
-          {showAvatar && (
-            <RenderAvatar
-              avatarSize={width < 480 && allowResizableAVatars ? "md" : "lg"}
-              isActive={isActive}
-              image_urls={{
-                image_url_1: image_url?.[0],
-                image_url_2: image_url?.[1],
-              }}
-            />
+        <li
+          onMouseEnter={handleHoverList}
+          onMouseLeave={handleHoverList}
+          className={cn(
+            icon ? "relative" : null,
+            listVariants({ className, hover, padding }),
+            !padding ? (isMobile ? "px-4" : "px-6") : padding,
           )}
-          <div className="flex w-full flex-col text-start">
-            <h1> {title} </h1>
-            <h4
-              className={cn(
-                "text-sm font-semibold",
-                isRead ? "text-neutral-400" : "text-white",
-              )}
-            >
-              {subtitle}
-            </h4>
+          {...props}
+        >
+          <div
+            className={cn("flex w-full items-center space-x-4")}
+            onClick={onClick}
+          >
+            {children}
+            {showAvatar && (
+              <RenderAvatar
+                avatarSize={width < 480 && allowResizableAVatars ? "md" : "lg"}
+                isActive={isActive}
+                image_urls={{
+                  image_url_1: image_url?.[0],
+                  image_url_2: image_url?.[1],
+                }}
+              />
+            )}
+            <div className="flex w-full flex-col text-start">
+              <h1> {title} </h1>
+              <h4
+                className={cn(
+                  "w-64 overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-semibold",
+                  isRead ? "text-neutral-400" : "text-white",
+                )}
+              >
+                {subtitle}
+              </h4>
+            </div>
           </div>
-        </div>
+          {!isMobile && icon ? (
+            <motion.div
+              initial={{ opacity: 0, x: 20, y: "50%" }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ ease: "easeInOut", duration: 0.3 }}
+              onClick={onIconClick}
+              className="absolute bottom-1/2 right-6 flex translate-y-1/2 items-center rounded-full text-zinc-500"
+            >
+              {icon}
+            </motion.div>
+          ) : null}
+        </li>
       ) : (
-        <div className="flex h-14 w-full animate-pulse items-center space-x-2">
-          <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
-          <div className="flex h-full w-2/3 flex-col justify-center">
-            <div className="mb-2 h-4 w-full rounded-lg bg-neutral-800"></div>
-            <div className="h-4 w-[80px] rounded-lg bg-neutral-800"></div>
+        <div className={cn(listVariants({ padding }))}>
+          <div className="flex h-14 w-full animate-pulse items-center space-x-2">
+            <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
+            <div className="flex h-full w-2/3 flex-col justify-center">
+              <div className="mb-2 h-4 w-full rounded-lg bg-neutral-800"></div>
+              <div className="h-4 w-64 rounded-lg bg-neutral-800"></div>
+            </div>
           </div>
         </div>
       )}
-      {!isMobile && icon ? (
-        <motion.div
-          initial={{ opacity: 0, x: 20, y: "50%" }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ ease: "easeInOut", duration: 0.3 }}
-          onClick={onIconClick}
-          className="absolute bottom-1/2 right-6 flex translate-y-1/2 items-center rounded-full text-zinc-500"
-        >
-          {icon}
-        </motion.div>
-      ) : null}
-    </li>
+    </>
   );
 };
 

@@ -31,12 +31,6 @@ const useNavbar = () => {
     (state) => state.actions,
   );
 
-  useEffect(() => {
-    const { pathname } = location;
-    if (width <= 1024) return;
-    setIsResponsive(isSearchActive || pathname.includes("/inbox"));
-  }, [isSearchActive, width, location.pathname]);
-
   const handleActivateSearch = useCallback(() => {
     if (isMobile && location.pathname !== "/") {
       navigate(`/${userData!.username}`);
@@ -91,7 +85,6 @@ const useNavbar = () => {
         setIsSearchActive(false);
       },
       className: `${
-        // !location.pathname.includes("/inbox") || activeNavList === "user"
         location.pathname === `/${userData?.username}` ? activeListClass : null
       }`,
     },

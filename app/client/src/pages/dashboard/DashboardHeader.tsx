@@ -20,21 +20,25 @@ export const DashboardHeader = ({
   const isMobile = useGeneralStore((state) => state.isMobile);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
-  const { chat } = trpc.useUtils();
-  const ctx = trpc.useUtils();
+  const utils = trpc.useUtils();
   const { openModal, setImageSource } = useModalStore((state) => state.actions);
 
   const handleGetChatRoomId = async () => {
-    setIsLoading(true);
     if (!userData || !loggedUser) return;
-    const path = await chat.get.chatroom_id.fetch({
+    setIsLoading(true);
+
+    await utils.chat.get.user_chatrooms.invalidate(loggedUser.id);
+    const chatroomIdQuery = {
       userIds: [userData.id, loggedUser.id],
       admin: loggedUser.id,
-    });
-    await ctx.chat.get.user_chatrooms.prefetch(userData.id);
+    };
+
+    await utils.chat.get.chatroom_id.invalidate(chatroomIdQuery);
+    const path = await utils.chat.get.chatroom_id.fetch(chatroomIdQuery);
+    console.log(path)
     if (path) {
       setIsLoading(false);
-      navigate(`/inbox`);
+      navigate(`/inbox/${path}`);
     }
   };
 

@@ -1,11 +1,10 @@
+import "dotenv/config";
 import { TRPCError } from "@trpc/server";
 import supabase from "../../config/supabase";
 import { TMessage, TChatroom, TChatHistory } from "../../types/types";
-import "dotenv/config";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
 import { deleteS3Object, s3KeyConstructor } from "../s3";
-// const { UPLOADTHING_URL_PREFIX = "" } = process.env;
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -52,39 +51,25 @@ export const unsendMessage = async ({
   try {
     const { data, error } = await supabase.from("messages").delete().eq("id", id);
     if (!data) console.log(error);
-    if (imageUrl) {
-      await deleteS3Object(imageUrl);
-      // await utapi.deleteFiles([imageUrl.split(UPLOADTHING_URL_PREFIX)[1]]);
-    }
+    if (imageUrl) await deleteS3Object(imageUrl);
   } catch (error) {
     console.log(error);
   }
 };
 
 export const sendMessage = async (messageData: TMessage) => {
+  if (messageData.is_image)
+    messageData.content = s3KeyConstructor({ folder: "messages", name: messageData.content });
   const { chatroom_id, content, created_at, is_image } = messageData;
-  if (is_image) messageData["content"] = s3KeyConstructor({ folder: "messages", name: content });
-  const { error: newMessageError } = await supabase.from("messages").insert(messageData);
-  if (messageData.is_image) return;
 
+  const { error: newMessageError } = await supabase.from("messages").insert(messageData);
   const { error: lastMessageUpdateError } = await supabase
     .from("chatrooms")
     .update({
-      last_message: content.length > 34 ? content.slice(0, 34) + "..." : content,
+      last_message: is_image ? "Photo" : content,
       created_at,
     })
     .eq("id", chatroom_id);
-
-  await supabase
-    .from("chatroom_users")
-    .update({ is_active: true })
-    .eq("chatroom_id", chatroom_id);
-
-  await supabase
-    .from("chatroom_users")
-    .update({ is_message_seen: false })
-    .eq("chatroom_id", chatroom_id)
-    .neq("user_id", messageData.sender_id);
 
   if (lastMessageUpdateError) {
     throw new TRPCError({
@@ -92,6 +77,17 @@ export const sendMessage = async (messageData: TMessage) => {
       message: `Error when updating chatroom last message: ${lastMessageUpdateError}`,
     });
   }
+
+  await supabase
+    .from("chatroom_users")
+    .update({ is_message_seen: false })
+    .eq("chatroom_id", chatroom_id)
+    .neq("user_id", messageData.sender_id);
+
+  await supabase
+    .from("chatroom_users")
+    .update({ is_active: true })
+    .eq("chatroom_id", chatroom_id);
 
   if (newMessageError) {
     throw new TRPCError({
@@ -276,6 +272,13 @@ export const getChatroomId = async (
       }
       return chatroomId;
     } else {
+      const { error: err0 } = await supabase
+        .from("chatroom_users")
+        .update({ is_active: true })
+        .eq("chatroom_id", data[0].chatroom_id)
+        .eq("user_id", admin);
+
+      if (error) console.log("Error while updating is_active", err0);
       return data[0].chatroom_id;
     }
   } catch (error) {

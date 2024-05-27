@@ -88,15 +88,16 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
-      console.log("Frodamd data", formData);
       const { file } = formData;
+      console.log("Frodamd data", formData);
       setIsLoading(true);
+
       if (file && file.length > 0) {
         setIsAvatarUpdating(true);
-
         const renamedFile = renameFile(file[0]);
         const form = new FormData();
         form.append("images", renamedFile);
+
         const uploadedImages = await uploadMultipartForm(
           "/api/upload/avatar",
           form,
@@ -158,7 +159,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     <Modal>
       <div ref={ref}>
         <form
-          onSubmit={() => handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit)}
           autoComplete="off"
           className="w- flex w-[90vw] max-w-[450px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
         >
@@ -195,10 +196,11 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         transition-all duration-200 hover:bg-opacity-20"
               ></label>
               <input
-                id="file"
                 {...register("file")}
+                id="file"
                 type="file"
                 className="hidden"
+                accept="image/*"
               />
               <Avatar
                 image_url={fileUrl.length > 0 ? fileUrl : userData?.image_url}

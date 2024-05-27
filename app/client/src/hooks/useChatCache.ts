@@ -47,7 +47,7 @@ const useChatCache = () => {
     (id: string, is_message_seen: boolean) => {
       return utils.chat.get.user_chatrooms.setData(userData?.id, (state) => {
         if (state && userData) {
-          console.log("STate: ", state, "To update: ", id);
+          console.log("State: ", state, "To update: ", id);
           return state.map((chatrooms) =>
             chatrooms.chatroom_id === id
               ? {

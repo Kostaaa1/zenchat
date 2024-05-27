@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../../components/Icon";
 import List from "../../../components/List";
@@ -41,7 +41,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
           className="active:text-zinc-500"
         />
       </div>
-      <ul className="h-full overflow-y-auto">
+      <ul className="h-full overflow-y-auto py-2">
         {userChats?.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-neutral-400">No messages found.</p>

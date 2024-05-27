@@ -143,8 +143,8 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
                       image_url={[user.image_url]}
                       hover="darker"
                       subtitle={`${user?.first_name} ${user?.last_name}`}
-                      className="px-2"
                       onClick={() => handleClick(user)}
+                      isLoading={loading}
                     />
                   ))}
                 </div>
@@ -158,14 +158,13 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
             Array(7)
               .fill("")
               .map((_, id) => (
-                <div
-                  key={id}
-                  className="flex animate-pulse items-center px-2 py-2"
-                >
-                  <div className="block h-14 w-14 rounded-full bg-neutral-700"></div>
-                  <div className="ml-4 flex h-full flex-col justify-between py-[6px]">
-                    <div className="mb-2 h-4 w-[300px] rounded-lg bg-neutral-700"></div>
-                    <div className="h-4 w-[120px] rounded-lg bg-neutral-700"></div>
+                <div key={id} className="py-2">
+                  <div className="flex h-14 w-full animate-pulse items-center space-x-4 px-2">
+                    <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-700"></div>
+                    <div className="flex h-full w-2/3 flex-col justify-center">
+                      <div className="mb-2 h-4 w-full rounded-lg bg-neutral-700"></div>
+                      <div className="h-4 w-64 rounded-lg bg-neutral-700"></div>
+                    </div>
                   </div>
                 </div>
               ))
@@ -176,11 +175,11 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
             buttonColor="blue"
             className="w-full font-semibold"
             size="lg"
+            onClick={handlaCreateChatroom}
+            isLoading={loading}
             disabled={
               (selectedUsers.length === 0 && search.length === 0) || loading
             }
-            onClick={handlaCreateChatroom}
-            isLoading={loading}
           >
             Chat
           </Button>

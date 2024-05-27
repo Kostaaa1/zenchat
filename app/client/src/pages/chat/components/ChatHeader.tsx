@@ -38,7 +38,11 @@ const ChatHeader = () => {
   const handleNavigate = () => {
     activeChatroom?.is_group
       ? setShowDetails(true)
-      : navigate(`/${activeChatroom?.users[0].username}`);
+      : navigate(
+          `/${activeChatroom?.users.find(
+            (x) => x.username !== userData?.username,
+          )?.username}`,
+        );
   };
 
   return (

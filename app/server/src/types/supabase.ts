@@ -254,6 +254,23 @@ export type Database = {
               chatroom_id: string
             }[]
           }
+      new_message_updater:
+        | {
+            Args: {
+              chatroom_id: string
+              sender_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              last_message: string
+              created_at: string
+              chatroom_id: string
+              sender_id: string
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       [_ in never]: never

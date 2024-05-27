@@ -1,10 +1,5 @@
 import { create } from "zustand";
-import { TPost } from "../../../../server/src/types/types";
-
-type TOpenMessageDropdown = {
-  id: string;
-  imageUrl: string | null;
-};
+import { TMessage, TPost } from "../../../../server/src/types/types";
 
 type Modals =
   | "image"
@@ -19,7 +14,8 @@ type Modals =
 type Store = {
   isModalOpen: boolean;
   imageSource: string | null;
-  unsendMsgData: { id: string; imageUrl: string | null } | null;
+  // unsendMsgData: { id: string; imageUrl: string | null } | null;
+  unsendMsgData: TMessage | null;
   modalPostData: TPost | null;
   isMessageDropdownActive: boolean;
   isAvatarUpdating: boolean;
@@ -31,7 +27,7 @@ type Store = {
     closeModal: () => void;
     setImageSource: (src: string) => void;
     setModalPostData: (s: TPost | null) => void;
-    setUnsendMsgData: (data: TOpenMessageDropdown | null) => void;
+    setUnsendMsgData: (data: TMessage | null) => void;
     setIsMessageDropdownActive: (isOpen: boolean) => void;
     setIsAvatarUpdating: (isUpdating: boolean) => void;
   };
@@ -73,8 +69,7 @@ const useModalStore = create<Store>(
       setModalPostData: (modalPostData: TPost | null) => set({ modalPostData }),
       setIsAvatarUpdating: (isUpdaing: boolean) =>
         set({ isAvatarUpdating: isUpdaing }),
-      setUnsendMsgData: (data: TOpenMessageDropdown | null) =>
-        set({ unsendMsgData: data }),
+      setUnsendMsgData: (data: TMessage | null) => set({ unsendMsgData: data }),
       setIsMessageDropdownActive: (isOpen: boolean) =>
         set({ isMessageDropdownActive: isOpen }),
     },

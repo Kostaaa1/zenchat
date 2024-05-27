@@ -1,60 +1,70 @@
-import Icon from "../../components/Icon";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Button from "../../components/Button";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import MessageInput from "./components/MessageInput";
 import useChatStore from "../../utils/state/chatStore";
-import Chat from "./components/Chat";
 import UserChats from "./components/UserChats";
 import { trpc } from "../../utils/trpcClient";
 import useUser from "../../hooks/useUser";
-import ChatHeader from "./components/ChatHeader";
+import Chat from "./components/Chat";
 import ChatDetails from "./components/ChatDetails";
-import useModalStore from "../../utils/state/modalStore";
-import { cn } from "../../utils/utils";
+import { cn, loadImage } from "../../utils/utils";
 import useGeneralStore from "../../utils/state/generalStore";
 import MainContainer from "../../components/MainContainer";
+import useChatMapStore from "../../utils/state/chatMapStore";
 
 const Inbox = () => {
   const location = useLocation();
   const { userData } = useUser();
-  const iconRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
-  const { openModal } = useModalStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  ///////////// Returnuj is useChat valjdd??
+  const { inputImages, inputMessages } = useChatMapStore((state) => ({
+    inputMessages: state.inputMessages,
+    inputImages: state.inputImages,
+  }));
   const { activeChatroom, showDetails } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
+    activeChatroomTitle: state.activeChatroomTitle,
     showDetails: state.showDetails,
   }));
-  const { setActiveChatroomTitle, setActiveChatroom } = useChatStore(
+  const { setActiveChatroom, setActiveChatroomTitle } = useChatStore(
     (state) => state.actions,
   );
+  /////////////
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
+    refetchOnReconnect: true,
   });
-
-  const scrollToStart = useCallback(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
-  }, [scrollRef.current]);
 
   const userChats = useMemo(() => {
     const filteredChats = data?.filter((x) =>
       x.users.some((y) => y.username === userData?.username && y.is_active),
     );
+
+    if (filteredChats) {
+      filteredChats.forEach(async (chat) => {
+        await Promise.all(
+          chat.users.map(
+            async (user) => user.image_url && (await loadImage(user.image_url)),
+          ),
+        );
+        inputMessages.set(chat.chatroom_id, "");
+        inputImages.set(chat.chatroom_id, []);
+      });
+    }
     return filteredChats;
   }, [data]);
 
   useEffect(() => {
     if (!userChats || userChats.length === 0 || !userData) return;
-    const currentChat = userChats.find(
+    const activeChat = userChats.find(
       (chat) => chat.chatroom_id === chatRoomId,
     );
-    if (currentChat) {
-      setActiveChatroom({ ...currentChat, img_urls: [], new_message: "" });
+    if (activeChat) {
+      setActiveChatroom(activeChat);
       setActiveChatroomTitle(
-        currentChat.users
+        activeChat.users
           .filter((chat) => chat.username !== userData.username)
           .map((chat) => chat.username)
           .join(", "),
@@ -72,22 +82,14 @@ const Inbox = () => {
           isMobile ? "pb-16" : "pl-20",
         )}
       >
-        {activeChatroom ? null : (
+        {isMobile && activeChatroom ? null : (
           <UserChats userChats={userChats} isLoading={isLoading} />
         )}
-        {location.pathname !== "/inbox" && activeChatroom && chatRoomId && (
-          <div className={"relative flex w-full flex-col justify-between"}>
-            <ChatHeader />
-            <Chat
-              chatRoomId={chatRoomId}
-              activeChatroom={activeChatroom}
-              scrollRef={scrollRef}
-            />
-            <MessageInput scrollToStart={scrollToStart} iconRef={iconRef} />
-          </div>
+        {location.pathname !== "/inbox" && activeChatroom && (
+          <Chat activeChatroom={activeChatroom} scrollRef={scrollRef} />
         )}
         {showDetails && activeChatroom && <ChatDetails />}
-        {!isMobile &&
+        {/* {!isMobile &&
         location.pathname.includes("/inbox") &&
         !activeChatroom ? (
           <div className="flex w-full flex-col items-center justify-center text-center">
@@ -110,7 +112,7 @@ const Inbox = () => {
               </Button>
             </div>
           </div>
-        ) : null}
+        ) : null} */}
       </div>
     </MainContainer>
   );

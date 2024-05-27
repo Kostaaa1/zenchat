@@ -55,6 +55,7 @@ const useChatSocket = () => {
     (msg: TMessage) => {
       if (!userData) return;
       const { content, chatroom_id } = msg;
+
       utils.chat.get.user_chatrooms.setData(userData?.id, (state) => {
         const data = state
           ?.map((chat) =>
@@ -62,6 +63,7 @@ const useChatSocket = () => {
               ? {
                   ...chat,
                   last_message: content,
+                  created_at: getCurrentDate(),
                   users:
                     activeChatroom?.chatroom_id === chat.chatroom_id
                       ? chat.users
@@ -70,7 +72,6 @@ const useChatSocket = () => {
                             ? { ...participant, is_message_seen: false }
                             : participant;
                         }),
-                  created_at: getCurrentDate(),
                 }
               : chat,
           )
@@ -79,6 +80,7 @@ const useChatSocket = () => {
             const dateB = new Date(b.created_at).getTime();
             return dateB - dateA;
           });
+
         return data;
       });
     },
@@ -87,16 +89,21 @@ const useChatSocket = () => {
 
   const recieveNewSocketMessage = useCallback(
     async (socketData: TRecieveNewSocketMessageType) => {
-      console.log("Recieve new socket message called");
+      if (!userData) return;
+
+      console.log("Recieve new socket message called", socketData);
       const { channel, data } = socketData;
       if (channel === "onMessage") {
-        const { message, shouldActivate, user_id } = data;
+        const { message, shouldActivate } = data;
         const { is_image, sender_id } = message;
         if (is_image) await loadImage(message.content);
 
         if (shouldActivate) {
-          await utils.chat.get.user_chatrooms.refetch(user_id);
-          return;
+          console.log("The chat is inactive, need to refetch");
+          ////////////////////////////////////////////////////
+          await utils.chat.get.user_chatrooms.invalidate(userData.id);
+          await utils.chat.get.user_chatrooms.refetch(userData.id);
+          ////////////////////////////////////////////////////
         }
 
         updateUserChatLastMessageCache(message);

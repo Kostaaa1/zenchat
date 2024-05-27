@@ -21,10 +21,12 @@ const useModals = () => {
       const { id, media_url, thumbnail_url } = post;
       const fileKeys = [media_url];
       if (thumbnail_url) fileKeys.push(thumbnail_url);
+
       await deletePostMutation.mutateAsync({
         id,
         fileKeys,
       });
+
       utils.user.get.setData(
         { data: userData!.username, type: "username" },
         (state) => {
@@ -36,6 +38,7 @@ const useModals = () => {
           }
         },
       );
+
       triggerModalOptions();
       setModalPostData(null);
       setIsDeleting(false);
@@ -44,7 +47,7 @@ const useModals = () => {
     }
   }, []);
 
-  return { deletePost,  };
+  return { deletePost };
 };
 
 export default useModals;

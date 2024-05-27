@@ -67,6 +67,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                 <List
                   key={chat.id}
                   hover="darker"
+                  padding={isMobile ? "md" : "lg"}
                   isHoverDisabled={true}
                   image_url={[chat.users!.image_url]}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}

@@ -16,7 +16,7 @@ const ChatDetails = () => {
   ];
 
   return (
-    <div className="flex w-full max-w-[270px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
+    <div className="flex h-full max-w-[270px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
       <div className="flex h-full max-h-[140px] flex-col justify-evenly px-4">
         <h2 className="text-xl">Details</h2>
         <div className="flex w-full items-center justify-between">

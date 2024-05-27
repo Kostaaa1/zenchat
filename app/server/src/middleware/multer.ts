@@ -1,8 +1,8 @@
-import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import "dotenv/config";
-import { BucketFolders, env, s3Buckets } from "../config/config";
+import { env, s3Buckets } from "../config/config";
 
 const { AWS_BUCKETNAME, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_URL } =
   env;

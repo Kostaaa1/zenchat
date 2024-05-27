@@ -47,9 +47,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    console.log(inspectedUserData?.image_url);
     if (!inspectedUserData) return;
-
     const { posts, image_url } = inspectedUserData;
     const urls = [...posts.map((x) => x.thumbnail_url ?? x.media_url)];
     if (image_url) urls.push(image_url);

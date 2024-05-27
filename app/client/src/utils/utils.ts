@@ -8,6 +8,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 export const loadImage = async (url: string, maxRetries = 5) => {
+  console.log("loading image", url);
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
