@@ -48,15 +48,20 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     onSuccess: async (data) => {
       console.log("On success", data);
       const { username, last_name, first_name } = data;
-      await user?.update({
-        username,
-        firstName: first_name,
-        lastName: last_name,
-      });
-      await utils.user.get.refetch({
-        data: userData!.username,
-        type: "username",
-      });
+
+      const processes = [
+        user?.update({
+          username,
+          firstName: first_name,
+          lastName: last_name,
+        }),
+        utils.user.get.refetch({
+          data: userData!.username,
+          type: "username",
+        }),
+      ];
+      await Promise.all(processes);
+
       setFileUrl("");
       setIsLoading(false);
       reset();
@@ -97,17 +102,18 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         const renamedFile = renameFile(file[0]);
         const form = new FormData();
         form.append("images", renamedFile);
-
-        const uploadedImages = await uploadMultipartForm(
+        const s3Image = await uploadMultipartForm(
           "/api/upload/avatar",
           form,
           token,
         );
 
-        await updateAvatarMutation.mutateAsync({
-          userId: userData!.id,
-          image_url: uploadedImages[0],
-        });
+        if (typeof s3Image === "string") {
+          await updateAvatarMutation.mutateAsync({
+            userId: userData.id,
+            image_url: s3Image,
+          });
+        }
       }
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {

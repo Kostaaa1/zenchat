@@ -40,8 +40,11 @@ const useChatStore = create<ChatStore>(
         }),
       incrementUnreadMessagesCount: () =>
         set((state) => {
-          const count = state.unreadMessagesCount;
-          return { ...state, unreadMessagesCount: count + 1 };
+          console.log("Increment called", state.unreadMessagesCount);
+          return {
+            ...state,
+            unreadMessagesCount: state.unreadMessagesCount + 1,
+          };
         }),
       setUnreadMessagesCount: (unreadMessagesCount: number) =>
         set({ unreadMessagesCount }),

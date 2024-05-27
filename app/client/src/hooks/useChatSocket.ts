@@ -12,9 +12,10 @@ import { loadImage } from "../utils/utils";
 const useChatSocket = () => {
   const utils = trpc.useUtils();
   const activeChatroom = useChatStore((state) => state.activeChatroom);
+  const { incrementUnreadMessagesCount } = useChatStore(
+    (state) => state.actions,
+  );
   const { userData } = useUser();
-  const { setActiveChatroom } = useChatStore((state) => state.actions);
-  const navigate = useNavigate();
 
   // const { recieveNewSocketMessage } = useChatCache();
   const addNewMessageToChatCache = useCallback(
@@ -90,9 +91,9 @@ const useChatSocket = () => {
   const recieveNewSocketMessage = useCallback(
     async (socketData: TRecieveNewSocketMessageType) => {
       if (!userData) return;
-
       console.log("Recieve new socket message called", socketData);
       const { channel, data } = socketData;
+
       if (channel === "onMessage") {
         const { message, shouldActivate } = data;
         const { is_image, sender_id } = message;
@@ -105,12 +106,14 @@ const useChatSocket = () => {
           await utils.chat.get.user_chatrooms.refetch(userData.id);
           ////////////////////////////////////////////////////
         }
-
         updateUserChatLastMessageCache(message);
+
+        const isLoggedUserSender = sender_id === userData?.id;
+        // if (!isLoggedUserSender) incrementUnreadMessagesCount();
         if (!is_image) {
-          if (sender_id !== userData?.id) addNewMessageToChatCache(message);
+          if (!isLoggedUserSender) addNewMessageToChatCache(message);
         } else {
-          sender_id === userData?.id
+          isLoggedUserSender
             ? replacePreviewImage(message)
             : addNewMessageToChatCache(message);
         }

@@ -10,6 +10,9 @@ import { cn, loadImage } from "../../utils/utils";
 import useGeneralStore from "../../utils/state/generalStore";
 import MainContainer from "../../components/MainContainer";
 import useChatMapStore from "../../utils/state/chatMapStore";
+import Icon from "../../components/Icon";
+import Button from "../../components/Button";
+import useModalStore from "../../utils/state/modalStore";
 
 const Inbox = () => {
   const location = useLocation();
@@ -17,7 +20,9 @@ const Inbox = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
+  const { openModal } = useModalStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
   ///////////// Returnuj is useChat valjdd??
   const { inputImages, inputMessages } = useChatMapStore((state) => ({
     inputMessages: state.inputMessages,
@@ -32,6 +37,7 @@ const Inbox = () => {
     (state) => state.actions,
   );
   /////////////
+
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
     refetchOnReconnect: true,
@@ -82,16 +88,14 @@ const Inbox = () => {
           isMobile ? "pb-16" : "pl-20",
         )}
       >
-        {isMobile && activeChatroom ? null : (
+        {(!chatRoomId || (chatRoomId && !isMobile)) && (
           <UserChats userChats={userChats} isLoading={isLoading} />
         )}
         {location.pathname !== "/inbox" && activeChatroom && (
           <Chat activeChatroom={activeChatroom} scrollRef={scrollRef} />
         )}
         {showDetails && activeChatroom && <ChatDetails />}
-        {/* {!isMobile &&
-        location.pathname.includes("/inbox") &&
-        !activeChatroom ? (
+        {!isMobile && !activeChatroom ? (
           <div className="flex w-full flex-col items-center justify-center text-center">
             <Icon
               name="MessageCircle"
@@ -112,7 +116,7 @@ const Inbox = () => {
               </Button>
             </div>
           </div>
-        ) : null} */}
+        ) : null}
       </div>
     </MainContainer>
   );

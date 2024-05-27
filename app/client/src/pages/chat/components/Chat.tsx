@@ -48,29 +48,30 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
   );
   const [isLoadingMsgs, setIsLoadingMsgs] = useState<boolean>(true);
 
-  const triggerReadMessagesMutation =
-    trpc.chat.messages.triggerReadMessages.useMutation({
-      onSuccess: () => {
-        if (activeChatroom) {
-          decrementUnreadMessagesCount();
-          updateUserReadMessage(activeChatroom.chatroom_id, true);
-        }
-      },
-      onError: (err) => {
-        console.log("error", err);
-      },
-    });
-  useEffect(() => {
-    if (activeChatroom && userData) {
-      const foundUser = activeChatroom.users.find(
-        (x) => x.user_id === userData.id,
-      );
-      if (foundUser && !foundUser.is_message_seen) {
-        console.log("Should trigger");
-        triggerReadMessagesMutation.mutate(foundUser.id);
-      }
-    }
-  }, []);
+  // const triggerReadMessagesMutation =
+  //   trpc.chat.messages.triggerReadMessages.useMutation({
+  //     onSuccess: () => {
+  //       if (activeChatroom) {
+  //         decrementUnreadMessagesCount();
+  //         updateUserReadMessage(activeChatroom.chatroom_id, true);
+  //       }
+  //     },
+  //     onError: (err) => {
+  //       console.log("error", err);
+  //     },
+  //   });
+
+  // useEffect(() => {
+  //   if (activeChatroom && userData) {
+  //     const foundUser = activeChatroom.users.find(
+  //       (x) => x.user_id === userData.id,
+  //     );
+  //     if (foundUser && !foundUser.is_message_seen) {
+  //       console.log("Should trigger");
+  //       triggerReadMessagesMutation.mutate(foundUser.id);
+  //     }
+  //   }
+  // }, []);
 
   const { mutateAsync: getMoreMutation } =
     trpc.chat.messages.getMore.useMutation({
@@ -121,8 +122,8 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
         });
       }
     }, 300);
-
     container.addEventListener("scroll", fetchMoreMessagesObserver);
+
     return () => {
       container.removeEventListener("scroll", fetchMoreMessagesObserver);
       fetchMoreMessagesObserver.cancel();
@@ -136,8 +137,8 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
       setUnsendMsgData(null);
     }
   };
-  const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
 
+  const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
   const loadImages = async (messages: TMessage[]) => {
     try {
       await Promise.all(
@@ -159,8 +160,8 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
   useEffect(() => {
     if (!messages) return;
     const msgImgs = messages.filter((x) => x.is_image);
-
     loadImages(msgImgs);
+
     if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
       setShouldFetchMoreMessages(false);
       return;
@@ -197,9 +198,9 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
                         : id === messages.length - 1
                     }
                     rounded2={
-                      id === 0 ||
-                      (id - 1 > 0 &&
-                        messages[id - 1].sender_id !== message.sender_id)
+                      (id - 1 >= 0 &&
+                        messages[id - 1].sender_id !== message.sender_id) ||
+                      id === 0
                     }
                   />
                 ))}

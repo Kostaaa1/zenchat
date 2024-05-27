@@ -39,8 +39,11 @@ const useNavbar = () => {
   }, [setIsSearchActive, isSearchActive]);
 
   const handleActiveElement = useCallback((list: ActiveList) => {
-    if (width > 1024) setIsResponsive(list === "inbox");
+    if (width > 1024) {
+      setIsResponsive(list !== "user");
+    }
     setActiveNavList(list);
+    setIsSearchActive(false);
     if (list === "user") {
       navigate(`/${userData?.username}`);
     } else if (list === "inbox") {
@@ -57,7 +60,6 @@ const useNavbar = () => {
       title: isResponsive ? "" : "Messages",
       onClick: () => {
         handleActiveElement("inbox");
-        setIsSearchActive(false);
       },
       className: `${
         location.pathname.includes("/inbox") || activeNavList === "inbox"
@@ -82,7 +84,6 @@ const useNavbar = () => {
       title: isResponsive ? "" : "Profile",
       onClick: () => {
         handleActiveElement("user");
-        setIsSearchActive(false);
       },
       className: `${
         location.pathname === `/${userData?.username}` ? activeListClass : null

@@ -42,17 +42,17 @@ export const deleteS3Object = async (key: string) => {
 
 export const uploadToS3 = async ({
   folder,
-  file,
+  key,
   data,
 }: {
   folder: string;
-  file: string;
+  key: string;
   data: Buffer;
 }) => {
   try {
     const params = {
       Bucket: AWS_BUCKETNAME,
-      Key: `${folder}/${file}`,
+      Key: `${folder}/${key}`,
       Body: data,
     };
     const uploadCommand = new PutObjectCommand(params);

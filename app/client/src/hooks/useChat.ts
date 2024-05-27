@@ -15,9 +15,8 @@ const useChat = (scrollToStart?: () => void) => {
   const { chat } = trpc.useUtils();
   const inputImages = useChatMapStore((state) => state.inputImages);
   const inputMessages = useChatMapStore((state) => state.inputMessages);
-  const { addChatInputImage, removeChatInputImage } = useChatMapStore(
-    (state) => state.actions,
-  );
+  const { addChatInputImage, clearMessageInput, removeChatInputImage } =
+    useChatMapStore((state) => state.actions);
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
   }));
@@ -96,12 +95,12 @@ const useChat = (scrollToStart?: () => void) => {
     input_message: string,
     chatroom_id: string,
   ) => {
+    clearMessageInput(chatroom_id);
     const messageData = createNewMessage({
       content: input_message,
       is_image: false,
       chatroom_id,
     });
-    inputMessages.set(chatroom_id, "");
     addNewMessageToChatCache(messageData);
     if (messageData) await sendMessageMutation.mutateAsync(messageData);
   };

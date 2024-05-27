@@ -89,49 +89,45 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
     <div
       className={cn(
         "flex flex-col bg-black",
-        isMobile ? "w-full" : "w-[400px] min-w-[400px]",
+        isMobile ? "w-full" : "w-[400px]",
       )}
     >
       {isMobile ? null : <PostHeader userData={userData} />}
-      <div
+      <ul
         className={cn(
-          "overflow-auto text-sm leading-4",
-          isMobile ? "h-[140px]" : "h-[70vw]",
+          "overflow-auto p-3 text-sm leading-4",
+          isMobile ? "h-[180px]" : "h-[56vw]",
         )}
       >
-        <ul className="p-3">
-          <>
-            <li className="flex items-start space-x-2 py-3">
+        <li className="flex items-start space-x-2 py-3">
+          <Avatar image_url={userData.image_url} />
+          <div className="flex space-x-2">
+            <p>
+              <span className="font-semibold text-white active:text-opacity-60">
+                {userData.username} &nbsp;
+              </span>
+              {post.caption}
+            </p>
+          </div>
+        </li>
+        {Array(6)
+          .fill("")
+          .map((_, id) => (
+            <li key={id} className="flex items-start space-x-2 py-3">
               <Avatar image_url={userData.image_url} />
               <div className="flex space-x-2">
                 <p>
                   <span className="font-semibold text-white active:text-opacity-60">
                     {userData.username} &nbsp;
                   </span>
-                  {post.caption}
+                  My comments will remain withdrawn from any discussions
+                  regarding the first slide. As a leader of the council, it's
+                  essential I protect my image. (Goddamn.)
                 </p>
               </div>
             </li>
-            {Array(6)
-              .fill("")
-              .map((_, id) => (
-                <li key={id} className="flex items-start space-x-2 py-3">
-                  <Avatar image_url={userData.image_url} />
-                  <div className="flex space-x-2">
-                    <p>
-                      <span className="font-semibold text-white active:text-opacity-60">
-                        {userData.username} &nbsp;
-                      </span>
-                      My comments will remain withdrawn from any discussions
-                      regarding the first slide. As a leader of the council,
-                      it's essential I protect my image. (Goddamn.)
-                    </p>
-                  </div>
-                </li>
-              ))}
-          </>
-        </ul>
-      </div>
+          ))}
+      </ul>
     </div>
   );
 };
@@ -152,7 +148,9 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
           <div
             className={cn(
               "relative mx-auto flex h-full",
-              isMobile ? "w-[78vw] flex-col" : "max-h-[84vh] max-w-[90vw]",
+              isMobile
+                ? "w-[80vw] max-w-[500px] flex-col"
+                : "max-h-[90svh] max-w-[90vw]",
             )}
             ref={ref}
           >
@@ -163,17 +161,9 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
               posts={inspectedUser.posts}
             />
             {isMobile ? <PostHeader userData={inspectedUser} /> : null}
-            <div className={cn(isMobile ? "max-h-[500px]" : "")}>
+            <div>
               {post.type.startsWith("image/") ? (
-                <img
-                  key={post.media_url}
-                  src={post.media_url}
-                  className={cn(
-                    isMobile
-                      ? "aspect-square object-cover"
-                      : "h-full w-full object-cover",
-                  )}
-                />
+                <img key={post.media_url} src={post.media_url} />
               ) : (
                 <Video
                   media_url={post.media_url}
@@ -183,7 +173,7 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
                   className={cn(
                     isMobile
                       ? "aspect-square object-cover"
-                      : "h-full w-full object-cover",
+                      : "aspect-square h-full bg-black object-cover",
                   )}
                 />
               )}

@@ -26,7 +26,7 @@ const useGeneralStore = create<Store>(
     isResponsive: window.innerWidth <= 1024,
     isMobile: window.innerWidth <= 768,
     username: null,
-    volume: 0.05,
+    volume: 0.06,
     actions: {
       setVolume: (volume: number) => set({ volume }),
       setUsername: (username: string) => set({ username }),

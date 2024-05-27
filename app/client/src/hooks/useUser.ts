@@ -15,6 +15,12 @@ const useUser = () => {
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null>(null);
 
+  const ctx = trpc.useUtils();
+  const userData = ctx.user.get.getData({
+    data: username!,
+    type: "username",
+  });
+
   useEffect(() => {
     const fetchToken = async () => {
       const fetchedToken = await getToken();
@@ -22,12 +28,6 @@ const useUser = () => {
     };
     fetchToken();
   }, []);
-
-  const ctx = trpc.useUtils();
-  const userData = ctx.user.get.getData({
-    data: username!,
-    type: "username",
-  });
 
   const updateUserCache = async (updatedData: CommonInput) => {
     if (!userData) return;

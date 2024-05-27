@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../../components/Icon";
 import List from "../../../components/List";

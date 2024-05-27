@@ -1,14 +1,13 @@
 import { ClassValue, clsx } from "clsx";
 import { nanoid } from "nanoid";
 import { twMerge } from "tailwind-merge";
-import { TMessage } from "../../../server/src/types/types";
 import axios from "axios";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
 export const loadImage = async (url: string, maxRetries = 5) => {
-  console.log("loading image", url);
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -74,18 +73,21 @@ export const uploadMultipartForm = async (
   apiUrl: string,
   formData: FormData,
   token: string | null,
-): Promise<string[]> => {
+): Promise<string | string[]> => {
   try {
-    const newImages = await axios.post(apiUrl, formData, {
+    const { data } = await axios.post(apiUrl, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
     });
-    const uploadedImages = newImages.data.urls.map(
-      (x: { key: string }) => x.key,
-    );
-    return uploadedImages;
+
+    if (data.urls.length > 0) {
+      const uploadedImages = data.urls.map((x: { key: string }) => x.key);
+      return uploadedImages;
+    } else {
+      return data.urls.key;
+    }
   } catch (error) {
     console.log(error);
     return [];

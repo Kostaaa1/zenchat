@@ -7,6 +7,7 @@ type ChatStore = {
     addChatInputMessage: (chatroomId: string, text: string) => void;
     addChatInputImage: (chatroomId: string, text: string) => void;
     //////////////
+    clearMessageInput: (chatroomId: string) => void;
     removeChatInputImage: (chatroomId: string, id: number) => void;
   };
 };
@@ -38,6 +39,10 @@ const useChatMapStore = create<ChatStore>(
             return state;
           }
         }),
+      clearMessageInput: (chatroomId: string) =>
+        set((state) => ({
+          inputMessages: new Map(state.inputMessages).set(chatroomId, ""),
+        })),
       removeChatInputImage: (chatroomId: string, id: number) =>
         set((state) => {
           const urls = state.inputImages.get(chatroomId);
