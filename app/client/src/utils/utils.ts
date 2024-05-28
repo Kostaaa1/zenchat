@@ -69,31 +69,6 @@ export const renameFile = (
   return newFile;
 };
 
-export const uploadMultipartForm = async (
-  apiUrl: string,
-  formData: FormData,
-  token: string | null,
-): Promise<string | string[]> => {
-  try {
-    const { data } = await axios.post(apiUrl, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (data.urls.length > 0) {
-      const uploadedImages = data.urls.map((x: { key: string }) => x.key);
-      return uploadedImages;
-    } else {
-      return data.urls.key;
-    }
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
 export function convertAndFormatDate(dateString: string) {
   const date = new Date(dateString);
   const dayOptions = { weekday: "short" };

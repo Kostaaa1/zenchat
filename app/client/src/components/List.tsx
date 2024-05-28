@@ -103,15 +103,15 @@ const List: FC<ListProps> = ({
               />
             )}
             <div className="flex w-full flex-col text-start">
-              <h1> {title} </h1>
-              <h4
+              <h3> {title} </h3>
+              <p
                 className={cn(
-                  "w-64 overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-semibold",
+                  "w-full max-w-[256px] overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-semibold",
                   isRead ? "text-neutral-400" : "text-white",
                 )}
               >
                 {subtitle}
-              </h4>
+              </p>
             </div>
           </div>
           {!isMobile && icon ? (

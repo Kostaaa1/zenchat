@@ -55,6 +55,7 @@ export const CreateUserSchema: ZodSchema<{
 export const MessageSchema: ZodSchema<{
   id: string;
   sender_id: string;
+  sender_username: string;
   chatroom_id: string;
   content: string;
   created_at: string;
@@ -62,6 +63,7 @@ export const MessageSchema: ZodSchema<{
 }> = z.object({
   id: z.string(),
   sender_id: z.string(),
+  sender_username: z.string(),
   chatroom_id: z.string(),
   content: z.string(),
   created_at: z.string(),

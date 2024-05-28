@@ -5,11 +5,12 @@ import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { loadImage, renameFile, uploadMultipartForm } from "../../utils/utils";
+import { loadImage, renameFile } from "../../utils/utils";
 import { trpc } from "../../utils/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
+import axios from "axios";
 
 export type CommonInput = {
   first_name?: string;
@@ -96,24 +97,22 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       const { file } = formData;
       console.log("Frodamd data", formData);
       setIsLoading(true);
-
       if (file && file.length > 0) {
         setIsAvatarUpdating(true);
         const renamedFile = renameFile(file[0]);
         const form = new FormData();
         form.append("images", renamedFile);
-        const s3Image = await uploadMultipartForm(
-          "/api/upload/avatar",
-          form,
-          token,
-        );
 
-        if (typeof s3Image === "string") {
-          await updateAvatarMutation.mutateAsync({
-            userId: userData.id,
-            image_url: s3Image,
-          });
-        }
+        const { data } = await axios.post("/api/upload/avatar", form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        await updateAvatarMutation.mutateAsync({
+          userId: userData.id,
+          image_url: data.key,
+        });
       }
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {

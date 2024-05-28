@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef,  useState } from "react";
 import { cn, convertAndFormatDate } from "../../../utils/utils";
 import useUser from "../../../hooks/useUser";
 import useModalStore from "../../../utils/state/modalStore";
@@ -33,7 +33,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "mt-1 flex w-full flex-row items-center justify-center break-words",
+          "flex w-full flex-row items-center justify-center break-words",
           isLoggedUserASender
             ? "flex-row-reverse justify-start self-start"
             : "justify-start self-start",
@@ -41,20 +41,20 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
       >
         {is_image ? (
           <div
+            className={cn(
+              "relative h-full w-full max-w-[40%] cursor-pointer rounded-2xl",
+              !isLoggedUserASender && "ml-9",
+            )}
             onClick={() => {
               openModal("image");
               setImageSource(content);
             }}
-            className={cn(
-              "relative h-full max-h-[400px] w-full max-w-[230px] cursor-pointer rounded-2xl",
-              !isLoggedUserASender && "ml-9",
-            )}
           >
             <div className="absolute h-full w-full rounded-2xl transition-all duration-150 hover:bg-white hover:bg-opacity-10"></div>
             <img className="rounded-2xl" src={content} />
           </div>
         ) : (
-          <div className="flex items-center justify-center">
+          <div className="flex max-w-[60%] items-center justify-center break-all leading-tight">
             {rounded2 && !isLoggedUserASender && (
               <Avatar
                 size="sm"
@@ -64,25 +64,25 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                 }
               />
             )}
-            <div
+            <p
               className={cn(
-                "max-w-[300px] rounded-[3px] px-2 py-1",
+                "rounded-[3px] px-3 py-2",
                 isLoggedUserASender
-                  ? " rounded-l-3xl bg-lightBlue pl-3"
-                  : "ml-9 rounded-r-3xl bg-neutral-700 pr-3",
+                  ? "rounded-l-3xl bg-lightBlue"
+                  : "ml-9 rounded-r-3xl bg-neutral-700",
                 rounded1 && "rounded-t-3xl",
                 rounded2 && "ml-2 rounded-b-3xl",
               )}
             >
               {content}
-            </div>
+            </p>
           </div>
         )}
         {unsendMsgData?.id === id || isHovered ? (
           <div
             ref={ref}
             className={cn(
-              "relative flex w-max cursor-pointer justify-between space-x-2 px-1 text-neutral-400",
+              "relative z-[10000] flex w-max cursor-pointer justify-between space-x-2 text-neutral-400",
               isLoggedUserASender ? "flex-row-reverse" : "",
             )}
           >

@@ -16,7 +16,7 @@ export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
     })
     .limit(22);
 
-  if (!data) throw new Error(`Error when fetching all messages: ${error.message}`);
+  if (!data || error) throw new Error(`Error when fetching all messages: ${error.message}`);
   return data;
 };
 
@@ -32,12 +32,13 @@ export const getMoreMessages = async (
     .order("created_at", { ascending: false })
     .limit(22);
 
-  if (!data) {
+  if (!data || error) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Error when fetching all messages: ${error.message}`,
     });
   }
+
   return data;
 };
 

@@ -23,7 +23,6 @@ import useGeneralStore from "./utils/state/generalStore";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/home/Home";
 import ErrorPage from "./pages/ErrorPage";
-import PostModal from "./components/modals/PostModal";
 import useChatStore from "./utils/state/chatStore";
 
 function App() {

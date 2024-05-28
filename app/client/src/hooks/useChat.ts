@@ -2,21 +2,25 @@ import { FormEvent, useEffect, useState } from "react";
 import useChatStore from "../utils/state/chatStore";
 import useUser from "./useUser";
 import { v4 as uuidv4 } from "uuid";
-import { TMessage } from "../../../server/src/types/types";
+import { S3UploadResponse, TMessage } from "../../../server/src/types/types";
 import getCurrentDate from "../utils/getCurrentDate";
 import useChatCache from "./useChatCache";
 import { trpc } from "../utils/trpcClient";
 import { Skin } from "@emoji-mart/data";
-import { uploadMultipartForm } from "../utils/utils";
 import useChatMapStore from "../utils/state/chatMapStore";
+import axios from "axios";
 
 const useChat = (scrollToStart?: () => void) => {
   const { userData, token } = useUser();
   const { chat } = trpc.useUtils();
   const inputImages = useChatMapStore((state) => state.inputImages);
   const inputMessages = useChatMapStore((state) => state.inputMessages);
-  const { addChatInputImage, clearMessageInput, removeChatInputImage } =
-    useChatMapStore((state) => state.actions);
+  const {
+    addChatInputImage,
+    clearMessageInput,
+    removeChatInputImage,
+    clearImagesInput,
+  } = useChatMapStore((state) => state.actions);
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
   }));
@@ -50,7 +54,6 @@ const useChat = (scrollToStart?: () => void) => {
       const chatroomID = activeChatroom.chatroom_id;
       const imageUrls = inputImages.get(chatroomID);
       // if (!imageUrls) return;
-
       // const updatedImageUrls = imageUrls?.filter((url, index) => {
       //   if (index === id) {
       //     URL.revokeObjectURL(url);
@@ -58,13 +61,13 @@ const useChat = (scrollToStart?: () => void) => {
       //   }
       //   return true;
       // });
-
       // console.log("updated image ulrs", updatedImageUrls);
       // inputImages.set(chatroomID, updatedImageUrls);
+
       removeChatInputImage(chatroomID, id);
       setTrackFiles((state) => state.filter((_, index) => index !== id));
-
       const newFormData = new FormData();
+
       formData.forEach((value) => {
         if (value instanceof File && value.name !== trackFiles[id].name) {
           newFormData.append("images", value);
@@ -79,11 +82,12 @@ const useChat = (scrollToStart?: () => void) => {
     chatroom_id: string;
     is_image: boolean;
     id?: string;
-  }) => {
+  }): TMessage => {
     const { content, id, chatroom_id, is_image } = data;
     return {
       id: id ?? uuidv4(),
       sender_id: userData!.id,
+      sender_username: userData!.username,
       created_at: getCurrentDate(),
       is_image,
       chatroom_id,
@@ -122,17 +126,17 @@ const useChat = (scrollToStart?: () => void) => {
     }
   };
 
-  const sendImageMessage = async (chatroom_id: string) => {
-    const input_images = inputImages.get(chatroom_id);
+  const sendImageMessage = async (chatroomId: string) => {
+    const input_images = inputImages.get(chatroomId);
     if (!input_images) return;
     const newMessagesStack: TMessage[] = [];
+    clearImagesInput(chatroomId);
 
-    inputImages.set(chatroom_id, []);
     for (const fileUrl of input_images) {
       const id = uuidv4();
       const messageData = createNewMessage({
         id,
-        chatroom_id,
+        chatroom_id: chatroomId,
         content: "",
         is_image: true,
       });
@@ -141,36 +145,29 @@ const useChat = (scrollToStart?: () => void) => {
       addNewMessageToChatCache(messageData);
     }
 
-    const uploadedImages = await uploadMultipartForm(
-      "/api/upload/message",
-      formData,
-      token,
+    const { data } = await axios.post("/api/upload/message", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const newUrls = data.urls as S3UploadResponse[];
+    await Promise.all(
+      newUrls.map(async (_, id) => {
+        const message = newMessagesStack[id];
+        message.content = newUrls[id].key;
+        await sendMessageMutation.mutateAsync(message);
+      }),
     );
 
-    if (uploadedImages) {
-      for (let i = 0; i < uploadedImages.length; i++) {
-        const message = newMessagesStack[i];
-        message.content = uploadedImages[i];
-        await sendMessageMutation.mutateAsync(message);
-      }
-    }
-
     formData.delete("images");
-    // clearSelectedFiles();
+    setTrackFiles([]);
   };
 
   return {
     handleSubmitMessage,
     fileSetter,
     removeFileFromArray,
-    // setMessage,
-    // setImgUrls,
-    // removeFileFromArray,
-    // handleSelectEmoji,
-    // sendTextMessage,
-    // userChats,
-    // input_images,
-    // input_message,
   };
 };
 

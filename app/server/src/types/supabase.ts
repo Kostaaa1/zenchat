@@ -91,6 +91,7 @@ export type Database = {
           id: string
           is_image: boolean
           sender_id: string
+          sender_username: string
         }
         Insert: {
           chatroom_id: string
@@ -99,6 +100,7 @@ export type Database = {
           id?: string
           is_image?: boolean
           sender_id: string
+          sender_username: string
         }
         Update: {
           chatroom_id?: string
@@ -107,6 +109,7 @@ export type Database = {
           id?: string
           is_image?: boolean
           sender_id?: string
+          sender_username?: string
         }
         Relationships: [
           {

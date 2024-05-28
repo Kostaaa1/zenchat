@@ -8,6 +8,7 @@ import { trpc } from "../utils/trpcClient";
 import getCurrentDate from "../utils/getCurrentDate";
 import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets";
 import { loadImage } from "../utils/utils";
+import { toast } from "react-toastify";
 
 const useChatSocket = () => {
   const utils = trpc.useUtils();
@@ -109,7 +110,12 @@ const useChatSocket = () => {
         updateUserChatLastMessageCache(message);
 
         const isLoggedUserSender = sender_id === userData?.id;
-        // if (!isLoggedUserSender) incrementUnreadMessagesCount();
+        if (!isLoggedUserSender) {
+          // incrementUnreadMessagesCount();
+          if (!activeChatroom && !location.pathname.includes("/inbox")) {
+            toast(`${message.sender_username}: ${message.content}`);
+          }
+        }
         if (!is_image) {
           if (!isLoggedUserSender) addNewMessageToChatCache(message);
         } else {

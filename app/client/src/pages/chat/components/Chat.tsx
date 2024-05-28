@@ -37,7 +37,6 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
     setShouldFetchMoreMessages,
     setActiveChatroom,
     setShowDetails,
-    setActiveChatroomTitle,
   } = useChatStore((state) => state.actions);
 
   const { activeChatroomTitle, shouldFetchMoreMessages } = useChatStore(
@@ -48,30 +47,35 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
   );
   const [isLoadingMsgs, setIsLoadingMsgs] = useState<boolean>(true);
 
-  // const triggerReadMessagesMutation =
-  //   trpc.chat.messages.triggerReadMessages.useMutation({
-  //     onSuccess: () => {
-  //       if (activeChatroom) {
-  //         decrementUnreadMessagesCount();
-  //         updateUserReadMessage(activeChatroom.chatroom_id, true);
-  //       }
-  //     },
-  //     onError: (err) => {
-  //       console.log("error", err);
-  //     },
-  //   });
+  const triggerReadMessagesMutation =
+    trpc.chat.messages.triggerReadMessages.useMutation({
+      onSuccess: () => {
+        if (activeChatroom) {
+          decrementUnreadMessagesCount();
+          updateUserReadMessage(activeChatroom.chatroom_id, true);
+        }
+      },
+      onError: (err) => {
+        console.log("error", err);
+      },
+    });
+  useEffect(() => {
+    if (activeChatroom && userData) {
+      const foundUser = activeChatroom.users.find(
+        (x) => x.user_id === userData.id,
+      );
+      if (foundUser && !foundUser.is_message_seen) {
+        console.log("Should trigger");
+        triggerReadMessagesMutation.mutate(foundUser.id);
+      }
+    }
+  }, []);
 
-  // useEffect(() => {
-  //   if (activeChatroom && userData) {
-  //     const foundUser = activeChatroom.users.find(
-  //       (x) => x.user_id === userData.id,
-  //     );
-  //     if (foundUser && !foundUser.is_message_seen) {
-  //       console.log("Should trigger");
-  //       triggerReadMessagesMutation.mutate(foundUser.id);
-  //     }
-  //   }
-  // }, []);
+  useEffect(() => {
+    return () => {
+      setActiveChatroom(null);
+    };
+  }, []);
 
   const { mutateAsync: getMoreMutation } =
     trpc.chat.messages.getMore.useMutation({
@@ -96,16 +100,15 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
       },
     });
 
-  useOutsideClick([dropdownRef], "mousedown", () => {
-    setUnsendMsgData(null);
-  });
-
   useEffect(() => {
     return () => {
       setShowDetails(false);
-      // setActiveChatroom(null);
     };
   }, []);
+
+  useOutsideClick([dropdownRef], "mousedown", () => {
+    setUnsendMsgData(null);
+  });
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -115,6 +118,7 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
       const { scrollTop, clientHeight, scrollHeight } = container;
       const scrollTolerance = 40;
       const diff = scrollHeight - clientHeight - scrollTolerance;
+
       if (Math.abs(scrollTop) >= diff && shouldFetchMoreMessages) {
         getMoreMutation({
           chatroom_id: activeChatroom?.chatroom_id,
@@ -185,7 +189,7 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
               className="flex h-full flex-col-reverse justify-between overflow-y-auto overflow-x-hidden"
               ref={scrollRef}
             >
-              <ul className="flex flex-col-reverse px-4 pb-2">
+              <ul className="flex flex-col-reverse space-y-1 px-4 pb-2">
                 {messages?.map((message, id) => (
                   <Message
                     key={message.id}

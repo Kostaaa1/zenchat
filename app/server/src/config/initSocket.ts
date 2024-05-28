@@ -47,7 +47,6 @@ export const initSocket = (io: Server) => {
                 .from("chatroom_users")
                 .select("user_id, is_active")
                 .eq("chatroom_id", messageData.chatroom_id);
-              // .neq("user_id", messageData.sender_id);
 
               if (error || !data) {
                 supabase.channel("onMessage").unsubscribe();

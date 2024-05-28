@@ -49,3 +49,9 @@ export type UploadPostRequest = {
 export type SupabaseResponse<T> =
   | { success: true; data: T }
   | { success: false; message: string };
+
+export type S3UploadResponse = {
+  key: string;
+  type: string;
+  size: number;
+};

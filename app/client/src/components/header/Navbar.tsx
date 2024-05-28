@@ -26,11 +26,12 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
   );
 
   useEffect(() => {
+    console.log("isResponsive", isResponsive);
     setList(isResponsive ? "default" : "list");
   }, [isResponsive]);
 
   return (
-    <motion.nav>
+    <nav>
       <AnimatePresence>
         {isMobile ? (
           <BottomNavbar navListItems={navListItems} />
@@ -38,7 +39,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
           <ul
             className={cn(
               "fixed left-0 top-0 z-50 flex h-full select-none flex-col justify-between border-r border-[#262626] bg-black p-4 py-6 transition-all duration-300",
-              isResponsive ? "w-[80px]" : "w-[300px]",
+              !isResponsive ? "w-[300px]" : "w-[80px]",
             )}
           >
             <Logo />
@@ -80,7 +81,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
           </ul>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </nav>
   );
 };
 
