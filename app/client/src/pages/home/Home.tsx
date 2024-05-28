@@ -1,5 +1,5 @@
 import MainContainer from "../../components/MainContainer";
-import useGeneralStore from "../../utils/state/generalStore";
+import useGeneralStore from "../../lib/stores/generalStore";
 import { cn } from "../../utils/utils";
 
 const Home = () => {

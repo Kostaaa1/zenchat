@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useState } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
-import useModalStore from "../../utils/state/modalStore";
-import { trpc } from "../../utils/trpcClient";
+import useModalStore from "../../lib/stores/modalStore";
+import { trpc } from "../../lib/trpcClient";
 import { TUserDataState } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import { debounce } from "lodash";

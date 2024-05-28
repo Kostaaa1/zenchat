@@ -1,10 +1,10 @@
 import Navbar from "./Navbar";
 import Search from "../search/Search";
 import { AnimatePresence } from "framer-motion";
-import useGeneralStore from "../../utils/state/generalStore";
+import useGeneralStore from "../../lib/stores/generalStore";
 import Logo from "../Logo";
 import SearchInput from "../search/SearchInput";
-import useSearchStore from "../../utils/state/searchStore";
+import useSearchStore from "../../lib/stores/searchStore";
 import { useLocation } from "react-router-dom";
 import useNavbar from "../../hooks/useNavbar";
 import useOutsideClick from "../../hooks/useOutsideClick";

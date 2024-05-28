@@ -1,24 +1,22 @@
 import { useCallback, useEffect } from "react";
 import useUser from "./useUser";
-import useChatStore from "../utils/state/chatStore";
+import useChatStore from "../lib/stores/chatStore";
 import { socket } from "../lib/socket";
 import { TMessage } from "../../../server/src/types/types";
-import { useNavigate } from "react-router-dom";
-import { trpc } from "../utils/trpcClient";
-import getCurrentDate from "../utils/getCurrentDate";
+import { trpc } from "../lib/trpcClient";
+import { getCurrentDate } from "../utils/date";
 import { TRecieveNewSocketMessageType } from "../../../server/src/types/sockets";
-import { loadImage } from "../utils/utils";
+import { loadImage } from "../utils/image";
 import { toast } from "react-toastify";
 
 const useChatSocket = () => {
   const utils = trpc.useUtils();
   const activeChatroom = useChatStore((state) => state.activeChatroom);
+  const { userData } = useUser();
   const { incrementUnreadMessagesCount } = useChatStore(
     (state) => state.actions,
   );
-  const { userData } = useUser();
 
-  // const { recieveNewSocketMessage } = useChatCache();
   const addNewMessageToChatCache = useCallback(
     (messageData: TMessage) => {
       utils.chat.messages.get.setData(

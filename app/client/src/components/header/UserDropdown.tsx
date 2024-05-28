@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
-import { trpc } from "../../utils/trpcClient";
+import { trpc } from "../../lib/trpcClient";
 import { useNavigate } from "react-router-dom";
 
 type UserDropdownProps = {

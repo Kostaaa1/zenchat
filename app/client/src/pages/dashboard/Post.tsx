@@ -1,5 +1,5 @@
 import { FC } from "react";
-import useModalStore from "../../utils/state/modalStore";
+import useModalStore from "../../lib/stores/modalStore";
 import { TPost } from "../../../../server/src/types/types";
 import { Play } from "lucide-react";
 

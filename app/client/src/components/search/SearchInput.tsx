@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import Icon from "../Icon";
 import UseUser from "../../hooks/useUser";
 import { debounce } from "lodash";
-import { trpc } from "../../utils/trpcClient";
-import useSearchStore from "../../utils/state/searchStore";
+import { trpc } from "../../lib/trpcClient";
+import useSearchStore from "../../lib/stores/searchStore";
 import { cn } from "../../utils/utils";
-import useGeneralStore from "../../utils/state/generalStore";
+import useGeneralStore from "../../lib/stores/generalStore";
 
 const SearchInput = () => {
   const { userData } = UseUser();

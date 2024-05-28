@@ -1,16 +1,17 @@
 import { useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { trpc } from "../../utils/trpcClient";
+import { trpc } from "../../lib/trpcClient";
 import ErrorPage from "../ErrorPage";
 import { FC, useEffect, useState } from "react";
 import useUser from "../../hooks/useUser";
-import useModalStore from "../../utils/state/modalStore";
-import { cn, loadImage } from "../../utils/utils";
+import useModalStore from "../../lib/stores/modalStore";
 import Icon from "../../components/Icon";
 import Post from "./Post";
-import useGeneralStore from "../../utils/state/generalStore";
+import useGeneralStore from "../../lib/stores/generalStore";
 import { DashboardHeader } from "./DashboardHeader";
 import MainContainer from "../../components/MainContainer";
+import { loadImage } from "../../utils/image";
+import { cn } from "../../utils/utils";
 
 type SeparatorProps = {
   className?: string;

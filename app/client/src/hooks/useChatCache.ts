@@ -1,7 +1,7 @@
 import { TMessage } from "../../../server/src/types/types";
 import { useCallback } from "react";
-import { trpc } from "../utils/trpcClient";
-import useChatStore from "../utils/state/chatStore";
+import { trpc } from "../lib/trpcClient";
+import useChatStore from "../lib/stores/chatStore";
 import useUser from "./useUser";
 import { useNavigate } from "react-router-dom";
 

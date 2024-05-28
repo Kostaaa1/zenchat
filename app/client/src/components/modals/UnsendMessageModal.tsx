@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
-import useModalStore from "../../utils/state/modalStore";
+import useModalStore from "../../lib/stores/modalStore";
 import useChatCache from "../../hooks/useChatCache";
-import useChatStore from "../../utils/state/chatStore";
-import { trpc } from "../../utils/trpcClient";
+import useChatStore from "../../lib/stores/chatStore";
+import { trpc } from "../../lib/trpcClient";
 import { Modal } from "./Modals";
 
 const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {

@@ -18,8 +18,7 @@ export const deletePost = async (id: string, fileKeys: string[]) => {
       return { success: false, error: dbError };
     }
 
-    // Deleting upladed files
-    // await utapi.deleteFiles(fileKeys.map((x) => x.split(UPLOADTHING_URL_PREFIX)[1]));
+    // Max 2 iterations (thumbnail and video)
     for (const key of fileKeys) {
       await deleteS3Object(key);
     }

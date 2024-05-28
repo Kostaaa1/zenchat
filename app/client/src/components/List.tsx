@@ -3,7 +3,7 @@ import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
 import { motion } from "framer-motion";
-import useGeneralStore from "../utils/state/generalStore";
+import useGeneralStore from "../lib/stores/generalStore";
 import useWindowSize from "../hooks/useWindowSize";
 
 export const listVariants = cva(

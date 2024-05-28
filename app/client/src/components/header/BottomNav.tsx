@@ -4,8 +4,7 @@ import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import { NavListItems } from "../../hooks/useNavbar";
 import { FC } from "react";
-import useChatStore from "../../utils/state/chatStore";
-import useGeneralStore from "../../utils/state/generalStore";
+import useChatStore from "../../lib/stores/chatStore";
 
 type BottomNavbarProps = {
   navListItems: NavListItems[];
@@ -18,7 +17,10 @@ const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
   );
 
   return (
-    <ul className="fixed bottom-0 z-50 flex h-14 w-full select-none items-center justify-evenly border-t border-[#262626] bg-black">
+    <ul
+      id="bottomnav"
+      className="fixed bottom-0 z-50 flex h-14 w-full select-none items-center justify-evenly border-t border-[#262626] bg-black"
+    >
       {navListItems.map((li, id) => (
         <div key={id} ref={li.ref} className="relative">
           <NavList

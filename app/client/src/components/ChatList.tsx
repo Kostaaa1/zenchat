@@ -3,9 +3,9 @@ import { TChatroom } from "../../../server/src/types/types";
 import List from "./List";
 import { cn } from "../utils/utils";
 import useUser from "../hooks/useUser";
-import useChatStore from "../utils/state/chatStore";
+import useChatStore from "../lib/stores/chatStore";
 import { useNavigate, useParams } from "react-router-dom";
-import useGeneralStore from "../utils/state/generalStore";
+import useGeneralStore from "../lib/stores/generalStore";
 
 type ChatListProps = {
   chat: TChatroom;

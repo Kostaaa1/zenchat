@@ -1,15 +1,16 @@
 import Icon from "../Icon";
 import { FC, forwardRef } from "react";
-import useModalStore from "../../utils/state/modalStore";
+import useModalStore from "../../lib/stores/modalStore";
 import { Modal } from "./Modals";
-import { trpc } from "../../utils/trpcClient";
+import { trpc } from "../../lib/trpcClient";
 import { TPost, TUserData } from "../../../../server/src/types/types";
 import Avatar from "../avatar/Avatar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import Video from "../Video";
+import useGeneralStore from "../../lib/stores/generalStore";
+import { convertAndFormatDate } from "../../utils/date";
 import { cn } from "../../utils/utils";
-import useGeneralStore from "../../utils/state/generalStore";
 
 type ModalProps = {
   post: TPost;
@@ -61,7 +62,7 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
   return (
     <div
       className={
-        "relative flex items-center justify-between border-[1px] border-x-0 border-t-0 border-neutral-800 bg-black p-3"
+        "relative flex items-center justify-between rounded-t-xl border-[1px] border-x-0 border-t-0 border-neutral-800 bg-black p-3"
       }
     >
       <div className="flex w-full items-center space-x-2">
@@ -88,8 +89,8 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
   return (
     <div
       className={cn(
-        "flex flex-col bg-black",
-        isMobile ? "w-full" : "w-[400px]",
+        "flex w-full flex-col bg-black",
+        isMobile ? "w-full rounded-b-xl" : "w-[400px] rounded-r-xl",
       )}
     >
       {isMobile ? null : <PostHeader userData={userData} />}
@@ -101,16 +102,19 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
       >
         <li className="flex items-start space-x-2 py-3">
           <Avatar image_url={userData.image_url} />
-          <div className="flex space-x-2">
-            <p>
-              <span className="font-semibold text-white active:text-opacity-60">
-                {userData.username} &nbsp;
-              </span>
-              {post.caption}
-            </p>
+          <div className="flex w-full flex-col space-y-2">
+            <h3 className="font-semibold text-white active:text-opacity-60">
+              {userData.username} &nbsp;
+            </h3>
+            <div className="flex w-full flex-col space-y-1">
+              <p>{post.caption}</p>
+              <p className="text-neutral-400">
+                {convertAndFormatDate(post.created_at)}
+              </p>
+            </div>
           </div>
         </li>
-        {Array(6)
+        {/* {Array(6)
           .fill("")
           .map((_, id) => (
             <li key={id} className="flex items-start space-x-2 py-3">
@@ -126,7 +130,7 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
                 </p>
               </div>
             </li>
-          ))}
+          ))} */}
       </ul>
     </div>
   );
@@ -147,7 +151,7 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
         {inspectedUser && post && (
           <div
             className={cn(
-              "relative mx-auto flex h-full",
+              "relative mx-auto flex w-full",
               isMobile
                 ? "w-[80vw] max-w-[500px] flex-col"
                 : "max-h-[90svh] max-w-[90vw]",
@@ -161,7 +165,7 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
               posts={inspectedUser.posts}
             />
             {isMobile ? <PostHeader userData={inspectedUser} /> : null}
-            <div>
+            <div className="">
               {post.type.startsWith("image/") ? (
                 <img key={post.media_url} src={post.media_url} />
               ) : (
@@ -171,9 +175,10 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
                   autoPlay={true}
                   poster={post.thumbnail_url}
                   className={cn(
+                    "bg-black",
                     isMobile
                       ? "aspect-square object-cover"
-                      : "aspect-square h-full bg-black object-cover",
+                      : "aspect-square h-full object-cover",
                   )}
                 />
               )}

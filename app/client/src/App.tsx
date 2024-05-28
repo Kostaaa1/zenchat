@@ -7,23 +7,23 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
-import { Route, Routes, useLocation, useParams } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Header from "./components/header/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
 import { ToastContainer } from "react-toastify";
 import LoadingPage from "./pages/LoadingPage";
 import Modals from "./components/modals/Modals";
-import { trpc } from "./utils/trpcClient";
+import { trpc } from "./lib/trpcClient";
 import { useEffect, useState } from "react";
-import { isImage, loadImage } from "./utils/utils";
+import { isImage, loadImage } from "./utils/image";
 import { Tables } from "../../server/src/types/supabase";
 import useChatSocket from "./hooks/useChatSocket";
-import useGeneralStore from "./utils/state/generalStore";
+import useGeneralStore from "./lib/stores/generalStore";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/home/Home";
 import ErrorPage from "./pages/ErrorPage";
-import useChatStore from "./utils/state/chatStore";
+import useChatStore from "./lib/stores/chatStore";
 
 function App() {
   const { user } = useUser();

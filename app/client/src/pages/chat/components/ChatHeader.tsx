@@ -1,9 +1,9 @@
 import { Info } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
-import useChatStore from "../../../utils/state/chatStore";
+import useChatStore from "../../../lib/stores/chatStore";
 import useUser from "../../../hooks/useUser";
 import { useNavigate } from "react-router-dom";
-import useGeneralStore from "../../../utils/state/generalStore";
+import useGeneralStore from "../../../lib/stores/generalStore";
 import Icon from "../../../components/Icon";
 import { cn } from "../../../utils/utils";
 

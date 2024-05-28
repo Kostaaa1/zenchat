@@ -1,13 +1,13 @@
-import { FormEvent, useEffect, useState } from "react";
-import useChatStore from "../utils/state/chatStore";
+import { FormEvent, useState } from "react";
+import useChatStore from "../lib/stores/chatStore";
 import useUser from "./useUser";
 import { v4 as uuidv4 } from "uuid";
 import { S3UploadResponse, TMessage } from "../../../server/src/types/types";
-import getCurrentDate from "../utils/getCurrentDate";
+import { getCurrentDate } from "../utils/date";
 import useChatCache from "./useChatCache";
-import { trpc } from "../utils/trpcClient";
+import { trpc } from "../lib/trpcClient";
 import { Skin } from "@emoji-mart/data";
-import useChatMapStore from "../utils/state/chatMapStore";
+import useChatMapStore from "../lib/stores/chatMapStore";
 import axios from "axios";
 
 const useChat = (scrollToStart?: () => void) => {
@@ -20,6 +20,7 @@ const useChat = (scrollToStart?: () => void) => {
     clearMessageInput,
     removeChatInputImage,
     clearImagesInput,
+    addChatInputMessage,
   } = useChatMapStore((state) => state.actions);
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
@@ -33,7 +34,7 @@ const useChat = (scrollToStart?: () => void) => {
     if (activeChatroom) {
       const { chatroom_id } = activeChatroom;
       const input_message = inputMessages.get(chatroom_id);
-      inputMessages.set(chatroom_id, `${input_message}${e.native}`);
+      addChatInputMessage(chatroom_id, `${input_message}${e.native}`);
     }
   };
 
@@ -168,6 +169,7 @@ const useChat = (scrollToStart?: () => void) => {
     handleSubmitMessage,
     fileSetter,
     removeFileFromArray,
+    handleSelectEmoji,
   };
 };
 

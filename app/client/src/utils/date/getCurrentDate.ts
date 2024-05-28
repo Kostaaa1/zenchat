@@ -1,4 +1,4 @@
-function getCurrentDate() {
+export const getCurrentDate = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -13,10 +13,9 @@ function getCurrentDate() {
   const offsetMinutes = Math.abs(timezoneOffset % 60);
   const offsetSign = timezoneOffset < 0 ? "+" : "-";
 
-  const string = `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${offsetSign}${String(
+  const date = `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${offsetSign}${String(
     offsetHours,
   ).padStart(2, "0")}:${String(offsetMinutes).padStart(2, "0")}`;
 
-  return string;
-}
-export default getCurrentDate;
+  return date;
+};

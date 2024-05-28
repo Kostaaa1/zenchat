@@ -1,11 +1,11 @@
-import useModalStore from "../../utils/state/modalStore";
+import useModalStore from "../../lib/stores/modalStore";
 import EditProfileModal from "./EditProfileModal";
 import ImageModal from "./ImageModal";
 import NewMessageModal from "./NewMessageModal";
 import UnsendMessageModal from "./UnsendMessageModal";
 import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
-import React, { FC, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useOnClickOutside from "../../hooks/useOutsideClick";
 import PostModal from "./PostModal";
@@ -16,6 +16,14 @@ type ModalProps = {
 };
 
 export const Modal: FC<ModalProps> = ({ children }) => {
+  useEffect(() => {
+    if (document.body.scrollHeight > window.innerHeight) {
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("no-scroll-padding");
+      document.querySelector("#bottomnav")?.classList.add("no-scroll-padding");
+    }
+  }, []);
+
   return (
     <motion.div
       className="fixed z-[1000] flex h-[100svh] w-screen items-center justify-center bg-black bg-opacity-40"
@@ -28,7 +36,6 @@ export const Modal: FC<ModalProps> = ({ children }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
       >
-        {" "}
         {children}
       </motion.div>
     </motion.div>
@@ -48,10 +55,16 @@ const Modals = () => {
   const modalOptionRef = useRef<HTMLUListElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
+
   useOnClickOutside(
     [modalRef, modalOptionRef, leftRef, rightRef],
     "mousedown",
     () => {
+      document.body.style.overflow = "";
+      document.body.classList.remove("no-scroll-padding");
+      document
+        .querySelector("#bottomnav")
+        ?.classList.remove("no-scroll-padding");
       closeModal();
     },
   );

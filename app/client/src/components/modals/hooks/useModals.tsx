@@ -1,8 +1,7 @@
 import { useCallback, useState } from "react";
-import useModalStore from "../../../utils/state/modalStore";
-import { trpc } from "../../../utils/trpcClient";
+import useModalStore from "../../../lib/stores/modalStore";
+import { trpc } from "../../../lib/trpcClient";
 import useUser from "../../../hooks/useUser";
-import { downloadImage } from "../../../utils/downloadImage";
 
 const useModals = () => {
   const { setModalPostData, triggerModalOptions } = useModalStore(

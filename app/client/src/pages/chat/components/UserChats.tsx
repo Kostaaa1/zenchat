@@ -1,12 +1,12 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../../components/Icon";
 import List from "../../../components/List";
-import useModalStore from "../../../utils/state/modalStore";
+import useModalStore from "../../../lib/stores/modalStore";
 import useUser from "../../../hooks/useUser";
 import ChatList from "../../../components/ChatList";
 import { cn } from "../../../utils/utils";
-import useGeneralStore from "../../../utils/state/generalStore";
+import useGeneralStore from "../../../lib/stores/generalStore";
 
 type TUserChatsProps = {
   userChats: TChatroom[] | undefined;

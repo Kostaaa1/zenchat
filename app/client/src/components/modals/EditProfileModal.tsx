@@ -1,12 +1,13 @@
 import { forwardRef, useEffect, useState } from "react";
-import useModalStore from "../../utils/state/modalStore";
+import useModalStore from "../../lib/stores/modalStore";
 import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { loadImage, renameFile } from "../../utils/utils";
-import { trpc } from "../../utils/trpcClient";
+import { renameFile } from "../../utils/file";
+import { loadImage } from "../../utils/image";
+import { trpc } from "../../lib/trpcClient";
 import { Modal } from "./Modals";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
@@ -80,39 +81,32 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
     },
   });
 
-  const updateAvatarMutation = trpc.user.updateAvatar.useMutation({
-    onSuccess: async (newAvatar) => {
-      if (newAvatar) {
-        await loadImage(newAvatar);
-        await updateUserCache({ image_url: newAvatar });
-        setIsAvatarUpdating(false);
-        setFileUrl(newAvatar);
-      }
-    },
-  });
-
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!userData) return;
       const { file } = formData;
-      console.log("Frodamd data", formData);
       setIsLoading(true);
+
       if (file && file.length > 0) {
         setIsAvatarUpdating(true);
         const renamedFile = renameFile(file[0]);
+
         const form = new FormData();
+        form.append("serialized", JSON.stringify({ userId: userData.id }));
         form.append("images", renamedFile);
-
-        const { data } = await axios.post("/api/upload/avatar", form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const { data: image_url } = await axios.post(
+          "/api/upload/avatar",
+          form,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
-
-        await updateAvatarMutation.mutateAsync({
-          userId: userData.id,
-          image_url: data.key,
-        });
+        );
+        await loadImage(image_url);
+        await updateUserCache({ image_url });
+        setIsAvatarUpdating(false);
+        setFileUrl(image_url);
       }
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
@@ -129,6 +123,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       // @ts-expect-error dsako
       delete formData.file;
       delete formData.image_url;
+
       updateUserDataMutation.mutate({
         userId: userData.id,
         userData: formData,

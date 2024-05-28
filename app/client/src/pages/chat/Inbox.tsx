@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import useChatStore from "../../utils/state/chatStore";
+import useChatStore from "../../lib/stores/chatStore";
 import UserChats from "./components/UserChats";
-import { trpc } from "../../utils/trpcClient";
+import { trpc } from "../../lib/trpcClient";
 import useUser from "../../hooks/useUser";
 import Chat from "./components/Chat";
 import ChatDetails from "./components/ChatDetails";
-import { cn, loadImage } from "../../utils/utils";
-import useGeneralStore from "../../utils/state/generalStore";
+import { cn } from "../../utils/utils";
+import { loadImage } from "../../utils/image";
+import useGeneralStore from "../../lib/stores/generalStore";
 import MainContainer from "../../components/MainContainer";
-import useChatMapStore from "../../utils/state/chatMapStore";
+import useChatMapStore from "../../lib/stores/chatMapStore";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
-import useModalStore from "../../utils/state/modalStore";
+import useModalStore from "../../lib/stores/modalStore";
 
 const Inbox = () => {
   const location = useLocation();

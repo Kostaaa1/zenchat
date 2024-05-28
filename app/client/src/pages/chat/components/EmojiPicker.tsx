@@ -13,7 +13,7 @@ export const EmojiPickerContainer: FC<EmojiPickerProps> = ({
   showEmojiPicker,
   emojiRef,
 }) => {
-  // const { handleSelectEmoji } = useChat();
+  const { handleSelectEmoji } = useChat();
   return (
     <AnimatePresence>
       {showEmojiPicker ? (
@@ -26,7 +26,7 @@ export const EmojiPickerContainer: FC<EmojiPickerProps> = ({
           className="absolute bottom-20 left-4 z-50"
         >
           <Picker theme="dark" data={data} />
-          {/* <Picker theme="dark" data={data} onEmojiSelect={handleSelectEmoji} /> */}
+          <Picker theme="dark" data={data} onEmojiSelect={handleSelectEmoji} />
         </motion.div>
       ) : null}
     </AnimatePresence>

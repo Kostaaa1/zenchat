@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 import useUser from "../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
 import { cn } from "../../utils/utils";
-import useGeneralStore from "../../utils/state/generalStore";
-import { trpc } from "../../utils/trpcClient";
-import useSearchStore from "../../utils/state/searchStore";
+import useGeneralStore from "../../lib/stores/generalStore";
+import { trpc } from "../../lib/trpcClient";
+import useSearchStore from "../../lib/stores/searchStore";
 
 const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
   const isMobile = useGeneralStore((state) => state.isMobile);

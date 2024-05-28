@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
-import { trpc } from "../../utils/trpcClient";
+import { trpc } from "../../lib/trpcClient";
 import { useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
-import useModalStore from "../../utils/state/modalStore";
-import useGeneralStore from "../../utils/state/generalStore";
+import useModalStore from "../../lib/stores/modalStore";
+import useGeneralStore from "../../lib/stores/generalStore";
 
 export const DashboardHeader = ({
   userData,
@@ -35,7 +35,7 @@ export const DashboardHeader = ({
 
     await utils.chat.get.chatroom_id.invalidate(chatroomIdQuery);
     const path = await utils.chat.get.chatroom_id.fetch(chatroomIdQuery);
-    console.log(path)
+    console.log(path);
     if (path) {
       setIsLoading(false);
       navigate(`/inbox/${path}`);

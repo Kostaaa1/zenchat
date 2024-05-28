@@ -1,8 +1,8 @@
-import { trpc } from "../utils/trpcClient";
+import { trpc } from "../lib/trpcClient";
 import { CommonInput } from "../components/modals/EditProfileModal";
-import { loadImage } from "../utils/utils";
+import { loadImage } from "../utils/image";
 import { TUserData } from "../../../server/src/types/types";
-import useGeneralStore from "../utils/state/generalStore";
+import useGeneralStore from "../lib/stores/generalStore";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 

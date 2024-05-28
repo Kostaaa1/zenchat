@@ -1,10 +1,11 @@
 import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import Icon from "../../../components/Icon";
-import useChatStore from "../../../utils/state/chatStore";
-import { cn, renameFile } from "../../../utils/utils";
+import useChatStore from "../../../lib/stores/chatStore";
+import { cn } from "../../../utils/utils";
+import { renameFile } from "../../../utils/file";
 import { EmojiPickerContainer } from "./EmojiPicker";
 import { TChatroom } from "../../../../../server/src/types/types";
-import useChatMapStore from "../../../utils/state/chatMapStore";
+import useChatMapStore from "../../../lib/stores/chatMapStore";
 import useChat from "../../../hooks/useChat";
 
 interface MessageInputProps {

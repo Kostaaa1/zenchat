@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "./utils/trpcClient";
+import { trpc } from "./lib/trpcClient";
 import { httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";

@@ -1,6 +1,6 @@
 import supabase from "../../config/supabase";
 import { Tables } from "../../types/supabase";
-import { deleteS3Object, s3KeyConstructor } from "../s3";
+import { deleteS3Object } from "../s3";
 import {
   SupabaseResponse,
   TCreateUserInput,
@@ -45,15 +45,12 @@ export const updateUserAvatar = async ({
 }) => {
   const { data: imageUrl } = await supabase.from("users").select("image_url").eq("id", userId);
   if (imageUrl && imageUrl[0].image_url) {
-    const oldImageName = imageUrl[0].image_url
-      .split(AWS_BUCKET_URL)[1]
-      .split(s3Buckets.AVATARS)[1];
-    await deleteS3Object(oldImageName);
+    await deleteS3Object(imageUrl[0].image_url);
   }
 
   const { data, error } = await supabase
     .from("users")
-    .update({ image_url: s3KeyConstructor({ folder: "avatars", name: image_url }) })
+    .update({ image_url })
     .eq("id", userId)
     .select("image_url");
 
