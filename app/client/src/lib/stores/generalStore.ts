@@ -23,7 +23,8 @@ const useGeneralStore = create<Store>(
   (set): Store => ({
     activeNavList: "",
     showDropdown: false,
-    isResponsive: window.innerWidth <= 1024,
+    isResponsive:
+      location.pathname.includes("inbox") || window.innerWidth <= 1024,
     isMobile: window.innerWidth <= 768,
     username: null,
     volume: 0.06,

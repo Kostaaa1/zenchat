@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import useGeneralStore from "../lib/stores/generalStore";
 import useSearchStore from "../lib/stores/searchStore";
+import useGeneralStore from "../lib/stores/generalStore";
 
 type TWindowSize = {
   width: number;
@@ -22,9 +22,6 @@ const useWindowSize = () => {
     const { innerWidth } = window;
     setIsMobile(innerWidth <= 768);
     setWindowSize({ width: innerWidth, height: window.innerHeight });
-    setIsResponsive(
-      pathname.includes("/inbox") || innerWidth <= 1024 || isSearchActive,
-    );
   };
 
   useEffect(() => {
@@ -38,7 +35,7 @@ const useWindowSize = () => {
       window.removeEventListener("resize", handleWindowSize);
       window.removeEventListener("load", handleWindowSize);
     };
-  }, [isSearchActive, pathname]);
+  }, []);
 
   return windowSize;
 };

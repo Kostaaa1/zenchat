@@ -1,7 +1,7 @@
 import useSearchStore from "../lib/stores/searchStore";
 import useUser from "./useUser";
 import useGeneralStore, { ActiveList } from "../lib/stores/generalStore";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useModalStore from "../lib/stores/modalStore";
 import { RefObject, useCallback, useEffect } from "react";
 import useWindowSize from "./useWindowSize";
@@ -23,6 +23,7 @@ const useNavbar = () => {
   const isResponsive = useGeneralStore((state) => state.isResponsive);
   const { openModal } = useModalStore((state) => state.actions);
   const { width } = useWindowSize();
+  const location = useLocation();
   const activeNavList = useGeneralStore((state) => state.activeNavList);
   const { setIsSearchActive } = useSearchStore((state) => state.actions);
   const isMobile = useGeneralStore((state) => state.isMobile);
@@ -31,25 +32,40 @@ const useNavbar = () => {
     (state) => state.actions,
   );
 
-  const handleActivateSearch = useCallback(() => {
-    if (isMobile && location.pathname !== "/") {
-      navigate(`/${userData!.username}`);
-    }
-    setIsSearchActive(!isSearchActive);
-  }, [setIsSearchActive, isSearchActive]);
+  useEffect(() => {
+    setIsResponsive(location.pathname.includes("inbox") || width <= 1024);
+  }, [width]);
 
-  const handleActiveElement = useCallback((list: ActiveList) => {
-    if (width > 1024) {
-      setIsResponsive(list !== "user");
-    }
-    setActiveNavList(list);
-    setIsSearchActive(false);
-    if (list === "user") {
-      navigate(`/${userData?.username}`);
-    } else if (list === "inbox") {
-      navigate(`/inbox`);
-    }
-  }, []);
+  const handleActiveElement = useCallback(
+    (list: ActiveList | null) => {
+      if (list) {
+        setIsResponsive(list === "inbox");
+        setActiveNavList(list);
+        setIsSearchActive(false);
+
+        if (list === "user") {
+          navigate(`/${userData?.username}`);
+        } else if (list === "inbox") {
+          navigate(`/inbox`);
+        }
+      } else {
+        console.log("Ran else");
+        setIsSearchActive(!isSearchActive);
+        // setIsResponsive(
+        //   !location.pathname.includes("inbox") || !isSearchActive,
+        // );
+        setIsResponsive(
+          location.pathname.includes("inbox") ||
+            (!location.pathname.includes("inbox") && !isSearchActive),
+        );
+
+        if (isMobile && location.pathname !== "/") {
+          navigate(`/${userData!.username}`);
+        }
+      }
+    },
+    [isSearchActive, location.pathname, isMobile],
+  );
 
   // const activeListClass = "bg-neutral-900 ring ring-[1.4px] ring-neutral-700";
   const activeListClass = "bg-neutral-900";
@@ -72,7 +88,7 @@ const useNavbar = () => {
       iconStrokeWidth: isSearchActive ? "2" : "",
       title: isResponsive ? "" : "Search",
       className: `${isSearchActive ? activeListClass : null} `,
-      onClick: handleActivateSearch,
+      onClick: () => handleActiveElement(null),
       ref: searchInputRef,
     },
     {
@@ -94,7 +110,6 @@ const useNavbar = () => {
   return {
     navListItems,
     handleActiveElement,
-    handleActivateSearch,
     // handleClick,
   };
 };

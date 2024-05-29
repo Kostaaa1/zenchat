@@ -26,7 +26,6 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
   );
 
   useEffect(() => {
-    console.log("isResponsive", isResponsive);
     setList(isResponsive ? "default" : "list");
   }, [isResponsive]);
 
