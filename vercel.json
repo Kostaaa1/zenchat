@@ -14,9 +14,5 @@
   "routes": [
     { "src": "/trpc", "dest": "/api" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "scripts": {
-    "start": "concurrently \"npm run start:client\" \"npm run start:server\"",
-    "start:client": "cd packages/client && npm start"
-  }
+  ]
 }
