@@ -328,7 +328,6 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
         console.error("Unexpected error when deleting last field", error);
       }
     } else {
-      // soft delete:
       await supabase.from("chatroom_users").update({ is_active: false }).eq("user_id", user_id);
     }
   } catch (error) {
@@ -338,7 +337,7 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
 
 export const triggerReadMessages = async (id: string) => {
   // console.log("trigger called for this chatrooms", id);
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("chatroom_users")
     .update({ is_message_seen: true })
     .eq("id", id);

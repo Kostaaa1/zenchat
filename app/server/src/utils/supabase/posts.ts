@@ -1,7 +1,6 @@
 import supabase from "../../config/supabase";
 import { InputPostSchema } from "../../types/zodSchemas";
 import { z } from "zod";
-import { env } from "../../config/config";
 import { deleteS3Object } from "../s3";
 
 export const uploadPost = async (uploadData: z.infer<typeof InputPostSchema>) => {
@@ -17,12 +16,10 @@ export const deletePost = async (id: string, fileKeys: string[]) => {
       console.error("Error deleting post from database:", dbError);
       return { success: false, error: dbError };
     }
-
     // Max 2 iterations (thumbnail and video)
     for (const key of fileKeys) {
       await deleteS3Object(key);
     }
-
     return { success: true };
   } catch (err) {
     console.error("Unexpected error:", err);

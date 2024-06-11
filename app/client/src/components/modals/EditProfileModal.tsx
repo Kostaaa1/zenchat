@@ -29,7 +29,7 @@ export type Inputs = CommonInput & {
 const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { user } = useClerkUser();
   const [fileUrl, setFileUrl] = useState<string>("");
-  const { userData, token, updateUserCache } = useUser();
+  const { userData, token } = useUser();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -104,7 +104,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
           },
         );
         await loadImage(image_url);
-        await updateUserCache({ image_url });
+        // await updateUserCache({ image_url });
         setIsAvatarUpdating(false);
         setFileUrl(image_url);
       }

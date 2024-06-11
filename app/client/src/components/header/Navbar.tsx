@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import Icon from "../Icon";
 import NavList from "../NavList";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import Logo from "../Logo";
 import { cn } from "../../utils/utils";
 import Avatar from "../avatar/Avatar";

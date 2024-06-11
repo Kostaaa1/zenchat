@@ -7,7 +7,7 @@ import {
   triggerReadMessages,
   unsendMessage,
 } from "../../utils/supabase/chatroom";
-import { MessageSchema, UserSchema } from "../../types/zodSchemas";
+import { MessageSchema } from "../../types/zodSchemas";
 
 export const messageRouter = t.router({
   get: protectedProcedure

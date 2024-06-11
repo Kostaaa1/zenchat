@@ -10,12 +10,10 @@ export const InputPostSchema = z.object({
   media_url: z.string(),
   thumbnail_url: z.string().nullish(),
 });
-
 export const OutputPostSchema = z.object({
   id: z.string(),
   created_at: z.string(),
 });
-
 export const PostSchema = InputPostSchema.merge(OutputPostSchema);
 
 export const UserSchema: ZodSchema<{

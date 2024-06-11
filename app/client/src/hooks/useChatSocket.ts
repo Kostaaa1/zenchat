@@ -13,9 +13,6 @@ const useChatSocket = () => {
   const utils = trpc.useUtils();
   const activeChatroom = useChatStore((state) => state.activeChatroom);
   const { userData } = useUser();
-  const { incrementUnreadMessagesCount } = useChatStore(
-    (state) => state.actions,
-  );
 
   const addNewMessageToChatCache = useCallback(
     (messageData: TMessage) => {

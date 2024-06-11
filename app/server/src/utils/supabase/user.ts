@@ -1,15 +1,7 @@
 import supabase from "../../config/supabase";
 import { Tables } from "../../types/supabase";
 import { deleteS3Object } from "../s3";
-import {
-  SupabaseResponse,
-  TCreateUserInput,
-  TUserData,
-  TUserQueryParam,
-} from "../../types/types";
-import { s3Buckets } from "../../config/config";
-
-const { AWS_BUCKET_URL = "" } = process.env;
+import { SupabaseResponse, TCreateUserInput, TUserQueryParam } from "../../types/types";
 
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
@@ -32,10 +24,10 @@ export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (countError) {
     throw new Error(`Error occurred when getting the count of unread messages ${countError}`);
   }
-
-  const returnData = { ...userData[0], unread_messages_count: count ?? 0 };
+  const returnData = { ...userData[0], unread_messages_count: count || 0 };
   return returnData;
 };
+
 export const updateUserAvatar = async ({
   userId,
   image_url,
@@ -88,12 +80,7 @@ export const getSeachedUsers = async (username: string, searchValue: string) => 
   return users;
 };
 
-export const createUser = async ({
-  username,
-  email,
-  firstName,
-  lastName,
-}: TCreateUserInput): Promise<TUserData> => {
+export const createUser = async ({ username, email, firstName, lastName }: TCreateUserInput) => {
   const { data, error } = await supabase
     .from("users")
     .insert({
@@ -109,7 +96,6 @@ export const createUser = async ({
   if (!data || data.length === 0) {
     throw new Error("User creation failed");
   }
-
   console.log("Created new user: ", data);
-  return data[0];
+  return { ...data[0], unread_messages_count: 0 };
 };

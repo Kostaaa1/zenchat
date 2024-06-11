@@ -12,7 +12,6 @@ import axios from "axios";
 
 const useChat = (scrollToStart?: () => void) => {
   const { userData, token } = useUser();
-  const { chat } = trpc.useUtils();
   const inputImages = useChatMapStore((state) => state.inputImages);
   const inputMessages = useChatMapStore((state) => state.inputMessages);
   const {
@@ -53,7 +52,7 @@ const useChat = (scrollToStart?: () => void) => {
   const removeFileFromArray = (id: number) => {
     if (activeChatroom) {
       const chatroomID = activeChatroom.chatroom_id;
-      const imageUrls = inputImages.get(chatroomID);
+      // const imageUrls = inputImages.get(chatroomID);
       // if (!imageUrls) return;
       // const updatedImageUrls = imageUrls?.filter((url, index) => {
       //   if (index === id) {

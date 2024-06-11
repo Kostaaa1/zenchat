@@ -4,7 +4,6 @@ import List from "../List";
 import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../lib/trpcClient";
-import { cn } from "../../utils/utils";
 import useGeneralStore from "../../lib/stores/generalStore";
 
 interface RecentSearchedUsersProps {

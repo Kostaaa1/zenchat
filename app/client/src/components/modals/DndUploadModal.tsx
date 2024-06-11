@@ -23,7 +23,7 @@ import useGeneralStore from "../../lib/stores/generalStore";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
 import { nanoid } from "nanoid";
-import { TPost, TUserData } from "../../../../server/src/types/types";
+import { TPost } from "../../../../server/src/types/types";
 import axios from "axios";
 import Video from "../Video";
 
@@ -36,7 +36,7 @@ const Dropzone: FC<Props> = ({ onDrop }) => {
     accept: [NativeTypes.FILE],
     drop: (_, monitor) => {
       if (monitor) {
-        // @ts-expect-error skkd
+        // @ts-expect-error ofc
         const files = monitor.getItem().files;
         const droppedFile = files[0];
         if (onDrop) {
@@ -192,7 +192,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
       await loadImage(data.thumbnail_url ?? data.media_url);
       utils.user.get.setData(
         { data: userData.username, type: "username" },
-        (state: TUserData) => {
+        (state) => {
           if (state) {
             return { ...state, posts: [data, ...state.posts] };
           }

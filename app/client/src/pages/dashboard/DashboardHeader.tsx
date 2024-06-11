@@ -35,7 +35,6 @@ export const DashboardHeader = ({
 
     await utils.chat.get.chatroom_id.invalidate(chatroomIdQuery);
     const path = await utils.chat.get.chatroom_id.fetch(chatroomIdQuery);
-    console.log(path);
     if (path) {
       setIsLoading(false);
       navigate(`/inbox/${path}`);
@@ -43,9 +42,10 @@ export const DashboardHeader = ({
   };
 
   const handleClick = () => {
-    if (isAvatarUpdating) return;
-    setImageSource(userData.image_url);
-    openModal("image");
+    if (!isAvatarUpdating && userData && userData.image_url) {
+      setImageSource(userData.image_url);
+      openModal("image");
+    }
   };
 
   return (

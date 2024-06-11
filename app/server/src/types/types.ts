@@ -2,7 +2,6 @@ import { z } from "zod";
 import { CreateUserSchema, MessageSchema } from "./zodSchemas";
 import supabase from "../config/supabase";
 import { Tables } from "./supabase";
-// @ts-expect-error kdosoa
 import { QueryData } from "@supabase/supabase-js";
 
 export type TMessage = z.infer<typeof MessageSchema>;
@@ -15,13 +14,16 @@ export type TChatHistory = QueryData<typeof chatHistory>[0];
 const userWithPosts = supabase.from("users").select("*, posts(*)");
 export type TUserData = QueryData<typeof userWithPosts>[0];
 export type TUserDataState = Omit<TUserData, "posts">;
+
 export type TUserQueryParam = {
   data: string;
   type: "userId" | "email" | "username";
 };
+
 const populatedChat = supabase
   .from("chatroom_users")
   .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)");
+
 export type TPopulatedChat = QueryData<typeof populatedChat>[0];
 export type TChatroom = {
   chatroom_id: string;

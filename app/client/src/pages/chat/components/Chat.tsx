@@ -14,8 +14,6 @@ import useOutsideClick from "../../../hooks/useOutsideClick";
 import useChatCache from "../../../hooks/useChatCache";
 import MessageInput from "./MessageInput";
 import ChatHeader from "./ChatHeader";
-import useGeneralStore from "../../../lib/stores/generalStore";
-import { cn } from "../../../utils/utils";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -45,7 +43,6 @@ const Chat: FC<ChatProps> = ({
     setShouldFetchMoreMessages,
     setShowDetails,
   } = useChatStore((state) => state.actions);
-  const isMobile = useGeneralStore((state) => state.isMobile);
 
   useOutsideClick([dropdownRef], "mousedown", () => {
     setUnsendMsgData(null);

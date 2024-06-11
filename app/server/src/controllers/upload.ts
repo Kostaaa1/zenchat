@@ -56,7 +56,7 @@ export default {
         key: file.originalname,
         data: file.buffer,
       });
-      const { originalname, size, mimetype } = file;
+      const { originalname } = file;
       const { userId } = JSON.parse(req.body.serialized);
 
       const s3Url = await trpcCaller({ req, res, session: null }).user.updateAvatar({
