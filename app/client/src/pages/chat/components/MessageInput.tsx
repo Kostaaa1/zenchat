@@ -7,6 +7,7 @@ import { EmojiPickerContainer } from "./EmojiPicker";
 import { TChatroom } from "../../../../../server/src/types/types";
 import useChatMapStore from "../../../lib/stores/chatMapStore";
 import useChat from "../../../hooks/useChat";
+import useGeneralStore from "../../../lib/stores/generalStore";
 
 interface MessageInputProps {
   iconRef: React.RefObject<HTMLDivElement>;
@@ -20,6 +21,7 @@ const MessageInput: FC<MessageInputProps> = ({
   scrollToStart,
 }) => {
   const { setShowEmojiPicker } = useChatStore((state) => state.actions);
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const { showEmojiPicker } = useChatStore((state) => ({
     showEmojiPicker: state.showEmojiPicker,
   }));
@@ -69,8 +71,9 @@ const MessageInput: FC<MessageInputProps> = ({
         <form
           onSubmit={handleSubmitMessage}
           className={cn(
-            imageInputs.length === 0 ? "h-14" : "h-40",
-            "relative flex w-full px-4",
+            imageInputs.length === 0 ? "h-16" : "h-44",
+            "relative flex",
+            isMobile ? "px-2" : "px-4",
           )}
         >
           {imageInputs.length > 0 && (

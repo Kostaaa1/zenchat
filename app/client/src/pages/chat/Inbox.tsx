@@ -70,7 +70,6 @@ const Inbox = () => {
         inputImages.set(chat.chatroom_id, []);
       });
     }
-    setIsLoading(false);
     return filteredChats;
   }, [data]);
 
@@ -80,6 +79,7 @@ const Inbox = () => {
       (chat) => chat.chatroom_id === chatRoomId,
     );
     if (activeChat) prepareChat(activeChat, userData);
+    setIsLoading(false);
   }, [userChats, chatRoomId, userData]);
 
   const prepareChat = async (activeChat: TChatroom, userData: TUserData) => {
@@ -110,7 +110,7 @@ const Inbox = () => {
       <div
         ref={scrollRef}
         className={cn(
-          "flex h-[100svh] w-full md:h-screen",
+          "flex w-full items-center md:h-[100svh]",
           isMobile ? "pb-16" : "pl-20",
         )}
       >

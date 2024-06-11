@@ -49,8 +49,8 @@ const ChatHeader = () => {
   return (
     <div
       className={cn(
-        "z-10 flex h-full max-h-[90px] cursor-pointer items-center justify-between border-b border-[#262626] bg-black",
-        isMobile ? "h-[70px] px-4" : "h-full p-6",
+        "z-10 flex h-full cursor-pointer items-center justify-between border-b border-[#262626] bg-black",
+        isMobile ? "h-[70px] pl-2 pr-4" : "h-[90px] p-4 py-6",
       )}
     >
       {isMobile && <Icon name="ArrowLeft" onClick={navigateToPrevious} />}

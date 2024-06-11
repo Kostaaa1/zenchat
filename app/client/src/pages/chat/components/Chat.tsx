@@ -14,6 +14,8 @@ import useOutsideClick from "../../../hooks/useOutsideClick";
 import useChatCache from "../../../hooks/useChatCache";
 import MessageInput from "./MessageInput";
 import ChatHeader from "./ChatHeader";
+import useGeneralStore from "../../../lib/stores/generalStore";
+import { cn } from "../../../utils/utils";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -37,6 +39,7 @@ const Chat: FC<ChatProps> = ({
   const { userData } = useUser();
   const utils = trpc.useUtils();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const { updateUserReadMessage } = useChatCache();
   const {
     decrementUnreadMessagesCount,
@@ -152,7 +155,12 @@ const Chat: FC<ChatProps> = ({
   }, [messages]);
 
   return (
-    <div className="relative flex w-full flex-col justify-between">
+    <div
+      className={cn(
+        "relative flex w-full flex-col justify-between",
+        isMobile ? "h-[93vh]" : "h-[100vh]",
+      )}
+    >
       <>
         <ChatHeader />
         {isLoading ? (
@@ -160,86 +168,90 @@ const Chat: FC<ChatProps> = ({
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
           </div>
         ) : (
-          <div className={"flex h-full flex-col overflow-hidden px-2"}>
-            <div
-              className="flex h-full flex-col-reverse justify-between overflow-y-auto overflow-x-hidden"
-              ref={scrollRef}
+          <div
+            className="flex h-full flex-col-reverse justify-between overflow-x-hidden overflow-y-scroll"
+            ref={scrollRef}
+          >
+            <ul
+              className={cn(
+                "flex flex-col-reverse space-y-1 pb-2",
+                isMobile ? "px-2" : "px-4",
+              )}
             >
-              <ul className="flex flex-col-reverse space-y-1 px-4 pb-2">
-                {messages?.map((message, id) => (
-                  <Message
-                    key={message.id}
-                    ref={dropdownRef}
-                    message={message}
-                    onClick={() => handlePressMore(message)}
-                    rounded1={
-                      id + 1 < messages.length
-                        ? messages[id + 1].sender_id !== message.sender_id
-                        : id === messages.length - 1
-                    }
-                    rounded2={
-                      (id - 1 >= 0 &&
-                        messages[id - 1].sender_id !== message.sender_id) ||
-                      id === 0
-                    }
-                  />
-                ))}
-              </ul>
-              {shouldFetchMoreMessages && (
-                <div className="flex w-full items-center justify-center py-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-                </div>
-              )}
-              {!shouldFetchMoreMessages && activeChatroom && (
-                <div className="flex flex-col items-center pb-8 pt-4">
-                  <RenderAvatar
-                    avatarSize="xl"
-                    image_urls={
-                      activeChatroom.is_group
-                        ? {
-                            image_url_1: activeChatroom.users[0]?.image_url,
-                            image_url_2: activeChatroom.users[1]?.image_url,
-                          }
-                        : {
-                            image_url_1: activeChatroom.users.find(
-                              (x) => x.user_id !== userData?.id,
-                            )?.image_url,
-                          }
-                    }
-                  />
-                  <div className="flex flex-col items-center pt-4">
-                    <h3 className="text-md py-1 font-semibold">
-                      {activeChatroom && activeChatroom?.users.length > 1
-                        ? activeChatroomTitle
-                        : activeChatroom?.users[0].username}
-                    </h3>
-                    {!activeChatroom?.is_group ? (
-                      <Button
-                        size="sm"
-                        className="text-sm font-semibold"
-                        onClick={() =>
-                          navigate(`/${activeChatroom?.users[0].username}`)
-                        }
-                      >
-                        View profile
-                      </Button>
-                    ) : (
-                      <p className="text-sm font-bold text-neutral-400">
-                        You created this group
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-            {activeChatroom && (
-              <MessageInput
-                activeChatroom={activeChatroom}
-                scrollToStart={scrollToStart}
-                iconRef={iconRef}
-              />
+              {messages?.map((message, id) => (
+                <Message
+                  key={message.id}
+                  ref={dropdownRef}
+                  message={message}
+                  onClick={() => handlePressMore(message)}
+                  rounded1={
+                    id + 1 < messages.length
+                      ? messages[id + 1].sender_id !== message.sender_id
+                      : id === messages.length - 1
+                  }
+                  rounded2={
+                    (id - 1 >= 0 &&
+                      messages[id - 1].sender_id !== message.sender_id) ||
+                    id === 0
+                  }
+                />
+              ))}
+            </ul>
+            {shouldFetchMoreMessages && (
+              <div className="flex w-full items-center justify-center py-4">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              </div>
             )}
+            {!shouldFetchMoreMessages && activeChatroom && (
+              <div className="flex flex-col items-center pb-8 pt-4">
+                <RenderAvatar
+                  avatarSize="xl"
+                  image_urls={
+                    activeChatroom.is_group
+                      ? {
+                          image_url_1: activeChatroom.users[0]?.image_url,
+                          image_url_2: activeChatroom.users[1]?.image_url,
+                        }
+                      : {
+                          image_url_1: activeChatroom.users.find(
+                            (x) => x.user_id !== userData?.id,
+                          )?.image_url,
+                        }
+                  }
+                />
+                <div className="flex flex-col items-center pt-4">
+                  <h3 className="text-md py-1 font-semibold">
+                    {activeChatroom && activeChatroom?.users.length > 1
+                      ? activeChatroomTitle
+                      : activeChatroom?.users[0].username}
+                  </h3>
+                  {!activeChatroom?.is_group ? (
+                    <Button
+                      size="sm"
+                      className="text-sm font-semibold"
+                      onClick={() =>
+                        navigate(`/${activeChatroom?.users[0].username}`)
+                      }
+                    >
+                      View profile
+                    </Button>
+                  ) : (
+                    <p className="text-sm font-bold text-neutral-400">
+                      You created this group
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* </div> */}
           </div>
+        )}
+        {activeChatroom && (
+          <MessageInput
+            activeChatroom={activeChatroom}
+            scrollToStart={scrollToStart}
+            iconRef={iconRef}
+          />
         )}
       </>
     </div>
