@@ -1,3 +1,5 @@
 .env
 ./dist
 .turbo
+*.pem
+clerk_public_key.pem
