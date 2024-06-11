@@ -4,7 +4,8 @@
   "main": "index.js",
   "private": "true",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:client": "cd packages/client && npm run dev",
+    "start": "concurrently \"npm run start:client\""
   },
   "workspaces": [
     "app/*"
@@ -12,5 +13,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }
