@@ -34,7 +34,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.47.0",
+    "react-hook-form": "^7.51.5",
     "react-icons": "^4.10.1",
     "react-router-dom": "^6.15.0",
     "react-toastify": "^10.0.5",

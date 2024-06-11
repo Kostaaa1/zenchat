@@ -297,7 +297,6 @@ const deleteConversation = async (chatroom_id, user_id) => {
             }
         }
         else {
-            // soft delete:
             await supabase_1.default.from("chatroom_users").update({ is_active: false }).eq("user_id", user_id);
         }
     }
@@ -308,7 +307,7 @@ const deleteConversation = async (chatroom_id, user_id) => {
 exports.deleteConversation = deleteConversation;
 const triggerReadMessages = async (id) => {
     // console.log("trigger called for this chatrooms", id);
-    const { data, error } = await supabase_1.default
+    const { error } = await supabase_1.default
         .from("chatroom_users")
         .update({ is_message_seen: true })
         .eq("id", id);

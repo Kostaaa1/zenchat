@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
-    "dev-build": "node dist/index.js",
+    "watch": "tsc --watch",
+    "dev": "tsnd --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "watch": "tsc --watch"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",

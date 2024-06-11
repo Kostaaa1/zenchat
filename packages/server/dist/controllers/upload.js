@@ -51,7 +51,7 @@ exports.default = {
                 key: file.originalname,
                 data: file.buffer,
             });
-            const { originalname, size, mimetype } = file;
+            const { originalname } = file;
             const { userId } = JSON.parse(req.body.serialized);
             const s3Url = await (0, routers_1.trpcCaller)({ req, res, session: null }).user.updateAvatar({
                 image_url: (0, s3_1.s3KeyConstructor)({ folder: "avatars", name: originalname }),

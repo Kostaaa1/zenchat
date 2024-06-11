@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUser = exports.getSeachedUsers = exports.updateUserData = exports.updateUserAvatar = exports.getUser = void 0;
 const supabase_1 = __importDefault(require("../../config/supabase"));
 const s3_1 = require("../s3");
-const { AWS_BUCKET_URL = "" } = process.env;
 const getUser = async ({ data, type }) => {
     if (!data)
         return null;
@@ -27,7 +26,7 @@ const getUser = async ({ data, type }) => {
     if (countError) {
         throw new Error(`Error occurred when getting the count of unread messages ${countError}`);
     }
-    const returnData = { ...userData[0], unread_messages_count: count ?? 0 };
+    const returnData = { ...userData[0], unread_messages_count: count || 0 };
     return returnData;
 };
 exports.getUser = getUser;
@@ -68,7 +67,7 @@ const getSeachedUsers = async (username, searchValue) => {
     return users;
 };
 exports.getSeachedUsers = getSeachedUsers;
-const createUser = async ({ username, email, firstName, lastName, }) => {
+const createUser = async ({ username, email, firstName, lastName }) => {
     const { data, error } = await supabase_1.default
         .from("users")
         .insert({
@@ -85,7 +84,7 @@ const createUser = async ({ username, email, firstName, lastName, }) => {
         throw new Error("User creation failed");
     }
     console.log("Created new user: ", data);
-    return data[0];
+    return { ...data[0], unread_messages_count: 0 };
 };
 exports.createUser = createUser;
 //# sourceMappingURL=user.js.map

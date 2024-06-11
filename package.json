@@ -2,26 +2,17 @@
   "name": "zenchat",
   "version": "1.0.0",
   "main": "index.js",
-  "private": "true",
-  "scripts": {
-    "start:client": "cd packages/client && npm run dev",
-    "start:server": "cd packages/server && npm run dev",
-    "install:client": "cd packages/client && npm install",
-    "install:server": "cd packages/server && npm install",
-    "build:client": "cd packages/client && npm run build",
-    "build:server": "cd packages/server && npm run build",
-    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
-    "install": "concurrently \"npm run install:server\" \"npm run install:client\"",
-    "build": "concurrently \"npm run build:server\" \"npm run build:client\""
-  },
+  "license": "MIT",
+  "private": true,
+  "packageManager": "npm@10.7.0",
   "workspaces": [
-    "app/*"
+    "packages/*"
   ],
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  },
+  "dependencies": {
+    "turbo": "^2.0.3"
   }
 }
