@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TChatroom } from "../../../../server/src/types/types";
+import { TChatroom, TMessage } from "../../../../server/src/types/types";
 
 type ChatStore = {
   showEmojiPicker: boolean;
@@ -8,10 +8,14 @@ type ChatStore = {
   activeChatroom: TChatroom | null;
   activeChatroomTitle: string | null;
   unreadMessagesCount: number;
+  messages: TMessage[];
+  isChatLoading: boolean;
   actions: {
+    setIsChatLoading: (v: boolean) => void;
     decrementUnreadMessagesCount: () => void;
     incrementUnreadMessagesCount: () => void;
     setUnreadMessagesCount: (v: number) => void;
+    setMessages: (messages: TMessage[]) => void;
     setShowEmojiPicker: (bool: boolean) => void;
     setShouldFetchMoreMessages: (val: boolean) => void;
     setShowDetails: (isOpen: boolean) => void;
@@ -28,7 +32,11 @@ const useChatStore = create<ChatStore>(
     activeChatroom: null,
     activeChatroomTitle: null,
     unreadMessagesCount: 0,
+    messages: [],
+    isChatLoading: true,
     actions: {
+      setMessages: (messages: TMessage[]) => set({ messages }),
+      setIsChatLoading: (l: boolean) => set({ isChatLoading: l }),
       decrementUnreadMessagesCount: () =>
         set((state) => {
           const count = state.unreadMessagesCount;

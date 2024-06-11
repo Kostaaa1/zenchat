@@ -4,7 +4,6 @@ dotenv.config();
 export type BucketFolders = "posts" | "messages" | "avatars" | "thumbnails";
 type ServerEnvVars =
   | "PORT"
-  | "CLIENT_URL"
   | "SUPABASE_API_URL"
   | "SUPABASE_API_KEY"
   | "AWS_BUCKETNAME"
@@ -15,7 +14,6 @@ type ServerEnvVars =
 
 const envs: ServerEnvVars[] = [
   "PORT",
-  "CLIENT_URL",
   "SUPABASE_API_URL",
   "SUPABASE_API_KEY",
   "AWS_REGION",

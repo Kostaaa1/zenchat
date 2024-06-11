@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { TChatroom } from "../../../server/src/types/types";
 import List from "./List";
 import { cn } from "../utils/utils";
@@ -13,9 +13,13 @@ type ChatListProps = {
 
 const ChatList: FC<ChatListProps> = ({ chat }) => {
   const { userData } = useUser();
-  const { setShouldFetchMoreMessages, setShowDetails } = useChatStore(
-    (state) => state.actions,
-  );
+  const {
+    setShouldFetchMoreMessages,
+    setMessages,
+    setShowDetails,
+    setIsChatLoading,
+    setActiveChatroom,
+  } = useChatStore((state) => state.actions);
   const navigate = useNavigate();
   const params = useParams<{ chatRoomId: string }>();
   const { is_group, chatroom_id, last_message, users } = chat;
@@ -25,6 +29,9 @@ const ChatList: FC<ChatListProps> = ({ chat }) => {
     if (params.chatRoomId === chatroom_id) return;
     setShouldFetchMoreMessages(true);
     setShowDetails(false);
+    setIsChatLoading(true);
+    setActiveChatroom(null);
+    setMessages([]);
     navigate(`/inbox/${chatroom_id}`);
   };
 

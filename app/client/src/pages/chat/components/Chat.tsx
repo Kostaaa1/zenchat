@@ -10,18 +10,26 @@ import useUser from "../../../hooks/useUser";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import Message from "./Message";
 import useModalStore from "../../../lib/stores/modalStore";
-import { loadImage } from "../../../utils/image";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import useChatCache from "../../../hooks/useChatCache";
 import MessageInput from "./MessageInput";
 import ChatHeader from "./ChatHeader";
+import useGeneralStore from "../../../lib/stores/generalStore";
+import { cn } from "../../../utils/utils";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
-  activeChatroom: TChatroom | null;
+  activeChatroom: TChatroom;
+  messages: TMessage[];
+  isLoading: boolean;
 };
 
-const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
+const Chat: FC<ChatProps> = ({
+  scrollRef,
+  isLoading,
+  messages,
+  activeChatroom,
+}) => {
   const MESSAGE_FETCH_LIMIT = 22;
   const iconRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -35,9 +43,13 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
   const {
     decrementUnreadMessagesCount,
     setShouldFetchMoreMessages,
-    setActiveChatroom,
     setShowDetails,
   } = useChatStore((state) => state.actions);
+  const isMobile = useGeneralStore((state) => state.isMobile);
+
+  useOutsideClick([dropdownRef], "mousedown", () => {
+    setUnsendMsgData(null);
+  });
 
   const { activeChatroomTitle, shouldFetchMoreMessages } = useChatStore(
     (state) => ({
@@ -45,7 +57,6 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
       activeChatroomTitle: state.activeChatroomTitle,
     }),
   );
-  const [isLoadingMsgs, setIsLoadingMsgs] = useState<boolean>(true);
 
   const triggerReadMessagesMutation =
     trpc.chat.messages.triggerReadMessages.useMutation({
@@ -59,6 +70,7 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
         console.log("error", err);
       },
     });
+
   useEffect(() => {
     if (activeChatroom && userData) {
       const foundUser = activeChatroom.users.find(
@@ -73,7 +85,7 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
 
   useEffect(() => {
     return () => {
-      setActiveChatroom(null);
+      setShowDetails(false);
     };
   }, []);
 
@@ -101,16 +113,6 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
     });
 
   useEffect(() => {
-    return () => {
-      setShowDetails(false);
-    };
-  }, []);
-
-  useOutsideClick([dropdownRef], "mousedown", () => {
-    setUnsendMsgData(null);
-  });
-
-  useEffect(() => {
     const container = scrollRef.current;
     if (!container || !activeChatroom) return;
 
@@ -122,12 +124,11 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
       if (Math.abs(scrollTop) >= diff && shouldFetchMoreMessages) {
         getMoreMutation({
           chatroom_id: activeChatroom?.chatroom_id,
-          lastMessageDate: lastMessageDate,
+          lastMessageDate,
         });
       }
     }, 300);
     container.addEventListener("scroll", fetchMoreMessagesObserver);
-
     return () => {
       container.removeEventListener("scroll", fetchMoreMessagesObserver);
       fetchMoreMessagesObserver.cancel();
@@ -141,31 +142,9 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
       setUnsendMsgData(null);
     }
   };
-
   const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
-  const loadImages = async (messages: TMessage[]) => {
-    try {
-      await Promise.all(
-        messages
-          .filter((x) => x.is_image)
-          .map(async (msg) => await loadImage(msg.content)),
-      );
-      setIsLoadingMsgs(false);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const { data: messages } = trpc.chat.messages.get.useQuery(
-    { chatroom_id: activeChatroom?.chatroom_id as string },
-    { enabled: !!activeChatroom },
-  );
 
   useEffect(() => {
-    if (!messages) return;
-    const msgImgs = messages.filter((x) => x.is_image);
-    loadImages(msgImgs);
-
     if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
       setShouldFetchMoreMessages(false);
       return;
@@ -179,12 +158,12 @@ const Chat: FC<ChatProps> = ({ scrollRef, activeChatroom }) => {
     <div className="relative flex w-full flex-col justify-between">
       <>
         <ChatHeader />
-        {isLoadingMsgs ? (
+        {isLoading ? (
           <div className="flex h-full w-full justify-center py-4">
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
           </div>
         ) : (
-          <div id="chatdiv" className="flex h-full flex-col overflow-hidden">
+          <div className={"flex h-full flex-col overflow-hidden px-2"}>
             <div
               className="flex h-full flex-col-reverse justify-between overflow-y-auto overflow-x-hidden"
               ref={scrollRef}

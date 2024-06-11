@@ -4,11 +4,11 @@ import cors from "cors";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "./routers";
 import { initSocket } from "./config/initSocket";
-import { Server } from "socket.io";
 import { createContext } from "./context";
 import { decodeAndVerifyToken } from "./utils/jwt/decodeAndVerifyToken";
 import uploadRouter from "./routers/upload";
 import { env } from "./config/config";
+import { Server } from "socket.io";
 
 const { PORT } = env;
 const app = express();

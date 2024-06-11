@@ -14,6 +14,7 @@ import useChatMapStore from "../../lib/stores/chatMapStore";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import useModalStore from "../../lib/stores/modalStore";
+import { TChatroom, TUserData } from "../../../../server/src/types/types";
 
 const Inbox = () => {
   const location = useLocation();
@@ -22,6 +23,7 @@ const Inbox = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { openModal } = useModalStore((state) => state.actions);
+  const utils = trpc.useUtils();
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   ///////////// Returnuj is useChat valjdd??
@@ -29,19 +31,27 @@ const Inbox = () => {
     inputMessages: state.inputMessages,
     inputImages: state.inputImages,
   }));
-  const { activeChatroom, showDetails } = useChatStore((state) => ({
-    activeChatroom: state.activeChatroom,
-    activeChatroomTitle: state.activeChatroomTitle,
-    showDetails: state.showDetails,
-  }));
-  const { setActiveChatroom, setActiveChatroomTitle } = useChatStore(
-    (state) => state.actions,
+  const { activeChatroom, isChatLoading, messages, showDetails } = useChatStore(
+    (state) => ({
+      activeChatroom: state.activeChatroom,
+      activeChatroomTitle: state.activeChatroomTitle,
+      showDetails: state.showDetails,
+      messages: state.messages,
+      isChatLoading: state.isChatLoading,
+    }),
   );
+  const {
+    setActiveChatroom,
+    setMessages,
+    setIsChatLoading,
+    setActiveChatroomTitle,
+  } = useChatStore((state) => state.actions);
   /////////////
 
   const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
     enabled: !!userData,
-    refetchOnReconnect: true,
+    refetchOnReconnect: "always",
+    refetchOnMount: "always",
   });
 
   const userChats = useMemo(() => {
@@ -60,6 +70,7 @@ const Inbox = () => {
         inputImages.set(chat.chatroom_id, []);
       });
     }
+    setIsLoading(false);
     return filteredChats;
   }, [data]);
 
@@ -68,17 +79,31 @@ const Inbox = () => {
     const activeChat = userChats.find(
       (chat) => chat.chatroom_id === chatRoomId,
     );
-    if (activeChat) {
-      setActiveChatroom(activeChat);
-      setActiveChatroomTitle(
-        activeChat.users
-          .filter((chat) => chat.username !== userData.username)
-          .map((chat) => chat.username)
-          .join(", "),
-      );
-    }
-    setIsLoading(false);
+    if (activeChat) prepareChat(activeChat, userData);
   }, [userChats, chatRoomId, userData]);
+
+  const prepareChat = async (activeChat: TChatroom, userData: TUserData) => {
+    setActiveChatroom(activeChat);
+    setActiveChatroomTitle(
+      activeChat.users
+        .filter((chat) => chat.username !== userData.username)
+        .map((chat) => chat.username)
+        .join(", "),
+    );
+    const msgs = await utils.chat.messages.get.fetch({
+      chatroom_id: activeChat.chatroom_id,
+    });
+
+    if (msgs) {
+      await Promise.all(
+        msgs
+          .filter((x) => x.is_image)
+          .map(async (msg) => await loadImage(msg.content)),
+      );
+      setMessages(msgs);
+      setIsChatLoading(false);
+    }
+  };
 
   return (
     <MainContainer>
@@ -92,32 +117,50 @@ const Inbox = () => {
         {(!chatRoomId || (chatRoomId && !isMobile)) && (
           <UserChats userChats={userChats} isLoading={isLoading} />
         )}
-        {location.pathname !== "/inbox" && activeChatroom && (
-          <Chat activeChatroom={activeChatroom} scrollRef={scrollRef} />
+        {location.pathname !== "/inbox" && activeChatroom && messages && (
+          <Chat
+            activeChatroom={activeChatroom}
+            messages={messages}
+            scrollRef={scrollRef}
+            isLoading={isChatLoading}
+          />
         )}
         {showDetails && activeChatroom && <ChatDetails />}
-        {!isMobile && !activeChatroom ? (
-          <div className="flex w-full flex-col items-center justify-center text-center">
-            <Icon
-              name="MessageCircle"
-              size="100px"
-              className="cursor-default rounded-full border-2 border-white p-6"
-            />
-            <div className="flex h-14 flex-col items-center pt-4">
-              <h3 className="text-xl">Your Messages</h3>
-              <p className="py-3 pt-1 text-neutral-400">
-                Send private photos and messages to a friend
-              </p>
-              <Button
-                buttonColor="blue"
-                onClick={() => openModal("newmessage")}
-                className="text-sm"
-              >
-                Send message
-              </Button>
-            </div>
+        {!isMobile && !activeChatroom && (
+          <div className="flex h-full w-full flex-col items-center justify-center text-center">
+            {isLoading ? (
+              <>
+                <div className="h-[100px] w-[100px] animate-pulse rounded-full bg-neutral-800 pb-6"></div>
+                <div className="flex h-max flex-col items-center space-y-3 pt-4">
+                  <div className="h-4 w-40 animate-pulse rounded-xl bg-neutral-800"></div>
+                  <div className="h-4 w-60 animate-pulse rounded-xl bg-neutral-800 pt-1"></div>
+                  <div className="h-8 w-28 animate-pulse rounded-xl bg-neutral-800"></div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Icon
+                  name="MessageCircle"
+                  size="100px"
+                  className="cursor-default rounded-full border-2 border-white p-6"
+                />
+                <div className="flex h-max flex-col items-center pt-4">
+                  <h3 className="text-xl">Your Messages</h3>
+                  <p className="py-3 pt-1 text-neutral-400">
+                    Send private photos and messages to a friend
+                  </p>
+                  <Button
+                    buttonColor="blue"
+                    onClick={() => openModal("newmessage")}
+                    className="text-sm"
+                  >
+                    Send message
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-        ) : null}
+        )}
       </div>
     </MainContainer>
   );

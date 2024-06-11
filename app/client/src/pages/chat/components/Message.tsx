@@ -43,7 +43,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
         {is_image ? (
           <div
             className={cn(
-              "relative h-full w-full max-w-[40%] cursor-pointer rounded-2xl",
+              "relative h-full w-full max-w-[30%] cursor-pointer rounded-2xl",
               !isLoggedUserASender && "ml-9",
             )}
             onClick={() => {

@@ -39,9 +39,10 @@ const ChatHeader = () => {
     activeChatroom?.is_group
       ? setShowDetails(true)
       : navigate(
-          `/${activeChatroom?.users.find(
-            (x) => x.username !== userData?.username,
-          )?.username}`,
+          `/${
+            activeChatroom?.users.find((x) => x.username !== userData?.username)
+              ?.username
+          }`,
         );
   };
 
@@ -49,7 +50,7 @@ const ChatHeader = () => {
     <div
       className={cn(
         "z-10 flex h-full max-h-[90px] cursor-pointer items-center justify-between border-b border-[#262626] bg-black",
-        isMobile ? "h-[70px] p-2" : "h-full p-6",
+        isMobile ? "h-[70px] px-4" : "h-full p-6",
       )}
     >
       {isMobile && <Icon name="ArrowLeft" onClick={navigateToPrevious} />}
