@@ -5,7 +5,14 @@
   "private": "true",
   "scripts": {
     "start:client": "cd packages/client && npm run dev",
-    "start": "concurrently \"npm run start:client\""
+    "start:server": "cd packages/server && npm run dev",
+    "install:client": "cd packages/client && npm install",
+    "install:server": "cd packages/server && npm install",
+    "build:client": "cd packages/client && npm run build",
+    "build:server": "cd packages/server && npm run build",
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "instal": "concurrently \"npm run install:server\" \"npm run install:client\"",
+    "build": "concurrently \"npm run build:server\" \"npm run build:client\""
   },
   "workspaces": [
     "app/*"
