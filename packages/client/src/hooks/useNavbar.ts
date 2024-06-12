@@ -14,6 +14,7 @@ export type NavListItems = {
   onClick?: () => void;
   ref?: RefObject<HTMLDivElement>;
   className?: string;
+  route?: string;
 };
 
 const useNavbar = () => {
@@ -31,6 +32,7 @@ const useNavbar = () => {
   const { setActiveNavList, setIsResponsive } = useGeneralStore(
     (state) => state.actions,
   );
+  const expendableLists: ActiveList[] = ["user"];
 
   useEffect(() => {
     setIsResponsive(location.pathname.includes("inbox") || width <= 1024);
@@ -39,26 +41,20 @@ const useNavbar = () => {
   const handleActiveElement = useCallback(
     (list: ActiveList | null) => {
       if (list) {
-        setIsResponsive(list === "inbox");
+        setIsResponsive(!expendableLists.includes(list));
         setActiveNavList(list);
         setIsSearchActive(false);
-
         if (list === "user") {
           navigate(`/${userData?.username}`);
         } else if (list === "inbox") {
           navigate(`/inbox`);
         }
       } else {
-        console.log("Ran else");
         setIsSearchActive(!isSearchActive);
-        // setIsResponsive(
-        //   !location.pathname.includes("inbox") || !isSearchActive,
-        // );
         setIsResponsive(
           location.pathname.includes("inbox") ||
             (!location.pathname.includes("inbox") && !isSearchActive),
         );
-
         if (isMobile && location.pathname !== "/") {
           navigate(`/${userData!.username}`);
         }
@@ -67,7 +63,6 @@ const useNavbar = () => {
     [isSearchActive, location.pathname, isMobile],
   );
 
-  // const activeListClass = "bg-neutral-900 ring ring-[1.4px] ring-neutral-700";
   const activeListClass = "bg-neutral-900";
   const navListItems: NavListItems[] = [
     {

@@ -157,8 +157,8 @@ const Chat: FC<ChatProps> = ({
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col justify-between",
-        isMobile ? "h-[93vh]" : "h-[100vh]",
+        "relative flex h-full w-full flex-col justify-between",
+        // isMobile ? "h-[93svh]" : "h-[100svh]",
       )}
     >
       <>

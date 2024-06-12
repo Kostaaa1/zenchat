@@ -41,10 +41,8 @@ const useChat = (scrollToStart?: () => void) => {
     if (!activeChatroom) return;
     formData.append("images", newFile);
     setFormdata(formData);
-
     const blob = URL.createObjectURL(newFile);
     addChatInputImage(activeChatroom.chatroom_id, blob);
-
     const added = [...trackFiles, newFile];
     setTrackFiles(added);
   };

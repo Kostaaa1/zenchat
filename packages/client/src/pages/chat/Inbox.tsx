@@ -48,11 +48,14 @@ const Inbox = () => {
   } = useChatStore((state) => state.actions);
   /////////////
 
-  const { data } = trpc.chat.get.user_chatrooms.useQuery(userData!.id, {
-    enabled: !!userData,
-    refetchOnReconnect: "always",
-    refetchOnMount: "always",
-  });
+  const { data, isFetched } = trpc.chat.get.user_chatrooms.useQuery(
+    userData!.id,
+    {
+      enabled: !!userData,
+      refetchOnReconnect: "always",
+      refetchOnMount: "always",
+    },
+  );
 
   const userChats = useMemo(() => {
     const filteredChats = data?.filter((x) =>
@@ -110,12 +113,15 @@ const Inbox = () => {
       <div
         ref={scrollRef}
         className={cn(
-          "flex w-full items-center md:h-[100svh]",
+          "flex h-[100svh] w-full items-center",
           isMobile ? "pb-16" : "pl-20",
         )}
       >
         {(!chatRoomId || (chatRoomId && !isMobile)) && (
-          <UserChats userChats={userChats} isLoading={isLoading} />
+          <UserChats
+            userChats={userChats}
+            isLoading={!isFetched && isLoading}
+          />
         )}
         {location.pathname !== "/inbox" && activeChatroom && messages && (
           <Chat

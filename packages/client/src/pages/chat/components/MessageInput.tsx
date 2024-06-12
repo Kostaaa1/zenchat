@@ -7,7 +7,6 @@ import { EmojiPickerContainer } from "./EmojiPicker";
 import { TChatroom } from "../../../../../server/src/types/types";
 import useChatMapStore from "../../../lib/stores/chatMapStore";
 import useChat from "../../../hooks/useChat";
-import useGeneralStore from "../../../lib/stores/generalStore";
 
 interface MessageInputProps {
   iconRef: React.RefObject<HTMLDivElement>;
@@ -21,7 +20,6 @@ const MessageInput: FC<MessageInputProps> = ({
   scrollToStart,
 }) => {
   const { setShowEmojiPicker } = useChatStore((state) => state.actions);
-  const isMobile = useGeneralStore((state) => state.isMobile);
   const { showEmojiPicker } = useChatStore((state) => ({
     showEmojiPicker: state.showEmojiPicker,
   }));
@@ -51,10 +49,8 @@ const MessageInput: FC<MessageInputProps> = ({
 
   useEffect(() => {
     if (!activeChatroom) return;
-
     const a = inputImages.get(activeChatroom.chatroom_id) ?? [];
     const b = inputMessages.get(activeChatroom.chatroom_id) ?? "";
-
     setImageInputs(a);
     setMessageInput(b);
   }, [activeChatroom, inputImages, inputMessages]);
@@ -73,11 +69,10 @@ const MessageInput: FC<MessageInputProps> = ({
           className={cn(
             imageInputs.length === 0 ? "h-16" : "h-44",
             "relative flex",
-            isMobile ? "px-2" : "px-4",
           )}
         >
           {imageInputs.length > 0 && (
-            <div className="absolute left-10 top-3">
+            <div className="absolute left-6 top-3">
               <div className="flex">
                 {imageInputs?.map((img, id) => (
                   <div key={img} className="relative mr-2">
@@ -115,13 +110,13 @@ const MessageInput: FC<MessageInputProps> = ({
             ref={iconRef}
             className={cn(
               imageInputs?.length === 0 ? "" : "pt-[69px]",
-              "absolute bottom-1/2 left-10 translate-y-1/2",
+              "absolute bottom-1/2 left-6 translate-y-1/2",
             )}
           >
             <Icon name="Smile" size="24px" onClick={showEmoji} />
           </div>
           {!messageInput && imageInputs?.length === 0 && (
-            <div className="absolute bottom-1/2 right-2 flex w-14 translate-y-1/2 justify-between">
+            <div className="absolute bottom-1/2 right-6 flex translate-y-1/2 justify-between">
               <label htmlFor="file">
                 <Icon name="Image" size="24px" />
               </label>
@@ -147,7 +142,7 @@ const MessageInput: FC<MessageInputProps> = ({
           <div
             className={cn(
               imageInputs?.length === 0 ? "" : "pt-[69px]",
-              "absolute bottom-1/2 right-10 translate-y-1/2",
+              "absolute bottom-1/2 right-6 translate-y-1/2",
             )}
           >
             {(messageInput || imageInputs?.length > 0) && (

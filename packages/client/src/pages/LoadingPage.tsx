@@ -2,7 +2,7 @@ import Logo from "../components/Logo";
 
 const LoadingPage = () => {
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-white text-black">
+    <div className="flex h-[100svh] w-screen items-center justify-center bg-white text-black">
       <Logo isList={false} />
     </div>
   );
