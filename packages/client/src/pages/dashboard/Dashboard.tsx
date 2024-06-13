@@ -12,7 +12,6 @@ import { DashboardHeader } from "./DashboardHeader";
 import MainContainer from "../../components/MainContainer";
 import { loadImage } from "../../utils/image";
 import { cn } from "../../utils/utils";
-import s from "./../../../aku.mp4";
 
 type SeparatorProps = {
   className?: string;
