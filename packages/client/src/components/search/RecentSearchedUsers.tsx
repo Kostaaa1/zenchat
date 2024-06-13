@@ -18,6 +18,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   const removeUserMutation = trpc.chat.history.removeUser.useMutation();
   const clearChatHistoryMutation =
     trpc.chat.history.clearChatHistory.useMutation();
+
   const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(
     userData!.id,
     {
@@ -62,7 +63,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
         <div className="flex h-full flex-col justify-start">
           {searchedChats && searchedChats.length > 0 ? (
             <>
-              {searchedChats!.map((chat) => (
+              {searchedChats?.map((chat) => (
                 <List
                   key={chat.id}
                   hover="darker"
@@ -71,7 +72,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                   image_url={[chat.users!.image_url]}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}
                   onClick={() => navigateToUserDashboard(chat?.users!.username)}
-                  allowResizableAVatars={true}
+                  allowResizableAvatars={true}
                   title={chat.users!.username}
                   icon={<Icon name="X" size="28px" />}
                   subtitle={`${chat.users!.first_name} ${

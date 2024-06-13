@@ -285,9 +285,9 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                   </div>
                   <div
                     className={cn(
-                      "w-[280px]",
+                      "h-full w-[280px]",
                       isMobile &&
-                        "absolute bottom-0 h-[244px] w-full bg-[#282828]",
+                        "absolute bottom-0 h-[36vw] w-full bg-[#282828]",
                     )}
                   >
                     <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">

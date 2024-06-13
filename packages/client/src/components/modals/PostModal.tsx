@@ -150,13 +150,13 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
       <Modal>
         {inspectedUser && post && (
           <div
+            ref={ref}
             className={cn(
               "relative mx-auto flex w-full",
               isMobile
                 ? "w-[80vw] max-w-[500px] flex-col"
-                : "max-h-[90svh] max-w-[90vw]",
+                : "max-h-[95svh] max-w-[90vw]",
             )}
-            ref={ref}
           >
             <ArrowCursors
               leftRef={leftRef}

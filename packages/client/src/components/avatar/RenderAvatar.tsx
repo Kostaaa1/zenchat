@@ -8,41 +8,40 @@ interface RenderAvatarProps {
     image_url_2?: string | null | undefined;
   };
   avatarSize: "sm" | "md" | "lg" | "xl";
-  isActive?: boolean;
+  isOnline?: boolean;
   className?: string;
 }
 
 const RenderAvatar: FC<RenderAvatarProps> = ({
   image_urls,
   avatarSize,
-  isActive,
+  isOnline,
   className,
 }) => {
   const { image_url_1, image_url_2 } = image_urls;
-  const hasImage2 = image_url_2 === undefined;
+  const hasImg2 = image_url_2 === undefined;
   return (
-    <div className={cn("relative flex h-full", className)}>
-      {hasImage2 ? (
-        <Avatar image_url={image_url_1} size={avatarSize} />
-      ) : (
-        <div
-          className={cn(
-            "relative h-14 w-14",
-            avatarSize === "md"
-              ? "-m-3 scale-75"
-              : avatarSize === "xl"
-              ? "my-8 scale-[2]"
-              : "",
-          )}
-        >
-          <Avatar image_url={image_url_1} className="absolute left-0 top-0" />
+    <div
+      className={cn(
+        "relative flex h-full",
+        !hasImg2 && "mb-4",
+        !hasImg2 && avatarSize == "md" && "scale-[0.8]",
+        !hasImg2 && avatarSize == "xl" && "scale-[2]",
+        className,
+      )}
+    >
+      {!hasImg2 ? (
+        <>
+          <Avatar image_url={image_url_1} />
           <Avatar
             image_url={image_url_2}
-            className="absolute left-4 top-4 outline outline-1 outline-black"
+            className="-ml-8 mt-6 outline outline-1 outline-black"
           />
-        </div>
+        </>
+      ) : (
+        <Avatar image_url={image_url_1} size={avatarSize} />
       )}
-      {hasImage2 && isActive && (
+      {hasImg2 && isOnline && (
         <div className="absolute bottom-[6px] right-[2px] h-[10px] w-[10px] rounded-full bg-green-500 outline outline-black"></div>
       )}
     </div>

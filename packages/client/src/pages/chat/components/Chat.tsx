@@ -157,12 +157,11 @@ const Chat: FC<ChatProps> = ({
   return (
     <div
       className={cn(
-        "relative flex h-full w-full flex-col justify-between",
-        // isMobile ? "h-[93svh]" : "h-[100svh]",
+        "relative flex h-full w-full flex-col justify-between pb-2",
       )}
     >
       <>
-        <ChatHeader />
+        <ChatHeader chat={activeChatroom} />
         {isLoading ? (
           <div className="flex h-full w-full justify-center py-4">
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
@@ -174,7 +173,7 @@ const Chat: FC<ChatProps> = ({
           >
             <ul
               className={cn(
-                "flex flex-col-reverse space-y-1 pb-2",
+                "mb-2 flex flex-col-reverse",
                 isMobile ? "px-2" : "px-4",
               )}
             >
@@ -203,7 +202,7 @@ const Chat: FC<ChatProps> = ({
               </div>
             )}
             {!shouldFetchMoreMessages && activeChatroom && (
-              <div className="flex flex-col items-center pb-8 pt-4">
+              <div className="mt-8 flex flex-col items-center">
                 <RenderAvatar
                   avatarSize="xl"
                   image_urls={
@@ -219,7 +218,12 @@ const Chat: FC<ChatProps> = ({
                         }
                   }
                 />
-                <div className="flex flex-col items-center pt-4">
+                <div
+                  className={cn(
+                    "flex flex-col items-center ",
+                    activeChatroom.is_group ? "pt-12" : "pt-4",
+                  )}
+                >
                   <h3 className="text-md py-1 font-semibold">
                     {activeChatroom && activeChatroom?.users.length > 1
                       ? activeChatroomTitle
@@ -243,7 +247,6 @@ const Chat: FC<ChatProps> = ({
                 </div>
               </div>
             )}
-            {/* </div> */}
           </div>
         )}
         {activeChatroom && (

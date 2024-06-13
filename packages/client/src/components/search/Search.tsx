@@ -100,7 +100,8 @@ const Search = () => {
                         title={user?.username}
                         key={user?.id}
                         image_url={[user?.image_url]}
-                        allowResizableAVatars={true}
+                        allowResizableAvatars={true}
+                        padding={isMobile ? "md" : "lg"}
                         hover="darker"
                         subtitle={`${user?.first_name} ${user?.last_name}`}
                         onClick={() => {
@@ -124,7 +125,13 @@ const Search = () => {
         ) : (
           Array(mockUserCount)
             .fill("")
-            .map((_, id) => <List key={id} isLoading={isSearchingForUsers} />)
+            .map((_, id) => (
+              <List
+                key={id}
+                padding={isMobile ? "md" : "md"}
+                isLoading={isSearchingForUsers}
+              />
+            ))
         )}
       </div>
     </SearchWrapper>

@@ -62,13 +62,13 @@ const MessageInput: FC<MessageInputProps> = ({
   };
 
   return (
-    <>
+    <div className="px-4">
       {activeChatroom && (
         <form
           onSubmit={handleSubmitMessage}
           className={cn(
-            imageInputs.length === 0 ? "h-16" : "h-44",
             "relative flex",
+            imageInputs.length === 0 ? "h-14" : "h-[124px]",
           )}
         >
           {imageInputs.length > 0 && (
@@ -159,7 +159,7 @@ const MessageInput: FC<MessageInputProps> = ({
         emojiRef={emojiRef}
         showEmojiPicker={showEmojiPicker}
       />
-    </>
+    </div>
   );
 };
 

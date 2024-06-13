@@ -34,7 +34,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "flex w-full flex-row items-center justify-center break-words",
+          "flex w-full items-center break-words pt-1",
           isLoggedUserASender
             ? "flex-row-reverse justify-start self-start"
             : "justify-start self-start",
@@ -43,7 +43,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
         {is_image ? (
           <div
             className={cn(
-              "relative h-full w-full max-w-[30%] cursor-pointer rounded-2xl",
+              "relative h-full w-full max-w-[40%] cursor-pointer rounded-2xl",
               !isLoggedUserASender && "ml-9",
             )}
             onClick={() => {
@@ -55,7 +55,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
             <img className="rounded-2xl" src={content} />
           </div>
         ) : (
-          <div className="flex max-w-[60%] items-center justify-center break-all leading-tight">
+          <div className="flex max-w-[70%] items-center justify-center break-all leading-tight">
             {rounded2 && !isLoggedUserASender && (
               <Avatar
                 size="sm"

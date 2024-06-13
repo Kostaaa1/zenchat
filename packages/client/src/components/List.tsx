@@ -29,7 +29,6 @@ export const listVariants = cva(
 );
 
 export interface ListProps extends VariantProps<typeof listVariants> {
-  // image_url?: string | string[];
   children?: ReactElement;
   title?: string;
   subtitle?: string | null;
@@ -40,11 +39,10 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   icon?: ReactNode;
   isRead?: boolean;
   isLoading?: boolean;
-  // padding?: string;
   showAvatar?: boolean;
-  isActive?: boolean;
+  isOnline?: boolean;
   onIconClick?: () => void;
-  allowResizableAVatars?: boolean;
+  allowResizableAvatars?: boolean;
 }
 
 const List: FC<ListProps> = ({
@@ -59,11 +57,11 @@ const List: FC<ListProps> = ({
   padding,
   isHoverDisabled,
   icon,
-  isActive = false,
+  isOnline,
   isRead = true,
   showAvatar = true,
   isLoading = false,
-  allowResizableAVatars,
+  allowResizableAvatars,
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
@@ -88,14 +86,14 @@ const List: FC<ListProps> = ({
           {...props}
         >
           <div
-            className={cn("flex w-full items-center space-x-4")}
+            className={cn("flex w-full items-center space-x-2")}
             onClick={onClick}
           >
             {children}
             {showAvatar && (
               <RenderAvatar
-                avatarSize={width < 480 && allowResizableAVatars ? "md" : "lg"}
-                isActive={isActive}
+                avatarSize={width < 480 && allowResizableAvatars ? "md" : "lg"}
+                isOnline={isOnline}
                 image_urls={{
                   image_url_1: image_url?.[0],
                   image_url_2: image_url?.[1],
@@ -130,7 +128,7 @@ const List: FC<ListProps> = ({
         <div className={cn(listVariants({ padding }))}>
           <div className="flex h-14 w-full animate-pulse items-center space-x-2">
             <div className="h-full w-14 overflow-hidden rounded-full bg-neutral-800"></div>
-            <div className="flex h-full w-2/3 flex-col justify-center">
+            <div className="flex h-full w-1/3 flex-col justify-center">
               <div className="mb-2 h-4 w-full rounded-lg bg-neutral-800"></div>
               <div className="h-4 w-64 rounded-lg bg-neutral-800"></div>
             </div>
