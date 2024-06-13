@@ -143,7 +143,7 @@ const useChat = (scrollToStart?: () => void) => {
       addNewMessageToChatCache(messageData);
     }
 
-    const { data } = await axios.post("/api/upload/message", formData, {
+    const { data } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/upload/message`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,

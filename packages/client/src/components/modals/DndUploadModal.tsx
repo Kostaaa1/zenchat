@@ -104,7 +104,8 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     }
     if (mediaSrc) URL.revokeObjectURL(mediaSrc);
     setFile(dndFile);
-    setMediaSrc(URL.createObjectURL(dndFile));
+    const blobURL = URL.createObjectURL(dndFile);
+    setMediaSrc(blobURL);
   };
 
   const triggerFileError = () => {
@@ -114,6 +115,10 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     setFile(null);
     setMediaSrc(null);
   };
+
+  useEffect(() => {
+    console.log(file);
+  }, [file]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -151,8 +156,8 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     setModalTitle("Processing");
     setIsUploading(true);
     const { name, type, size } = file;
-
     let thumbnailFile: File | null = null;
+
     if (type.startsWith("video/") && mediaSrc) {
       const tmbName = "thumbnail-" + name.replace(".mp4", ".jpg");
       try {
@@ -178,7 +183,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     formData.append("post", file);
     if (thumbnailFile) formData.append("post", thumbnailFile);
 
-    const url = `/api/upload/post/${
+    const url = `${import.meta.env.VITE_SERVER_URL}/api/upload/post/${
       type.startsWith("video/") ? "video" : "image"
     }`;
 

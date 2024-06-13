@@ -92,7 +92,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
               size="18px"
               onClick={onClick}
               className={cn(
-                "absolute z-[1000] -translate-y-1/2 rotate-90 hover:text-white",
+                "absolute -translate-y-1/2 rotate-90 hover:text-white",
                 isLoggedUserASender ? "right-0" : "left-0",
               )}
             />

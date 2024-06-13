@@ -3,7 +3,7 @@ import "./index.css";
 import App from "./App";
 import { BrowserRouter, useNavigate } from "react-router-dom";
 import { ClerkProvider } from "@clerk/clerk-react";
-import TRPCWrapper from "./TRPCWrapper";
+import TRPCWrapper from "./lib/TRPCWrapper";
 
 const { VITE_APP_CLERK_PUBLISHABLE_KEY } = import.meta.env;
 if (!VITE_APP_CLERK_PUBLISHABLE_KEY) {

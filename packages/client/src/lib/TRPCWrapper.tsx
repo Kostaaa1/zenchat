@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "./lib/trpcClient";
+import { trpc } from "./trpcClient";
 import { httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
@@ -24,6 +24,7 @@ const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
         httpBatchLink({
           url: `${import.meta.env.VITE_SERVER_URL}/api/trpc`,
           async headers() {
+            console.log("Called");
             return {
               Authorization: `Bearer ${await getToken()}`,
             };

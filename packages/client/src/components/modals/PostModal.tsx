@@ -90,7 +90,7 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
     <div
       className={cn(
         "flex w-full flex-col bg-black",
-        isMobile ? "w-full rounded-b-xl" : "w-[400px] rounded-r-xl",
+        isMobile ? "rounded-b-xl" : "max-w-[400px] rounded-r-xl",
       )}
     >
       {isMobile ? null : <PostHeader userData={userData} />}
@@ -175,10 +175,8 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
                   autoPlay={true}
                   poster={post.thumbnail_url}
                   className={cn(
-                    "bg-black",
-                    isMobile
-                      ? "aspect-square object-cover"
-                      : "aspect-square h-full object-cover",
+                    "h-full w-full max-w-[900px] bg-black",
+                    isMobile ? "aspect-square object-cover" : "",
                   )}
                 />
               )}

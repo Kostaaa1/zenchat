@@ -12,7 +12,7 @@ export const loadImage = async (url: string, maxRetries = 5) => {
       img.onerror = async (err) => {
         console.log("Error loading image: ", url, err);
         if (retries < maxRetries) {
-          const delayTime = Math.pow(2, retries) * 100; // Exponential backoff
+          const delayTime = Math.pow(2, retries) * 100;
           console.log(
             `Retrying in ${delayTime}ms... (Attempt ${
               retries + 1

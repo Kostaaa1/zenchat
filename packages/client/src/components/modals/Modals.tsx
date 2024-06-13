@@ -26,7 +26,7 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 
   return (
     <motion.div
-      className="fixed z-[1000] flex h-[100svh] w-screen items-center justify-center bg-black bg-opacity-40"
+      className="fixed z-[10000] flex h-[100svh] w-screen items-center justify-center bg-black bg-opacity-40"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

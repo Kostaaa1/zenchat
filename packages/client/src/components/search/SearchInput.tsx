@@ -6,6 +6,7 @@ import { trpc } from "../../lib/trpcClient";
 import useSearchStore from "../../lib/stores/searchStore";
 import { cn } from "../../utils/utils";
 import useGeneralStore from "../../lib/stores/generalStore";
+import { loadImage } from "../../utils/image";
 
 const SearchInput = () => {
   const { userData } = UseUser();
@@ -34,6 +35,12 @@ const SearchInput = () => {
       });
       if (searchedUsers) {
         setSearchedUsers(searchedUsers);
+
+        await Promise.all(
+          searchedUsers.map(async (x) => {
+            if (x.image_url) await loadImage(x.image_url);
+          }),
+        );
         setIsSearchingForUsers(false);
       }
     },

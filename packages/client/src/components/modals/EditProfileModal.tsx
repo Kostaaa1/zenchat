@@ -29,7 +29,7 @@ export type Inputs = CommonInput & {
 const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { user } = useClerkUser();
   const [fileUrl, setFileUrl] = useState<string>("");
-  const { userData, token } = useUser();
+  const { userData, token, updateUser } = useUser();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -95,7 +95,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         form.append("serialized", JSON.stringify({ userId: userData.id }));
         form.append("images", renamedFile);
         const { data: image_url } = await axios.post(
-          "/api/upload/avatar",
+          `${import.meta.env.VITE_SERVER_URL}/api/upload/avatar`,
           form,
           {
             headers: {
@@ -104,7 +104,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
           },
         );
         await loadImage(image_url);
-        // await updateUserCache({ image_url });
+        updateUser({ username: userData!.username, newFields: { image_url } });
         setIsAvatarUpdating(false);
         setFileUrl(image_url);
       }
