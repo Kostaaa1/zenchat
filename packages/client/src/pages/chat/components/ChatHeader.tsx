@@ -55,7 +55,6 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
       <div className="flex items-center space-x-2" onClick={handleNavigate}>
         {!isMobile && (
           <RenderAvatar
-            // avatarSize={is_group ? "sm" : "md"}
             avatarSize="md"
             image_urls={
               is_group

@@ -7,13 +7,7 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Header from "./components/header/Header";
 import Inbox from "./pages/chat/Inbox";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -40,7 +34,6 @@ function App() {
   const location = useLocation();
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const { setUnreadMessagesCount } = useChatStore((state) => state.actions);
-  const navigate = useNavigate();
   useChatSocket();
 
   useEffect(() => {
@@ -85,7 +78,7 @@ function App() {
   useEffect(() => {
     if (userData === null) createUser();
     if (userData) {
-      const { posts, unread_messages_count, username } = userData;
+      const { posts, unread_messages_count } = userData;
       loadPosts(posts);
       setUnreadMessagesCount(unread_messages_count);
     }
