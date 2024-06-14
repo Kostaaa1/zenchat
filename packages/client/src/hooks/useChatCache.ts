@@ -28,11 +28,9 @@ const useChatCache = () => {
   );
 
   const removeMessageCache = (id: string, chatroom_id: string) => {
-    utils.chat.messages.get.setData({ chatroom_id }, (staleChats) => {
-      if (staleChats && id) {
-        return staleChats.filter((x) => x.id !== id);
-      }
-    });
+    utils.chat.messages.get.setData({ chatroom_id }, (state) =>
+      state ? state.filter((x) => x.id === id) : state,
+    );
   };
 
   const removeChatFromUserChats = (chatroom_id: string) => {

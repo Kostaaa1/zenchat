@@ -306,7 +306,6 @@ const deleteConversation = async (chatroom_id, user_id) => {
 };
 exports.deleteConversation = deleteConversation;
 const triggerReadMessages = async (id) => {
-    // console.log("trigger called for this chatrooms", id);
     const { error } = await supabase_1.default
         .from("chatroom_users")
         .update({ is_message_seen: true })

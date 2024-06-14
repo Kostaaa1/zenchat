@@ -4,7 +4,6 @@ import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
 import { motion } from "framer-motion";
 import useGeneralStore from "../lib/stores/generalStore";
-import useWindowSize from "../hooks/useWindowSize";
 
 export const listVariants = cva(
   "flex cursor-pointer w-full py-2 justify-between items-center overflow-hidden whitespace-nowrap",
@@ -12,7 +11,7 @@ export const listVariants = cva(
     variants: {
       hover: {
         darker:
-          "transition-colors duration-100 hover:bg-white hover:bg-opacity-10",
+          "transition-colors duration-200 hover:bg-white hover:bg-opacity-5",
         blank: "",
       },
       padding: {
@@ -39,10 +38,9 @@ export interface ListProps extends VariantProps<typeof listVariants> {
   icon?: ReactNode;
   isRead?: boolean;
   isLoading?: boolean;
-  showAvatar?: boolean;
+  avatarSize?: "sm" | "md" | "lg" | "xl";
   isOnline?: boolean;
   onIconClick?: () => void;
-  allowResizableAvatars?: boolean;
 }
 
 const List: FC<ListProps> = ({
@@ -57,16 +55,14 @@ const List: FC<ListProps> = ({
   padding,
   isHoverDisabled,
   icon,
+  avatarSize,
   isOnline,
   isRead = true,
-  showAvatar = true,
   isLoading = false,
-  allowResizableAvatars,
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const isMobile = useGeneralStore((state) => state.isMobile);
-  const { width } = useWindowSize();
   const handleHoverList = () => {
     if (isHoverDisabled) return;
     setIsHovered(!isHovered);
@@ -90,9 +86,9 @@ const List: FC<ListProps> = ({
             onClick={onClick}
           >
             {children}
-            {showAvatar && (
+            {avatarSize && (
               <RenderAvatar
-                avatarSize={width < 480 && allowResizableAvatars ? "md" : "lg"}
+                avatarSize={avatarSize}
                 isOnline={isOnline}
                 image_urls={{
                   image_url_1: image_url?.[0],

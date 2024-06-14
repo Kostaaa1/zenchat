@@ -10,53 +10,45 @@ import useUser from "../../../hooks/useUser";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import Message from "./Message";
 import useModalStore from "../../../lib/stores/modalStore";
-import useOutsideClick from "../../../hooks/useOutsideClick";
 import useChatCache from "../../../hooks/useChatCache";
 import MessageInput from "./MessageInput";
 import ChatHeader from "./ChatHeader";
 import useGeneralStore from "../../../lib/stores/generalStore";
 import { cn } from "../../../utils/utils";
+import useMessageStore from "../../../lib/stores/messageStore";
 
 type ChatProps = {
   scrollRef: React.RefObject<HTMLDivElement>;
   activeChatroom: TChatroom;
-  messages: TMessage[];
   isLoading: boolean;
 };
 
-const Chat: FC<ChatProps> = ({
-  scrollRef,
-  isLoading,
-  messages,
-  activeChatroom,
-}) => {
+const Chat: FC<ChatProps> = ({ scrollRef, isLoading, activeChatroom }) => {
   const MESSAGE_FETCH_LIMIT = 22;
   const iconRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [lastMessageDate, setLastMessageDate] = useState<string>("");
-  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
-  const { setUnsendMsgData } = useModalStore((state) => state.actions);
+  const activeMessage = useModalStore((state) => state.activeMessage);
+  const { setActiveMessage } = useModalStore((state) => state.actions);
   const { userData } = useUser();
   const utils = trpc.useUtils();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { updateUserReadMessage } = useChatCache();
-  const {
-    decrementUnreadMessagesCount,
-    setShouldFetchMoreMessages,
-    setShowDetails,
-  } = useChatStore((state) => state.actions);
-
-  useOutsideClick([dropdownRef], "mousedown", () => {
-    setUnsendMsgData(null);
-  });
-
-  const { activeChatroomTitle, shouldFetchMoreMessages } = useChatStore(
-    (state) => ({
-      shouldFetchMoreMessages: state.shouldFetchMoreMessages,
-      activeChatroomTitle: state.activeChatroomTitle,
-    }),
+  const { setShouldFetchMoreMessages } = useMessageStore(
+    (state) => state.actions,
   );
+  const { shouldFetchMoreMessages, messages } = useMessageStore((state) => ({
+    shouldFetchMoreMessages: state.shouldFetchMoreMessages,
+    messages: state.messages,
+  }));
+  const { decrementUnreadMessagesCount, setShowDetails } = useChatStore(
+    (state) => state.actions,
+  );
+
+  const { activeChatroomTitle } = useChatStore((state) => ({
+    activeChatroomTitle: state.activeChatroomTitle,
+  }));
 
   const triggerReadMessagesMutation =
     trpc.chat.messages.triggerReadMessages.useMutation({
@@ -120,7 +112,6 @@ const Chat: FC<ChatProps> = ({
       const { scrollTop, clientHeight, scrollHeight } = container;
       const scrollTolerance = 40;
       const diff = scrollHeight - clientHeight - scrollTolerance;
-
       if (Math.abs(scrollTop) >= diff && shouldFetchMoreMessages) {
         getMoreMutation({
           chatroom_id: activeChatroom?.chatroom_id,
@@ -136,10 +127,12 @@ const Chat: FC<ChatProps> = ({
   });
 
   const handlePressMore = (message: TMessage) => {
-    if (!unsendMsgData) {
-      setUnsendMsgData(unsendMsgData ? null : message);
+    if (!activeMessage) {
+      console.log(message);
+      setActiveMessage(message);
     } else {
-      setUnsendMsgData(null);
+      console.log("set null");
+      setActiveMessage(null);
     }
   };
   const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 });
@@ -157,7 +150,8 @@ const Chat: FC<ChatProps> = ({
   return (
     <div
       className={cn(
-        "relative flex h-full w-full flex-col justify-between pb-2",
+        "relative flex h-full w-full flex-col justify-between",
+        !isMobile && "pb-2",
       )}
     >
       <>
@@ -241,7 +235,14 @@ const Chat: FC<ChatProps> = ({
                     </Button>
                   ) : (
                     <p className="text-sm font-bold text-neutral-400">
-                      You created this group
+                      {/*  */}
+                      {userData?.id === activeChatroom.admin
+                        ? "You created this group."
+                        : `${
+                            activeChatroom.users.find(
+                              (x) => x.id === activeChatroom.admin,
+                            )?.username
+                          } creates this group.`}
                     </p>
                   )}
                 </div>

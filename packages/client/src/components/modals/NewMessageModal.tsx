@@ -94,7 +94,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
           />
         </div>
         <div className="relative flex h-max w-full items-start border border-x-0 border-y-neutral-600 px-2 py-1 font-semibold">
-          <span className="pointer-events-none py-1 pr-4">To:</span>
+          <span className="pointer-events-none py-1 pr-3">To:</span>
           <div className="flex w-full flex-wrap">
             {selectedUsers.length > 0 ? (
               <>
@@ -126,7 +126,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           </div>
         </div>
-        <div
+        <ul
           className={cn(
             "h-full w-full",
             !loading ? "overflow-y-auto" : "overflow-hidden",
@@ -135,10 +135,12 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
           {!loading ? (
             <>
               {searchedUsers.length !== 0 ? (
-                <div>
+                <>
                   {searchedUsers.map((user) => (
                     <List
                       title={user?.username}
+                      avatarSize="lg"
+                      padding="sm"
                       key={user?.id}
                       image_url={[user.image_url]}
                       hover="darker"
@@ -147,7 +149,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
                       isLoading={loading}
                     />
                   ))}
-                </div>
+                </>
               ) : (
                 <div className="p-2 py-4 text-start text-sm text-zinc-400">
                   No results found.
@@ -169,7 +171,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
                 </div>
               ))
           )}
-        </div>
+        </ul>
         <div className="w-full">
           <Button
             buttonColor="blue"

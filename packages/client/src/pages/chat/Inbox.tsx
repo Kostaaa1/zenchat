@@ -15,6 +15,7 @@ import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import useModalStore from "../../lib/stores/modalStore";
 import { TChatroom, TUserData } from "../../../../server/src/types/types";
+import useMessageStore from "../../lib/stores/messageStore";
 
 const Inbox = () => {
   const location = useLocation();
@@ -25,27 +26,27 @@ const Inbox = () => {
   const { openModal } = useModalStore((state) => state.actions);
   const utils = trpc.useUtils();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { messages, areMessagesLoading } = useMessageStore((state) => ({
+    messages: state.messages,
+    areMessagesLoading: state.areMessagesLoading,
+  }));
+  const { setMessages, setAreMessagesLoading } = useMessageStore(
+    (state) => state.actions,
+  );
 
   ///////////// Returnuj is useChat valjdd??
   const { inputImages, inputMessages } = useChatMapStore((state) => ({
     inputMessages: state.inputMessages,
     inputImages: state.inputImages,
   }));
-  const { activeChatroom, isChatLoading, messages, showDetails } = useChatStore(
-    (state) => ({
-      activeChatroom: state.activeChatroom,
-      activeChatroomTitle: state.activeChatroomTitle,
-      showDetails: state.showDetails,
-      messages: state.messages,
-      isChatLoading: state.isChatLoading,
-    }),
+  const { activeChatroom, showDetails } = useChatStore((state) => ({
+    activeChatroom: state.activeChatroom,
+    activeChatroomTitle: state.activeChatroomTitle,
+    showDetails: state.showDetails,
+  }));
+  const { setActiveChatroom, setActiveChatroomTitle } = useChatStore(
+    (state) => state.actions,
   );
-  const {
-    setActiveChatroom,
-    setMessages,
-    setIsChatLoading,
-    setActiveChatroomTitle,
-  } = useChatStore((state) => state.actions);
   /////////////
 
   const { data, isFetched } = trpc.chat.get.user_chatrooms.useQuery(
@@ -104,9 +105,15 @@ const Inbox = () => {
           .map(async (msg) => await loadImage(msg.content)),
       );
       setMessages(msgs);
-      setIsChatLoading(false);
+      setAreMessagesLoading(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      setActiveChatroom(null);
+    };
+  }, []);
 
   return (
     <MainContainer>
@@ -126,9 +133,8 @@ const Inbox = () => {
         {location.pathname !== "/inbox" && activeChatroom && messages && (
           <Chat
             activeChatroom={activeChatroom}
-            messages={messages}
             scrollRef={scrollRef}
-            isLoading={isChatLoading}
+            isLoading={areMessagesLoading}
           />
         )}
         {showDetails && activeChatroom && <ChatDetails />}

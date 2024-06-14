@@ -24,9 +24,8 @@ const RenderAvatar: FC<RenderAvatarProps> = ({
     <div
       className={cn(
         "relative flex h-full",
-        !hasImg2 && "mb-4",
         !hasImg2 && avatarSize == "md" && "scale-[0.8]",
-        !hasImg2 && avatarSize == "xl" && "scale-[2]",
+        !hasImg2 && avatarSize == "xl" && "scale-[1.8]",
         className,
       )}
     >

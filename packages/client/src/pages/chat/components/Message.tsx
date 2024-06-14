@@ -21,14 +21,13 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
   ({ message, rounded1, rounded2, onClick }, ref) => {
     const { userData } = useUser();
     const [isHovered, setIsHovered] = useState<boolean>(false);
-    const unsendMsgData = useModalStore((state) => state.unsendMsgData);
     const { content, created_at, id, sender_id, is_image } = message;
     const activeChatroom = useChatStore((state) => state.activeChatroom);
     const isLoggedUserASender = sender_id === userData?.id;
-    const { setImageSource, openModal, setUnsendMsgData } = useModalStore(
+    const activeMessage = useModalStore((state) => state.activeMessage);
+    const { setImageSource, openModal } = useModalStore(
       (state) => state.actions,
     );
-
     return (
       <li
         onMouseEnter={() => setIsHovered(true)}
@@ -43,7 +42,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
         {is_image ? (
           <div
             className={cn(
-              "relative h-full w-full max-w-[40%] cursor-pointer rounded-2xl",
+              "relative h-full w-full min-w-52 max-w-[30%] cursor-pointer rounded-2xl",
               !isLoggedUserASender && "ml-9",
             )}
             onClick={() => {
@@ -79,7 +78,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
             </p>
           </div>
         )}
-        {unsendMsgData?.id === id || isHovered ? (
+        {activeMessage?.id === id || isHovered ? (
           <div
             ref={ref}
             className={cn(
@@ -96,7 +95,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                 isLoggedUserASender ? "right-0" : "left-0",
               )}
             />
-            {unsendMsgData?.id === id ? (
+            {activeMessage?.id === id ? (
               <motion.ul
                 initial={{ y: 6, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -116,7 +115,6 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                     className="rounded-tl-lg rounded-tr-lg bg-white bg-opacity-0 p-1 font-normal transition-colors hover:bg-opacity-10"
                     onClick={() => {
                       openModal("unsendmessage");
-                      setUnsendMsgData(message);
                     }}
                   >
                     Unsend

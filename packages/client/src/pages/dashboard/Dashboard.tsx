@@ -35,6 +35,7 @@ const Dashboard = () => {
     { data: params.username!, type: "username" },
     {
       enabled: !!userData && !!username && !!params.username,
+      refetchOnMount: "always",
     },
   );
 

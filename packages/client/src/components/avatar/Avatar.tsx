@@ -8,9 +8,9 @@ const avatarVariance = cva(
   {
     variants: {
       size: {
-        sm: "h-8 w-8",
+        sm: "h-7 w-7",
         md: "h-12 w-12",
-        lg: "h-16 w-16",
+        lg: "h-14 w-14",
         xl: "h-28 w-28",
         xxl: "h-40 w-40",
       },

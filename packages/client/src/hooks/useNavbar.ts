@@ -35,8 +35,9 @@ const useNavbar = () => {
   const expendableLists: ActiveList[] = ["user"];
 
   useEffect(() => {
+    console.log("ran");
     setIsResponsive(location.pathname.includes("inbox") || width <= 1024);
-  }, [width]);
+  }, [width, location.pathname]);
 
   const handleActiveElement = useCallback(
     (list: ActiveList | null) => {
@@ -107,7 +108,6 @@ const useNavbar = () => {
   return {
     navListItems,
     handleActiveElement,
-    // handleClick,
   };
 };
 

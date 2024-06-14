@@ -18,13 +18,15 @@ const TRPCWrapper = ({ children }: { children: React.ReactNode }) => {
       }),
   );
 
+  const { MODE, VITE_SERVER_URL, VITE_DEV_SERVER } = import.meta.env;
+  const URL = MODE === "development" ? VITE_DEV_SERVER : VITE_SERVER_URL;
+
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: `${import.meta.env.VITE_SERVER_URL}/api/trpc`,
+          url: `${URL}/api/trpc`,
           async headers() {
-            console.log("Called");
             return {
               Authorization: `Bearer ${await getToken()}`,
             };

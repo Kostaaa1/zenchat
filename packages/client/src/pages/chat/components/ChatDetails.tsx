@@ -16,7 +16,7 @@ const ChatDetails = () => {
   ];
 
   return (
-    <div className="flex h-full max-w-[270px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
+    <div className="flex h-full w-[370px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
       <div className="flex h-full max-h-[140px] flex-col justify-evenly px-4">
         <h2 className="text-xl">Details</h2>
         <div className="flex w-full items-center justify-between">
@@ -38,16 +38,20 @@ const ChatDetails = () => {
         </div>
       </div>
       <div className="w-full border border-x-0 border-t-0 border-[#262626]"></div>
-      <div className="flex h-full flex-col overflow-auto">
+      <ul className="flex h-full flex-col overflow-auto">
         <h4 className="p-6 py-3 font-semibold">Members</h4>
         {activeChatroom!.users
           .filter((x) => x.username !== userData!.username)
           .map((user) => (
             <Link key={user.user_id} to={`/${user.username}`}>
-              <List image_url={[user.image_url]} title={user.username} />
+              <List
+                image_url={[user.image_url]}
+                title={user.username}
+                avatarSize="md"
+              />
             </Link>
           ))}
-      </div>
+      </ul>
       <ul className="border border-x-0 border-b-0 border-[#262626] px-6 py-1">
         {componentLists.map((list) => (
           <li

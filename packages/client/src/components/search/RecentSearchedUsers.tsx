@@ -5,6 +5,7 @@ import Icon from "../Icon";
 import { Loader2 } from "lucide-react";
 import { trpc } from "../../lib/trpcClient";
 import useGeneralStore from "../../lib/stores/generalStore";
+import useWindowSize from "../../hooks/useWindowSize";
 
 interface RecentSearchedUsersProps {
   navigateToUserDashboard: (username: string) => void;
@@ -15,6 +16,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
   const { chat } = trpc.useUtils();
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { userData } = useUser();
+  const { width } = useWindowSize();
   const removeUserMutation = trpc.chat.history.removeUser.useMutation();
   const clearChatHistoryMutation =
     trpc.chat.history.clearChatHistory.useMutation();
@@ -60,7 +62,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
           <Loader2 className="mr-2 h-8 w-8 animate-spin" />
         </div>
       ) : (
-        <div className="flex h-full flex-col justify-start">
+        <ul className="flex h-full flex-col justify-start">
           {searchedChats && searchedChats.length > 0 ? (
             <>
               {searchedChats?.map((chat) => (
@@ -68,11 +70,11 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
                   key={chat.id}
                   hover="darker"
                   padding={isMobile ? "md" : "lg"}
+                  avatarSize={width > 480 ? "lg" : "md"}
                   isHoverDisabled={true}
                   image_url={[chat.users!.image_url]}
                   onIconClick={() => handleDeleteSingleChat(chat.user_id)}
                   onClick={() => navigateToUserDashboard(chat?.users!.username)}
-                  allowResizableAvatars={true}
                   title={chat.users!.username}
                   icon={<Icon name="X" size="28px" />}
                   subtitle={`${chat.users!.first_name} ${
@@ -88,7 +90,7 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({
               </p>
             </div>
           )}
-        </div>
+        </ul>
       )}
     </div>
   );

@@ -11,7 +11,6 @@ exports.chatRouter = trpc_1.t.router({
         chatroom_id: trpc_1.protectedProcedure
             .input(zod_1.z.object({ userIds: zod_1.z.array(zod_1.z.string()), admin: zod_1.z.string() }))
             .query(async ({ input: { userIds, admin } }) => {
-            console.log("Called getChatRoomId");
             const chatroomId = await (0, chatroom_1.getChatroomId)(userIds, admin);
             return chatroomId;
         }),

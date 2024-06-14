@@ -1,27 +1,33 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import useModalStore from "../../lib/stores/modalStore";
 import useChatCache from "../../hooks/useChatCache";
 import useChatStore from "../../lib/stores/chatStore";
 import { trpc } from "../../lib/trpcClient";
 import { Modal } from "./Modals";
+import Button from "../Button";
 
 const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { closeModal } = useModalStore((state) => state.actions);
-  const unsendMsgData = useModalStore((state) => state.unsendMsgData);
+  const activeMessage = useModalStore((state) => state.activeMessage);
   const activeChatroom = useChatStore((state) => state.activeChatroom);
   const { removeMessageCache } = useChatCache();
   const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleConfirmUnsend = async () => {
-    if (unsendMsgData && activeChatroom) {
-      const { id, content, is_image } = unsendMsgData;
-      removeMessageCache(unsendMsgData.id, activeChatroom.chatroom_id);
+    console.log("activeMessage", activeMessage);
+    setIsLoading(true);
+    if (activeMessage && activeChatroom) {
+      console.log("removing message");
+      const { id, content, is_image } = activeMessage;
+      removeMessageCache(activeMessage.id, activeChatroom.chatroom_id);
       closeModal();
       await unsendMessageMutation.mutateAsync({
         id,
         imageUrl: is_image ? content : null,
       });
     }
+    setIsLoading(false);
   };
 
   return (
@@ -37,19 +43,22 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
         </p>
         <div className="flex w-full flex-col pt-4 text-sm font-semibold">
           <div className="-mx-2 transition-colors duration-200">
-            <button
+            <Button
               onClick={handleConfirmUnsend}
+              isLoading={isLoading}
               className="w-full cursor-pointer border border-x-0 border-neutral-600 p-3 text-red-500 hover:text-opacity-80"
+              buttonColor="neutral"
             >
               Unsend
-            </button>
+            </Button>
           </div>
-          <button
+          <Button
             onClick={closeModal}
+            buttonColor="neutral"
             className="w-full cursor-pointer border border-x-0 border-b-0 border-t-0 border-neutral-600 p-3 hover:text-neutral-200"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

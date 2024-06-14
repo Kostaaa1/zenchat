@@ -143,12 +143,16 @@ const useChat = (scrollToStart?: () => void) => {
       addNewMessageToChatCache(messageData);
     }
 
-    const { data } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/upload/message`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
+    const { data } = await axios.post(
+      `${import.meta.env.VITE_SERVER_URL}/api/upload/message`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
     const newUrls = data.urls as S3UploadResponse[];
     await Promise.all(
       newUrls.map(async (_, id) => {

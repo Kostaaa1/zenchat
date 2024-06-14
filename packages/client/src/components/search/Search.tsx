@@ -9,6 +9,7 @@ import { cn } from "../../utils/utils";
 import useGeneralStore from "../../lib/stores/generalStore";
 import { trpc } from "../../lib/trpcClient";
 import useSearchStore from "../../lib/stores/searchStore";
+import useWindowSize from "../../hooks/useWindowSize";
 
 const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {
   const isMobile = useGeneralStore((state) => state.isMobile);
@@ -34,6 +35,8 @@ const Search = () => {
   const search = useSearchStore((state) => state.search);
   const searchedUsers = useSearchStore((state) => state.searchedUsers);
   const isMobile = useGeneralStore((state) => state.isMobile);
+  const { setIsResponsive } = useGeneralStore((state) => state.actions);
+  const { width } = useWindowSize();
   const { setIsSearchActive, setSearch } = useSearchStore(
     (state) => state.actions,
   );
@@ -51,6 +54,7 @@ const Search = () => {
   const navigateToUserDashboard = (username: string) => {
     navigate(`/${username}`);
     setIsSearchActive(false);
+    setIsResponsive(false);
   };
 
   const handleClickUser = async ({
@@ -61,12 +65,12 @@ const Search = () => {
     id: string;
   }) => {
     if (!username && !id) return;
-    navigateToUserDashboard(username);
     setSearch("");
     addToHistoryMutation.mutate({
       main_user_id: userData?.id as string,
       user_id: id,
     });
+    navigateToUserDashboard(username);
   };
 
   const mockUserCount = isMobile ? 4 : 12;
@@ -94,14 +98,14 @@ const Search = () => {
             ) : (
               <>
                 {searchedUsers.length !== 0 ? (
-                  <div>
+                  <ul>
                     {searchedUsers.map((user) => (
                       <List
                         title={user?.username}
                         key={user?.id}
                         image_url={[user?.image_url]}
-                        allowResizableAvatars={true}
                         padding={isMobile ? "md" : "lg"}
+                        avatarSize={width > 480 ? "lg" : "md"}
                         hover="darker"
                         subtitle={`${user?.first_name} ${user?.last_name}`}
                         onClick={() => {
@@ -113,7 +117,7 @@ const Search = () => {
                         }}
                       />
                     ))}
-                  </div>
+                  </ul>
                 ) : (
                   <div className="border-1 flex h-full max-h-full w-full items-center justify-center">
                     No results found.

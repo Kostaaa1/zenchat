@@ -35,9 +35,9 @@ const io = new socket_io_1.Server(server, {
     },
 });
 (0, initSocket_1.initSocket)(io);
+app.get("/", (_, res) => res.send("Hello from zanchat server"));
 const port = PORT || 8000;
-// @ts-ignore
-server.listen(port, "0.0.0.0", () => {
+server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 //# sourceMappingURL=index.js.map

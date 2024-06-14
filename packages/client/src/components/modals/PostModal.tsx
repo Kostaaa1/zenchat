@@ -89,48 +89,35 @@ const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
   return (
     <div
       className={cn(
-        "flex w-full flex-col bg-black",
-        isMobile ? "rounded-b-xl" : "max-w-[400px] rounded-r-xl",
+        "flex flex-col bg-black",
+        isMobile ? "h-[220px] w-full rounded-b-xl" : "w-[400px] rounded-r-xl",
       )}
     >
       {isMobile ? null : <PostHeader userData={userData} />}
       <ul
         className={cn(
           "overflow-auto p-3 text-sm leading-4",
-          isMobile ? "h-[180px]" : "h-[56vw]",
+          isMobile ? "h-full max-h-[200px]" : "h-[46vw]",
         )}
       >
-        <li className="flex items-start space-x-2 py-3">
-          <Avatar image_url={userData.image_url} />
-          <div className="flex w-full flex-col space-y-2">
-            <h3 className="font-semibold text-white active:text-opacity-60">
-              {userData.username} &nbsp;
-            </h3>
-            <div className="flex w-full flex-col space-y-1">
-              <p>{post.caption}</p>
-              <p className="text-neutral-400">
-                {convertAndFormatDate(post.created_at)}
-              </p>
-            </div>
-          </div>
-        </li>
-        {/* {Array(6)
+        {Array(1)
           .fill("")
           .map((_, id) => (
             <li key={id} className="flex items-start space-x-2 py-3">
               <Avatar image_url={userData.image_url} />
-              <div className="flex space-x-2">
-                <p>
-                  <span className="font-semibold text-white active:text-opacity-60">
-                    {userData.username} &nbsp;
-                  </span>
-                  My comments will remain withdrawn from any discussions
-                  regarding the first slide. As a leader of the council, it's
-                  essential I protect my image. (Goddamn.)
-                </p>
+              <div className="flex w-full flex-col space-y-2">
+                <h3 className="font-semibold text-white active:text-opacity-60">
+                  {userData.username} &nbsp;
+                </h3>
+                <div className="flex w-full flex-col space-y-1">
+                  <p>{post.caption}</p>
+                  <p className="text-neutral-400">
+                    {convertAndFormatDate(post.created_at)}
+                  </p>
+                </div>
               </div>
             </li>
-          ))} */}
+          ))}
       </ul>
     </div>
   );
@@ -152,10 +139,8 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
           <div
             ref={ref}
             className={cn(
-              "relative mx-auto flex w-full",
-              isMobile
-                ? "w-[80vw] max-w-[500px] flex-col"
-                : "max-h-[95svh] max-w-[90vw]",
+              "relative mx-auto flex max-h-[90svh] w-full",
+              isMobile ? "max-w-[76vw] flex-col" : "max-w-[90vw]",
             )}
           >
             <ArrowCursors
@@ -165,18 +150,17 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(
               posts={inspectedUser.posts}
             />
             {isMobile ? <PostHeader userData={inspectedUser} /> : null}
-            <div className="">
+            <div>
               {post.type.startsWith("image/") ? (
                 <img key={post.media_url} src={post.media_url} />
               ) : (
                 <Video
-                  media_url={post.media_url}
                   controls={true}
                   autoPlay={true}
+                  media_url={post.media_url}
                   poster={post.thumbnail_url}
                   className={cn(
-                    "h-full w-full max-w-[900px] bg-black",
-                    isMobile ? "aspect-square object-cover" : "",
+                    "aspect-square h-full w-full max-w-[900px] bg-black object-cover",
                   )}
                 />
               )}

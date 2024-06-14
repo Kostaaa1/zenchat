@@ -38,9 +38,11 @@ const io = new Server(server, {
   },
 });
 initSocket(io);
+
+app.get("/", (_, res) => res.send("Hello from zanchat server"));
 const port = PORT || 8000;
-// @ts-ignore
-server.listen(port, "0.0.0.0", () => {
+
+server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 

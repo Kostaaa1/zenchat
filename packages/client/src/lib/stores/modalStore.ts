@@ -15,7 +15,7 @@ type Store = {
   isModalOpen: boolean;
   imageSource: string | null;
   // unsendMsgData: { id: string; imageUrl: string | null } | null;
-  unsendMsgData: TMessage | null;
+  activeMessage: TMessage | null;
   modalPostData: TPost | null;
   isMessageDropdownActive: boolean;
   isAvatarUpdating: boolean;
@@ -27,7 +27,7 @@ type Store = {
     closeModal: () => void;
     setImageSource: (src: string) => void;
     setModalPostData: (s: TPost | null) => void;
-    setUnsendMsgData: (data: TMessage | null) => void;
+    setActiveMessage: (data: TMessage | null) => void;
     setIsMessageDropdownActive: (isOpen: boolean) => void;
     setIsAvatarUpdating: (isUpdating: boolean) => void;
   };
@@ -38,7 +38,7 @@ const useModalStore = create<Store>(
     isModalOpen: false,
     activeModal: null,
     isAvatarUpdating: false,
-    unsendMsgData: null,
+    activeMessage: null,
     isMessageDropdownActive: false,
     imageSource: null,
     modalPostData: null,
@@ -64,12 +64,11 @@ const useModalStore = create<Store>(
             };
           }
         }),
-      //////
       setImageSource: (imageSource: string) => set({ imageSource }),
       setModalPostData: (modalPostData: TPost | null) => set({ modalPostData }),
       setIsAvatarUpdating: (isUpdaing: boolean) =>
         set({ isAvatarUpdating: isUpdaing }),
-      setUnsendMsgData: (data: TMessage | null) => set({ unsendMsgData: data }),
+      setActiveMessage: (data: TMessage | null) => set({ activeMessage: data }),
       setIsMessageDropdownActive: (isOpen: boolean) =>
         set({ isMessageDropdownActive: isOpen }),
     },

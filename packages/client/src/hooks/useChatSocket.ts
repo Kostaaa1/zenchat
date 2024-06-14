@@ -89,7 +89,6 @@ const useChatSocket = () => {
       if (!userData) return;
       console.log("Recieve new socket message called", socketData);
       const { channel, data } = socketData;
-
       if (channel === "onMessage") {
         const { message, shouldActivate } = data;
         const { is_image, sender_id } = message;

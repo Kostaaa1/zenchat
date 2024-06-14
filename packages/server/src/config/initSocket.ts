@@ -5,7 +5,6 @@ import { TMessage } from "../types/types";
 interface TCustomSocketType extends Socket {
   userId?: string;
 }
-
 export let rooms: Map<string, Set<string>>;
 
 export const initSocket = (io: Server) => {

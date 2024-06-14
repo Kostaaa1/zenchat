@@ -1,4 +1,4 @@
-import { Info } from "lucide-react";
+import { Info, Phone } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
 import useChatStore from "../../../lib/stores/chatStore";
 import useUser from "../../../hooks/useUser";
@@ -71,16 +71,27 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
         )}
         <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       </div>
-      <Info
-        onClick={handleIconClick}
-        width={iconSize}
-        height={iconSize}
-        fill={fillColor}
-        color={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        className="cursor-pointer"
-      />
+      <div className="flex space-x-3">
+        <Phone
+          width={iconSize}
+          height={iconSize}
+          fill={fillColor}
+          color={color}
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          className="cursor-pointer"
+        />
+        <Info
+          onClick={handleIconClick}
+          width={iconSize}
+          height={iconSize}
+          fill={fillColor}
+          color={color}
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          className="cursor-pointer"
+        />
+      </div>
     </div>
   );
 };
