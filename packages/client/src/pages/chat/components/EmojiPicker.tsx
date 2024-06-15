@@ -2,18 +2,18 @@ import { FC, RefObject } from "react";
 import Picker from "@emoji-mart/react";
 import { AnimatePresence, motion } from "framer-motion";
 import data from "@emoji-mart/data";
-import useChat from "../../../hooks/useChat";
 
 type EmojiPickerProps = {
   showEmojiPicker: boolean;
   emojiRef: RefObject<HTMLDivElement>;
+  selectEmoji: (e: data.Skin) => void;
 };
 
 export const EmojiPickerContainer: FC<EmojiPickerProps> = ({
   showEmojiPicker,
   emojiRef,
+  selectEmoji,
 }) => {
-  const { handleSelectEmoji } = useChat();
   return (
     <AnimatePresence>
       {showEmojiPicker ? (
@@ -25,7 +25,7 @@ export const EmojiPickerContainer: FC<EmojiPickerProps> = ({
           transition={{ duration: 0.2, ease: "easeInOut" }}
           className="absolute bottom-20 left-4 z-50"
         >
-          <Picker theme="dark" data={data} onEmojiSelect={handleSelectEmoji} />
+          <Picker theme="dark" data={data} onEmojiSelect={selectEmoji} />
         </motion.div>
       ) : null}
     </AnimatePresence>

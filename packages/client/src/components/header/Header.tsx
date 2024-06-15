@@ -2,27 +2,14 @@ import Navbar from "./Navbar";
 import Search from "../search/Search";
 import { AnimatePresence } from "framer-motion";
 import useGeneralStore from "../../lib/stores/generalStore";
-import Logo from "../Logo";
-import SearchInput from "../search/SearchInput";
 import useSearchStore from "../../lib/stores/searchStore";
 import { useLocation } from "react-router-dom";
 import useNavbar from "../../hooks/useNavbar";
 import useOutsideClick from "../../hooks/useOutsideClick";
+import { memo } from "react";
+import { TopNav } from "./TopNav";
 
-const TopNav = () => {
-  const isSearchActive = useSearchStore((state) => state.isSearchActive);
-  return (
-    <div className="flex items-center justify-between border-b border-[#232323] bg-black py-2 pr-4">
-      <div>
-        <Logo />
-      </div>
-      <SearchInput />
-      {isSearchActive ? <Search /> : null}
-    </div>
-  );
-};
-
-const Header = () => {
+const Header = memo(() => {
   const isMobile = useGeneralStore((state) => state.isMobile);
   const isSearchActive = useSearchStore((state) => state.isSearchActive);
   const location = useLocation();
@@ -43,6 +30,6 @@ const Header = () => {
       )}
     </div>
   );
-};
+});
 
 export default Header;

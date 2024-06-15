@@ -15,7 +15,6 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleConfirmUnsend = async () => {
-    console.log("activeMessage", activeMessage);
     setIsLoading(true);
     if (activeMessage && activeChatroom) {
       console.log("removing message");

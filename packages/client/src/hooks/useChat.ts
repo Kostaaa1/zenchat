@@ -1,176 +1,129 @@
-import { FormEvent, useState } from "react";
+import { useCallback, useEffect } from "react";
 import useChatStore from "../lib/stores/chatStore";
-import useUser from "./useUser";
-import { v4 as uuidv4 } from "uuid";
-import { S3UploadResponse, TMessage } from "../../../server/src/types/types";
-import { getCurrentDate } from "../utils/date";
-import useChatCache from "./useChatCache";
+import { TMessage } from "../../../server/src/types/types";
 import { trpc } from "../lib/trpcClient";
-import { Skin } from "@emoji-mart/data";
-import useChatMapStore from "../lib/stores/chatMapStore";
-import axios from "axios";
+import { loadImage } from "../utils/image";
+import { useParams } from "react-router-dom";
+import useChatCache from "./useChatCache";
+import useUser from "./useUser";
 
-const useChat = (scrollToStart?: () => void) => {
-  const { userData, token } = useUser();
-  const inputImages = useChatMapStore((state) => state.inputImages);
-  const inputMessages = useChatMapStore((state) => state.inputMessages);
-  const {
-    addChatInputImage,
-    clearMessageInput,
-    removeChatInputImage,
-    clearImagesInput,
-    addChatInputMessage,
-  } = useChatMapStore((state) => state.actions);
+const useChat = () => {
+  const MESSAGE_FETCH_LIMIT = 22;
+  const utils = trpc.useUtils();
+  const { updateUserReadMessage } = useChatCache();
+  const { userData } = useUser();
+  const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
   }));
-  const { addNewMessageToChatCache } = useChatCache();
-  const [formData, setFormdata] = useState<FormData>(new FormData());
-  const sendMessageMutation = trpc.chat.messages.send.useMutation();
-  const [trackFiles, setTrackFiles] = useState<File[]>([]);
+  const { setLastMessageDate, setActiveChatroom, setIsMessagesLoading } =
+    useChatStore((state) => state.actions);
 
-  const handleSelectEmoji = (e: Skin) => {
-    if (activeChatroom) {
-      const { chatroom_id } = activeChatroom;
-      const input_message = inputMessages.get(chatroom_id);
-      addChatInputMessage(chatroom_id, `${input_message}${e.native}`);
+  const { data: messages, isLoading } = trpc.chat.messages.get.useQuery(
+    { chatroom_id: chatRoomId! },
+    { enabled: !!activeChatroom && !!chatRoomId },
+  );
+
+  const loadMessages = useCallback(
+    async (messages: TMessage[]) => {
+      await Promise.all(
+        messages.map(async (msg) => {
+          if (msg.is_image) await loadImage(msg.content);
+        }),
+      );
+      setIsMessagesLoading(false);
+    },
+    [setIsMessagesLoading],
+  );
+
+  useEffect(() => {
+    if (!isLoading && messages) {
+      messages.length === 0
+        ? setIsMessagesLoading(false)
+        : loadMessages(messages);
     }
-  };
+  }, [isLoading, messages]);
 
-  const fileSetter = (newFile: File) => {
-    if (!activeChatroom) return;
-    formData.append("images", newFile);
-    setFormdata(formData);
-    const blob = URL.createObjectURL(newFile);
-    addChatInputImage(activeChatroom.chatroom_id, blob);
-    const added = [...trackFiles, newFile];
-    setTrackFiles(added);
-  };
+  const { shouldFetchMoreMessages } = useChatStore((state) => ({
+    shouldFetchMoreMessages: state.shouldFetchMoreMessages,
+  }));
 
-  const removeFileFromArray = (id: number) => {
-    if (activeChatroom) {
-      const chatroomID = activeChatroom.chatroom_id;
-      // const imageUrls = inputImages.get(chatroomID);
-      // if (!imageUrls) return;
-      // const updatedImageUrls = imageUrls?.filter((url, index) => {
-      //   if (index === id) {
-      //     URL.revokeObjectURL(url);
-      //     return false;
-      //   }
-      //   return true;
-      // });
-      // console.log("updated image ulrs", updatedImageUrls);
-      // inputImages.set(chatroomID, updatedImageUrls);
+  const {
+    decrementUnreadMessagesCount,
+    setShouldFetchMoreMessages,
+    setShowDetails,
+  } = useChatStore((state) => state.actions);
 
-      removeChatInputImage(chatroomID, id);
-      setTrackFiles((state) => state.filter((_, index) => index !== id));
-      const newFormData = new FormData();
-
-      formData.forEach((value) => {
-        if (value instanceof File && value.name !== trackFiles[id].name) {
-          newFormData.append("images", value);
+  const triggerReadMessagesMutation =
+    trpc.chat.messages.triggerReadMessages.useMutation({
+      onSuccess: () => {
+        if (activeChatroom) {
+          decrementUnreadMessagesCount();
+          updateUserReadMessage(activeChatroom.chatroom_id, true);
         }
-      });
-      setFormdata(newFormData);
-    }
-  };
-
-  const createNewMessage = (data: {
-    content: string;
-    chatroom_id: string;
-    is_image: boolean;
-    id?: string;
-  }): TMessage => {
-    const { content, id, chatroom_id, is_image } = data;
-    return {
-      id: id ?? uuidv4(),
-      sender_id: userData!.id,
-      sender_username: userData!.username,
-      created_at: getCurrentDate(),
-      is_image,
-      chatroom_id,
-      content,
-    };
-  };
-
-  const sendTextMessage = async (
-    input_message: string,
-    chatroom_id: string,
-  ) => {
-    clearMessageInput(chatroom_id);
-    const messageData = createNewMessage({
-      content: input_message,
-      is_image: false,
-      chatroom_id,
-    });
-    addNewMessageToChatCache(messageData);
-    if (messageData) await sendMessageMutation.mutateAsync(messageData);
-  };
-
-  const handleSubmitMessage = async (e: FormEvent) => {
-    e.preventDefault();
-    if (scrollToStart) scrollToStart();
-    if (activeChatroom) {
-      const { chatroom_id } = activeChatroom;
-      const input_message = inputMessages.get(chatroom_id);
-      const input_images = inputImages.get(chatroom_id);
-
-      if (input_message) {
-        await sendTextMessage(input_message, chatroom_id);
-      }
-      if (input_images && input_images.length > 0) {
-        await sendImageMessage(chatroom_id);
-      }
-    }
-  };
-
-  const sendImageMessage = async (chatroomId: string) => {
-    const input_images = inputImages.get(chatroomId);
-    if (!input_images) return;
-    const newMessagesStack: TMessage[] = [];
-    clearImagesInput(chatroomId);
-
-    for (const fileUrl of input_images) {
-      const id = uuidv4();
-      const messageData = createNewMessage({
-        id,
-        chatroom_id: chatroomId,
-        content: "",
-        is_image: true,
-      });
-      messageData.content = fileUrl;
-      newMessagesStack.push(messageData);
-      addNewMessageToChatCache(messageData);
-    }
-
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_SERVER_URL}/api/upload/message`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
       },
-    );
-    const newUrls = data.urls as S3UploadResponse[];
-    await Promise.all(
-      newUrls.map(async (_, id) => {
-        const message = newMessagesStack[id];
-        message.content = newUrls[id].key;
-        await sendMessageMutation.mutateAsync(message);
-      }),
-    );
+      onError: (err) => {
+        console.log("error", err);
+      },
+    });
 
-    formData.delete("images");
-    setTrackFiles([]);
-  };
+  useEffect(() => {
+    if (activeChatroom && userData) {
+      const foundUser = activeChatroom.users.find(
+        (x) => x.user_id === userData.id,
+      );
+      if (foundUser && !foundUser.is_message_seen) {
+        console.log("Should trigger");
+        triggerReadMessagesMutation.mutate(foundUser.id);
+      }
+    }
+  }, [activeChatroom, triggerReadMessagesMutation, userData]);
+
+  const { mutateAsync: getMoreMutation } =
+    trpc.chat.messages.getMore.useMutation({
+      mutationKey: [
+        {
+          chatroom_id: activeChatroom?.chatroom_id,
+        },
+      ],
+      onSuccess: (messages) => {
+        if (!messages || !shouldFetchMoreMessages || !activeChatroom) return;
+        utils.chat.messages.get.setData(
+          {
+            chatroom_id: activeChatroom.chatroom_id,
+          },
+          (staleChats) => {
+            if (staleChats && messages) return [...staleChats, ...messages];
+          },
+        );
+        if (messages.length < MESSAGE_FETCH_LIMIT) {
+          setShouldFetchMoreMessages(false);
+        }
+      },
+    });
+
+  useEffect(() => {
+    if (!messages) return;
+    console.log("messages ran");
+    if (messages.length === 0 || messages.length < MESSAGE_FETCH_LIMIT) {
+      setShouldFetchMoreMessages(false);
+      return;
+    }
+    if (messages.length > 0) {
+      setLastMessageDate(messages[messages.length - 1].created_at);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      setActiveChatroom(null);
+      setShowDetails(false);
+    };
+  }, []);
 
   return {
-    handleSubmitMessage,
-    fileSetter,
-    removeFileFromArray,
-    handleSelectEmoji,
+    messages,
+    getMoreMutation,
   };
 };
 

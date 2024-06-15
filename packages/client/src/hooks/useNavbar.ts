@@ -35,7 +35,6 @@ const useNavbar = () => {
   const expendableLists: ActiveList[] = ["user"];
 
   useEffect(() => {
-    console.log("ran");
     setIsResponsive(location.pathname.includes("inbox") || width <= 1024);
   }, [width, location.pathname]);
 
@@ -52,12 +51,14 @@ const useNavbar = () => {
         }
       } else {
         setIsSearchActive(!isSearchActive);
+
         if (width >= 1024) {
           setIsResponsive(
             location.pathname.includes("inbox") ||
               (!location.pathname.includes("inbox") && !isSearchActive),
           );
         }
+
         if (isMobile && location.pathname !== "/") {
           navigate(`/${userData!.username}`);
         }

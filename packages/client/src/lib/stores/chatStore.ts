@@ -3,21 +3,21 @@ import { TChatroom } from "../../../../server/src/types/types";
 
 type ChatStore = {
   showEmojiPicker: boolean;
-  // shouldFetchMoreMessages: boolean;
+  shouldFetchMoreMessages: boolean;
   showDetails: boolean;
   activeChatroom: TChatroom | null;
   activeChatroomTitle: string | null;
   unreadMessagesCount: number;
-  // messages: TMessage[];
-  // isChatLoading: boolean;
+  isMessagesLoading: boolean;
+  lastMessageDate: string;
   actions: {
-    // setIsChatLoading: (v: boolean) => void;
+    setIsMessagesLoading: (v: boolean) => void;
+    setLastMessageDate: (s: string) => void;
     decrementUnreadMessagesCount: () => void;
     incrementUnreadMessagesCount: () => void;
     setUnreadMessagesCount: (v: number) => void;
-    // setMessages: (messages: TMessage[]) => void;
     setShowEmojiPicker: (bool: boolean) => void;
-    // setShouldFetchMoreMessages: (val: boolean) => void;
+    setShouldFetchMoreMessages: (val: boolean) => void;
     setShowDetails: (isOpen: boolean) => void;
     setActiveChatroom: (data: TChatroom | null) => void;
     setActiveChatroomTitle: (v: string) => void;
@@ -30,8 +30,15 @@ const useChatStore = create<ChatStore>(
     showEmojiPicker: false,
     activeChatroom: null,
     activeChatroomTitle: null,
+    shouldFetchMoreMessages: true,
     unreadMessagesCount: 0,
+    lastMessageDate: "",
+    isMessagesLoading: true,
     actions: {
+      setLastMessageDate: (lastMessageDate: string) => set({ lastMessageDate }),
+      setIsMessagesLoading: (val: boolean) => set({ isMessagesLoading: val }),
+      setShouldFetchMoreMessages: (val: boolean) =>
+        set({ shouldFetchMoreMessages: val }),
       decrementUnreadMessagesCount: () =>
         set((state) => {
           const count = state.unreadMessagesCount;

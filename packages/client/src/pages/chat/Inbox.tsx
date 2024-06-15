@@ -1,119 +1,31 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import useChatStore from "../../lib/stores/chatStore";
 import UserChats from "./components/UserChats";
-import { trpc } from "../../lib/trpcClient";
-import useUser from "../../hooks/useUser";
 import Chat from "./components/Chat";
 import ChatDetails from "./components/ChatDetails";
 import { cn } from "../../utils/utils";
-import { loadImage } from "../../utils/image";
 import useGeneralStore from "../../lib/stores/generalStore";
 import MainContainer from "../../components/MainContainer";
-import useChatMapStore from "../../lib/stores/chatMapStore";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
 import useModalStore from "../../lib/stores/modalStore";
-import { TChatroom, TUserData } from "../../../../server/src/types/types";
-import useMessageStore from "../../lib/stores/messageStore";
+import useInbox from "../../hooks/useInbox";
 
 const Inbox = () => {
   const location = useLocation();
-  const { userData } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { openModal } = useModalStore((state) => state.actions);
-  const utils = trpc.useUtils();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { messages, areMessagesLoading } = useMessageStore((state) => ({
-    messages: state.messages,
-    areMessagesLoading: state.areMessagesLoading,
-  }));
-  const { setMessages, setAreMessagesLoading } = useMessageStore(
-    (state) => state.actions,
-  );
-
   ///////////// Returnuj is useChat valjdd??
-  const { inputImages, inputMessages } = useChatMapStore((state) => ({
-    inputMessages: state.inputMessages,
-    inputImages: state.inputImages,
-  }));
+  const { userChats, isUserChatsLoading } = useInbox();
+
   const { activeChatroom, showDetails } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
     activeChatroomTitle: state.activeChatroomTitle,
     showDetails: state.showDetails,
   }));
-  const { setActiveChatroom, setActiveChatroomTitle } = useChatStore(
-    (state) => state.actions,
-  );
-  /////////////
-
-  const { data, isFetched } = trpc.chat.get.user_chatrooms.useQuery(
-    userData!.id,
-    {
-      enabled: !!userData,
-      refetchOnReconnect: "always",
-      refetchOnMount: "always",
-    },
-  );
-
-  const userChats = useMemo(() => {
-    const filteredChats = data?.filter((x) =>
-      x.users.some((y) => y.username === userData?.username && y.is_active),
-    );
-
-    if (filteredChats) {
-      filteredChats.forEach(async (chat) => {
-        await Promise.all(
-          chat.users.map(
-            async (user) => user.image_url && (await loadImage(user.image_url)),
-          ),
-        );
-        inputMessages.set(chat.chatroom_id, "");
-        inputImages.set(chat.chatroom_id, []);
-      });
-    }
-    return filteredChats;
-  }, [data]);
-
-  useEffect(() => {
-    if (!userChats || userChats.length === 0 || !userData) return;
-    const activeChat = userChats.find(
-      (chat) => chat.chatroom_id === chatRoomId,
-    );
-    if (activeChat) prepareChat(activeChat, userData);
-    setIsLoading(false);
-  }, [userChats, chatRoomId, userData]);
-
-  const prepareChat = async (activeChat: TChatroom, userData: TUserData) => {
-    setActiveChatroom(activeChat);
-    setActiveChatroomTitle(
-      activeChat.users
-        .filter((chat) => chat.username !== userData.username)
-        .map((chat) => chat.username)
-        .join(", "),
-    );
-    const msgs = await utils.chat.messages.get.fetch({
-      chatroom_id: activeChat.chatroom_id,
-    });
-
-    if (msgs) {
-      await Promise.all(
-        msgs
-          .filter((x) => x.is_image)
-          .map(async (msg) => await loadImage(msg.content)),
-      );
-      setMessages(msgs);
-      setAreMessagesLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      setActiveChatroom(null);
-    };
-  }, []);
 
   return (
     <MainContainer>
@@ -125,22 +37,15 @@ const Inbox = () => {
         )}
       >
         {(!chatRoomId || (chatRoomId && !isMobile)) && (
-          <UserChats
-            userChats={userChats}
-            isLoading={!isFetched && isLoading}
-          />
+          <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
         )}
-        {location.pathname !== "/inbox" && activeChatroom && messages && (
-          <Chat
-            activeChatroom={activeChatroom}
-            scrollRef={scrollRef}
-            isLoading={areMessagesLoading}
-          />
+        {location.pathname !== "/inbox" && activeChatroom && (
+          <Chat activeChatroom={activeChatroom} scrollRef={scrollRef} />
         )}
         {showDetails && activeChatroom && <ChatDetails />}
         {!isMobile && !activeChatroom && (
           <div className="flex h-full w-full flex-col items-center justify-center text-center">
-            {isLoading ? (
+            {isUserChatsLoading ? (
               <>
                 <div className="h-[100px] w-[100px] animate-pulse rounded-full bg-neutral-800 pb-6"></div>
                 <div className="flex h-max flex-col items-center space-y-3 pt-4">

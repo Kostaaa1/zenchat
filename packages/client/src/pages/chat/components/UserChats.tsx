@@ -8,7 +8,7 @@ import { cn } from "../../../utils/utils";
 import useGeneralStore from "../../../lib/stores/generalStore";
 import useChatStore from "../../../lib/stores/chatStore";
 import { useNavigate, useParams } from "react-router-dom";
-import useMessageStore from "../../../lib/stores/messageStore";
+// import useMessageStore from "../../../lib/stores/messageStore";
 
 type TUserChatsProps = {
   userChats: TChatroom[] | undefined;
@@ -21,16 +21,18 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const navigate = useNavigate();
   const params = useParams<{ chatRoomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
-  const { setShowDetails, setActiveChatroom } = useChatStore(
-    (state) => state.actions,
-  );
-  const {setShouldFetchMoreMessages, setAreMessagesLoading} = useMessageStore(state => state.actions)
+  const {
+    setShowDetails,
+    setActiveChatroom,
+    setShouldFetchMoreMessages,
+    setIsMessagesLoading,
+  } = useChatStore((state) => state.actions);
 
   const handleChatUserClick = (chatroom_id: string) => {
     if (params.chatRoomId === chatroom_id) return;
     setShouldFetchMoreMessages(true);
     setShowDetails(false);
-    setAreMessagesLoading(true);
+    setIsMessagesLoading(true);
     setActiveChatroom(null);
     navigate(`/inbox/${chatroom_id}`);
   };

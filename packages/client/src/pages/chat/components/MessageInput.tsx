@@ -1,12 +1,10 @@
-import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
+import React, { FC, FormEvent, useRef } from "react";
 import Icon from "../../../components/Icon";
 import useChatStore from "../../../lib/stores/chatStore";
 import { cn } from "../../../utils/utils";
-import { renameFile } from "../../../utils/file";
 import { EmojiPickerContainer } from "./EmojiPicker";
 import { TChatroom } from "../../../../../server/src/types/types";
-import useChatMapStore from "../../../lib/stores/chatMapStore";
-import useChat from "../../../hooks/useChat";
+import useMessageInput from "../../../hooks/useMessageInput";
 
 interface MessageInputProps {
   iconRef: React.RefObject<HTMLDivElement>;
@@ -15,57 +13,39 @@ interface MessageInputProps {
 }
 
 const MessageInput: FC<MessageInputProps> = ({
-  activeChatroom,
   iconRef,
   scrollToStart,
+  activeChatroom,
 }) => {
+  const emojiRef = useRef<HTMLDivElement>(null);
+  const {
+    sendMessage,
+    handleFileChange,
+    imageInputs,
+    messageInput,
+    removeFileFromStack,
+    handleInputChange,
+    selectEmoji,
+  } = useMessageInput(activeChatroom);
   const { setShowEmojiPicker } = useChatStore((state) => state.actions);
   const { showEmojiPicker } = useChatStore((state) => ({
     showEmojiPicker: state.showEmojiPicker,
   }));
 
-  const { addChatInputMessage } = useChatMapStore((state) => state.actions);
-  const { inputImages, inputMessages } = useChatMapStore((state) => ({
-    inputMessages: state.inputMessages,
-    inputImages: state.inputImages,
-  }));
-
-  const { fileSetter, removeFileFromArray, handleSubmitMessage } =
-    useChat(scrollToStart);
-
-  const emojiRef = useRef<HTMLDivElement>(null);
   const showEmoji = () => {
     setShowEmojiPicker(!showEmojiPicker);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e?.target?.files?.[0];
-    if (file) renameFile(file, activeChatroom?.chatroom_id, fileSetter);
-    e.target.value = "";
-  };
-
-  const [imageInputs, setImageInputs] = useState<string[]>([]);
-  const [messageInput, setMessageInput] = useState<string>("");
-
-  useEffect(() => {
-    if (!activeChatroom) return;
-    const a = inputImages.get(activeChatroom.chatroom_id) ?? [];
-    const b = inputMessages.get(activeChatroom.chatroom_id) ?? "";
-    setImageInputs(a);
-    setMessageInput(b);
-  }, [activeChatroom, inputImages, inputMessages]);
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let { value } = e.target;
-    if (value.length === 0) value = "";
-    addChatInputMessage(activeChatroom.chatroom_id, value);
+  const handleSubmit = (e: FormEvent) => {
+    sendMessage(e);
+    scrollToStart();
   };
 
   return (
     <div className="px-4">
       {activeChatroom && (
         <form
-          onSubmit={handleSubmitMessage}
+          onSubmit={handleSubmit}
           className={cn(
             "relative flex",
             imageInputs.length === 0 ? "h-14" : "h-[124px]",
@@ -82,7 +62,7 @@ const MessageInput: FC<MessageInputProps> = ({
                       alt="image"
                     />
                     <div
-                      onClick={() => removeFileFromArray(id)}
+                      onClick={() => removeFileFromStack(id)}
                       className="absolute right-0 top-0 flex -translate-y-[2px] translate-x-1 items-center rounded-full bg-zinc-300 p-[1px] text-zinc-600"
                     >
                       <Icon name="X" strokeWidth="3px" size="10px" />
@@ -156,6 +136,7 @@ const MessageInput: FC<MessageInputProps> = ({
         </form>
       )}
       <EmojiPickerContainer
+        selectEmoji={selectEmoji}
         emojiRef={emojiRef}
         showEmojiPicker={showEmojiPicker}
       />

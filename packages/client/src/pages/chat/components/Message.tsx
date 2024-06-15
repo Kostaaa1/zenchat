@@ -23,11 +23,13 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
     const [isHovered, setIsHovered] = useState<boolean>(false);
     const { content, created_at, id, sender_id, is_image } = message;
     const activeChatroom = useChatStore((state) => state.activeChatroom);
-    const isLoggedUserASender = sender_id === userData?.id;
     const activeMessage = useModalStore((state) => state.activeMessage);
     const { setImageSource, openModal } = useModalStore(
       (state) => state.actions,
     );
+
+    const isLoggedUserASender = sender_id === userData?.id;
+
     return (
       <li
         onMouseEnter={() => setIsHovered(true)}
