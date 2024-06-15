@@ -17,10 +17,8 @@ const RTCVoiceCall = () => {
     });
 
   const makeCall = async () => {
-    if (!chatroomId || !userData) return;
-    const receivers = chatroomUsers
-      ?.filter((x) => x.user_id !== userData.id)
-      .map((x) => x.user_id);
+    if (!chatroomId || !userData || !chatroomUsers) return;
+    const receivers = chatroomUsers.map((x) => x.user_id);
 
     const peerConnection = new RTCPeerConnection({
       iceServers: [
@@ -31,7 +29,7 @@ const RTCVoiceCall = () => {
     });
     setPeerConnection(peerConnection);
 
-    ///////////
+    ////////////
     const localStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: false,
@@ -39,11 +37,12 @@ const RTCVoiceCall = () => {
     localStream
       .getTracks()
       .forEach((track) => peerConnection.addTrack(track, localStream));
-    const audioElement = document.getElementById("localVoice");
+    const audioElement = document.getElementById("local");
     if (audioElement) {
       const el = audioElement as HTMLAudioElement;
       el.srcObject = localStream;
     }
+    ////////////////
 
     peerConnection.onicecandidate = (ev) => {
       if (ev.candidate) {
@@ -58,7 +57,7 @@ const RTCVoiceCall = () => {
 
     peerConnection.ontrack = (event) => {
       console.log("received remote track: ", event.streams);
-      const remoteAudio = document.getElementById("remoteVoice");
+      const remoteAudio = document.getElementById("remote");
       if (remoteAudio) {
         const el = remoteAudio as HTMLAudioElement;
         el.srcObject = event.streams[0];

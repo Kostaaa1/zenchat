@@ -21,10 +21,12 @@ export const initSocket = (io: Server) => {
     socket.on("offer", async (data: RTCOfferResponse["message"]) => {
       const { receivers } = data;
       for (const user of receivers) {
-        io.to(user).emit("offer", {
-          status: "success",
-          message: data,
-        });
+        if (user !== data.caller) {
+          io.to(user).emit("offer", {
+            status: "success",
+            message: data,
+          });
+        }
       }
     });
 
@@ -36,7 +38,9 @@ export const initSocket = (io: Server) => {
       console.log("RECEIEVED ICE CANDIDATE", data);
       const { receivers } = data;
       for (const receiver of receivers) {
-        io.to(receiver).emit("ice", { status: "success", message: data });
+        if (receiver !== data.caller) {
+          io.to(receiver).emit("ice", { status: "success", message: data });
+        }
       }
     });
 

@@ -22,8 +22,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <TRPCWrapper>
       <BrowserRouter>
         <App />
-        <audio id="localVoice" />
-        <audio id="removeVoide" />
       </BrowserRouter>
     </TRPCWrapper>
   </ClerkProvider>,

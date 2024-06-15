@@ -138,6 +138,7 @@ const useChatSocket = () => {
 
   const recieveCallOffer = async (res: RTCOfferResponse) => {
     console.log("Offer: ", res);
+
     if (res.status === "success") {
       const { message } = res;
       const { offer, caller, chatroomId, receivers } = message;
@@ -145,8 +146,7 @@ const useChatSocket = () => {
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       });
       setPeerConnection(conn);
-
-      ///////////
+      //////////////////////
       const localStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: false,
@@ -154,7 +154,7 @@ const useChatSocket = () => {
       localStream
         .getTracks()
         .forEach((track) => conn.addTrack(track, localStream));
-      const audioElement = document.getElementById("localVoice");
+      const audioElement = document.getElementById("local");
       if (audioElement) {
         const el = audioElement as HTMLAudioElement;
         el.srcObject = localStream;
@@ -174,7 +174,7 @@ const useChatSocket = () => {
 
       conn.ontrack = (event) => {
         console.log("received remote track: ", event.streams);
-        const remoteAudio = document.getElementById("remoteVoice");
+        const remoteAudio = document.getElementById("remote");
         if (remoteAudio) {
           const el = remoteAudio as HTMLAudioElement;
           el.srcObject = event.streams[0];
@@ -185,7 +185,6 @@ const useChatSocket = () => {
         conn.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await conn.createAnswer();
         await conn.setLocalDescription(answer);
-        // socket send to who
         const data: RTCAnswerResponse["message"] = {
           answer,
           caller,
@@ -211,10 +210,14 @@ const useChatSocket = () => {
   const receieveIceCandidate = async (data: RTCIceCandidateResponse) => {
     const { status, message } = data;
     if (status === "success") {
-      console.log("receive ICE message: ", message);
-      await peerConnection?.addIceCandidate(
-        new RTCIceCandidate(message.candidate),
-      );
+      try {
+        console.log("receive ICE message: ", message);
+        await peerConnection?.addIceCandidate(
+          new RTCIceCandidate(message.candidate),
+        );
+      } catch (error) {
+        console.log("Error when adding the ICE candidate", error);
+      }
     }
   };
 
@@ -222,8 +225,8 @@ const useChatSocket = () => {
     if (!userData) return;
     socket.emit("join-room", userData.id);
     socket.emit("onMessage", userData.id);
-
     socket.on("onMessage", receiveNewSocketMessage);
+
     socket.on("offer", recieveCallOffer);
     socket.on("answer", recieveAnswer);
     socket.on("ice", receieveIceCandidate);
