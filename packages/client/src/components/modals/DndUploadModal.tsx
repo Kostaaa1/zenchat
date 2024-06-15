@@ -265,11 +265,11 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                   animate={{ opacity: 1 }}
                   transition={{ ease: "easeInOut", duration: 0.3 }}
                   className={cn(
-                    "relative flex h-full",
+                    "relative flex h-full w-full justify-between",
                     isMobile && "w-full flex-col",
                   )}
                 >
-                  <div className="">
+                  <div className="w-full">
                     {file.type.startsWith("image/") && (
                       <img src={mediaSrc} alt={mediaSrc} />
                     )}
@@ -285,9 +285,10 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                   </div>
                   <div
                     className={cn(
-                      "h-full w-[280px]",
-                      isMobile &&
-                        "absolute bottom-0 h-[36vw] w-full bg-[#282828]",
+                      "h-full",
+                      isMobile
+                        ? "absolute bottom-0 h-[36vw] w-full bg-[#282828]"
+                        : "min-w-[280px]",
                     )}
                   >
                     <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
@@ -319,7 +320,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
           ) : (
             <div className="absolute right-1/2 top-1/2 -translate-y-1/2 translate-x-1/2">
               {modalTitle === "Post uploaded" ? (
-                <motion.div>div</motion.div>
+                <motion.div>s</motion.div>
               ) : (
                 <Loader2
                   className="animate-spin"

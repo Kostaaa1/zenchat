@@ -60,7 +60,7 @@ const Dashboard = () => {
     return () => {
       setPostsLoaded(false);
     };
-  }, [isFetched]);
+  }, []);
 
   const openUploadModal = () => {
     if (params.username === userData!.username) {
