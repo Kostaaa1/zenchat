@@ -5,6 +5,10 @@ import { TMessage, TChatroom, TChatHistory } from "../../types/types";
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
 import { deleteS3Object, s3KeyConstructor } from "../s3";
+import { PostgrestError } from "@supabase/supabase-js";
+
+type DbSuccess<T> = { status: "success"; data: T };
+type DbError = { status: "error"; data: PostgrestError };
 
 export const getMessages = async (chatroom_id: string): Promise<TMessage[]> => {
   const { data, error } = await supabase
@@ -333,6 +337,24 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
   } catch (error) {
     console.log(error);
   }
+};
+
+export const getChatroomUsersFromID = async (chatroom_id: string) => {
+  const { data, error } = await supabase
+    .from("chatroom_users")
+    .select("user_id, is_active, users(image_url, username)")
+    .eq("chatroom_id", chatroom_id);
+
+  if (error) {
+    return { status: "error", data: error } as DbError;
+  }
+
+  const users = data.map((user) => ({
+    ...user.users,
+    is_active: user.is_active,
+    user_id: user.user_id,
+  }));
+  return { status: "success", data: users } as DbSuccess<typeof users>;
 };
 
 export const triggerReadMessages = async (id: string) => {

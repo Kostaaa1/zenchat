@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import useGeneralStore from "../lib/stores/generalStore";
+import useGeneralStore from "../stores/generalStore";
 
 type VideoProps = {
   media_url: string;

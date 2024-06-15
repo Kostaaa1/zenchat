@@ -2,8 +2,8 @@ import { useState } from "react";
 import List from "../../../components/List";
 import { Link } from "react-router-dom";
 import { cn } from "../../../utils/utils";
-import useModalStore from "../../../lib/stores/modalStore";
-import useChatStore from "../../../lib/stores/chatStore";
+import useModalStore from "../../../stores/modalStore";
+import useChatStore from "../../../stores/chatStore";
 import useUser from "../../../hooks/useUser";
 
 const ChatDetails = () => {

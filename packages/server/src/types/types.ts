@@ -57,3 +57,34 @@ export type S3UploadResponse = {
   type: string;
   size: number;
 };
+
+// WebRTC
+export type SocketStatus = "success" | "error";
+export type RTCOfferResponse = {
+  status: SocketStatus;
+  message: {
+    chatroomId: string;
+    receivers: string[];
+    caller: string;
+    offer: any;
+  };
+};
+
+export type RTCAnswerResponse = {
+  status: SocketStatus;
+  message: {
+    chatroomId: string;
+    receivers: string[];
+    caller: string;
+    answer: any;
+  };
+};
+
+export type RTCIceCandidateResponse = {
+  status: SocketStatus;
+  message: {
+    candidate: RTCIceCandidate;
+    caller: string;
+    receivers: string[];
+  };
+};

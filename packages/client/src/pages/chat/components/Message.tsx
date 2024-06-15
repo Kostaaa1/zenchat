@@ -2,13 +2,13 @@ import { forwardRef, useState } from "react";
 import { cn } from "../../../utils/utils";
 import { convertAndFormatDate } from "../../../utils/date";
 import useUser from "../../../hooks/useUser";
-import useModalStore from "../../../lib/stores/modalStore";
+import useModalStore from "../../../stores/modalStore";
 import { TMessage } from "../../../../../server/src/types/types";
 import Icon from "../../../components/Icon";
 import { motion } from "framer-motion";
 import { Separator } from "../../dashboard/Dashboard";
 import Avatar from "../../../components/avatar/Avatar";
-import useChatStore from "../../../lib/stores/chatStore";
+import useChatStore from "../../../stores/chatStore";
 
 interface MessageProps {
   message: TMessage;

@@ -9,7 +9,7 @@ import React, {
 import Icon from "../Icon";
 import Button from "../Button";
 import { Loader2, Upload } from "lucide-react";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import { cn } from "../../utils/utils";
 import { generateThumbnailFile, loadImage } from "../../utils/image";
 import useUser from "../../hooks/useUser";
@@ -19,7 +19,7 @@ import { trpc } from "../../lib/trpcClient";
 import { Modal } from "./Modals";
 import useWindowSize from "../../hooks/useWindowSize";
 import { toast } from "react-toastify";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
 import { nanoid } from "nanoid";
@@ -194,6 +194,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
           Authorization: `Bearer ${token}`,
         },
       });
+
       await loadImage(data.thumbnail_url ?? data.media_url);
       utils.user.get.setData(
         { data: userData.username, type: "username" },

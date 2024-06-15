@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TMessage, TPost } from "../../../../server/src/types/types";
+import { TMessage, TPost } from "../../../server/src/types/types";
 
 type Modals =
   | "image"

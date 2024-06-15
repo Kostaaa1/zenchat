@@ -14,4 +14,4 @@ export type MessagesChannelData = {
 //   data: boolean;
 // };
 
-export type TRecieveNewSocketMessageType = MessagesChannelData;
+export type TReceiveNewSocketMessageType = MessagesChannelData;

@@ -5,8 +5,8 @@ import { useState } from "react";
 import { TUserData } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";
 import Avatar from "../../components/avatar/Avatar";
-import useModalStore from "../../lib/stores/modalStore";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useModalStore from "../../stores/modalStore";
+import useGeneralStore from "../../stores/generalStore";
 
 export const DashboardHeader = ({
   userData,

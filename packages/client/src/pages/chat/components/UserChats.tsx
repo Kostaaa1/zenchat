@@ -2,11 +2,11 @@ import { FC } from "react";
 import { TChatroom } from "../../../../../server/src/types/types";
 import Icon from "../../../components/Icon";
 import List from "../../../components/List";
-import useModalStore from "../../../lib/stores/modalStore";
+import useModalStore from "../../../stores/modalStore";
 import useUser from "../../../hooks/useUser";
 import { cn } from "../../../utils/utils";
-import useGeneralStore from "../../../lib/stores/generalStore";
-import useChatStore from "../../../lib/stores/chatStore";
+import useGeneralStore from "../../../stores/generalStore";
+import useChatStore from "../../../stores/chatStore";
 import { useNavigate, useParams } from "react-router-dom";
 // import useMessageStore from "../../../lib/stores/messageStore";
 
@@ -19,7 +19,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   const { userData } = useUser();
   const { openModal } = useModalStore((state) => state.actions);
   const navigate = useNavigate();
-  const params = useParams<{ chatRoomId: string }>();
+  const params = useParams<{ chatroomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
   const {
     setShowDetails,
@@ -29,7 +29,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
   } = useChatStore((state) => state.actions);
 
   const handleChatUserClick = (chatroom_id: string) => {
-    if (params.chatRoomId === chatroom_id) return;
+    if (params.chatroomId === chatroom_id) return;
     setShouldFetchMoreMessages(true);
     setShowDetails(false);
     setIsMessagesLoading(true);
@@ -106,7 +106,7 @@ const UserChats: FC<TUserChatsProps> = ({ userChats, isLoading }) => {
                       }
                       className={cn(
                         "h-20",
-                        params.chatRoomId === chatroom_id &&
+                        params.chatroomId === chatroom_id &&
                           "bg-white bg-opacity-10",
                       )}
                       image_url={

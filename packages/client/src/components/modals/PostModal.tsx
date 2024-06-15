@@ -1,6 +1,6 @@
 import Icon from "../Icon";
 import { FC, forwardRef } from "react";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import { Modal } from "./Modals";
 import { trpc } from "../../lib/trpcClient";
 import { TPost, TUserData } from "../../../../server/src/types/types";
@@ -8,7 +8,7 @@ import Avatar from "../avatar/Avatar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import Video from "../Video";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import { convertAndFormatDate } from "../../utils/date";
 import { cn } from "../../utils/utils";
 

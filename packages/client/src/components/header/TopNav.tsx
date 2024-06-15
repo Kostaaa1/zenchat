@@ -1,4 +1,4 @@
-import useSearchStore from "../../lib/stores/searchStore";
+import useSearchStore from "../../stores/searchStore";
 import Logo from "../Logo";
 import Search from "../search/Search";
 import SearchInput from "../search/SearchInput";

@@ -1,21 +1,21 @@
 import { useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import useChatStore from "../../lib/stores/chatStore";
+import useChatStore from "../../stores/chatStore";
 import UserChats from "./components/UserChats";
 import Chat from "./components/Chat";
 import ChatDetails from "./components/ChatDetails";
 import { cn } from "../../utils/utils";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import MainContainer from "../../components/MainContainer";
 import Icon from "../../components/Icon";
 import Button from "../../components/Button";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import useInbox from "../../hooks/useInbox";
 
 const Inbox = () => {
   const location = useLocation();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { chatRoomId } = useParams<{ chatRoomId: string }>();
+  const { chatroomId } = useParams<{ chatroomId: string }>();
   const isMobile = useGeneralStore((state) => state.isMobile);
   const { openModal } = useModalStore((state) => state.actions);
   ///////////// Returnuj is useChat valjdd??
@@ -36,7 +36,7 @@ const Inbox = () => {
           isMobile ? "pb-16" : "pl-20",
         )}
       >
-        {(!chatRoomId || (chatRoomId && !isMobile)) && (
+        {(!chatroomId || (chatroomId && !isMobile)) && (
           <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
         )}
         {location.pathname !== "/inbox" && activeChatroom && (

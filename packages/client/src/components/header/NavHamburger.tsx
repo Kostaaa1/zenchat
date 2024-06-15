@@ -1,5 +1,5 @@
 import { FC, useRef } from "react";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import Icon from "../Icon";
 import { AnimatePresence } from "framer-motion";
 import UserDropdown from "./UserDropdown";

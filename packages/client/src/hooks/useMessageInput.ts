@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { renameFile } from "../utils/file";
-import useChatMapStore from "../lib/stores/chatMapStore";
+import useChatMapStore from "../stores/chatMapStore";
 import useUser from "./useUser";
 import { trpc } from "../lib/trpcClient";
 import useChatCache from "./useChatCache";
@@ -134,7 +134,7 @@ const useMessageInput = (chatroom: TChatroom) => {
 
   const sendImageMessage = useCallback(
     async (chatroomId: string) => {
-      console.log(" message ", chatroomId)
+      console.log(" message ", chatroomId);
       const input_images = inputImages.get(chatroomId);
       if (!input_images) return;
       const newMessagesStack: TMessage[] = [];

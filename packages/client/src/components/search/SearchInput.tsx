@@ -3,9 +3,9 @@ import Icon from "../Icon";
 import UseUser from "../../hooks/useUser";
 import { debounce } from "lodash";
 import { trpc } from "../../lib/trpcClient";
-import useSearchStore from "../../lib/stores/searchStore";
+import useSearchStore from "../../stores/searchStore";
 import { cn } from "../../utils/utils";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import { loadImage } from "../../utils/image";
 
 const SearchInput = () => {

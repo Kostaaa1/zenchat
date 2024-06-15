@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import useChatStore from "../lib/stores/chatStore";
+import useChatStore from "../stores/chatStore";
 import { TMessage } from "../../../server/src/types/types";
 import { trpc } from "../lib/trpcClient";
 import { loadImage } from "../utils/image";
@@ -12,7 +12,7 @@ const useChat = () => {
   const utils = trpc.useUtils();
   const { updateUserReadMessage } = useChatCache();
   const { userData } = useUser();
-  const { chatRoomId } = useParams<{ chatRoomId: string }>();
+  const { chatroomId } = useParams<{ chatroomId: string }>();
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
   }));
@@ -20,8 +20,8 @@ const useChat = () => {
     useChatStore((state) => state.actions);
 
   const { data: messages, isLoading } = trpc.chat.messages.get.useQuery(
-    { chatroom_id: chatRoomId! },
-    { enabled: !!activeChatroom && !!chatRoomId },
+    { chatroom_id: chatroomId! },
+    { enabled: !!activeChatroom && !!chatroomId },
   );
 
   const loadMessages = useCallback(

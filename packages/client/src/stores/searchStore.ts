@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TUserDataState } from "../../../../server/src/types/types";
+import { TUserDataState } from "../../../server/src/types/types";
 import { RefObject, createRef } from "react";
 
 type Store = {

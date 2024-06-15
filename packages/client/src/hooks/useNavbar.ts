@@ -1,8 +1,8 @@
-import useSearchStore from "../lib/stores/searchStore";
+import useSearchStore from "../stores/searchStore";
 import useUser from "./useUser";
-import useGeneralStore, { ActiveList } from "../lib/stores/generalStore";
+import useGeneralStore, { ActiveList } from "../stores/generalStore";
 import { useLocation, useNavigate } from "react-router-dom";
-import useModalStore from "../lib/stores/modalStore";
+import useModalStore from "../stores/modalStore";
 import { RefObject, useCallback, useEffect } from "react";
 import useWindowSize from "./useWindowSize";
 import type { icons } from "lucide-react";

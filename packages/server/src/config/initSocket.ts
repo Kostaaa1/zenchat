@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
-import { TMessage } from "../types/types";
+import { RTCIceCandidateResponse, RTCOfferResponse, TMessage } from "../types/types";
+import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -17,21 +18,27 @@ export const initSocket = (io: Server) => {
       console.log("Joined room: ", userId, "Rooms", rooms);
     });
 
-    // socket.on(
-    //   "isTyping",
-    //   (data: {
-    //     isTyping: boolean;
-    //     users: { id: string; isTyping: boolean; typingUser: string }[];
-    //   }) => {
-    //     for (const user of data.users) {
-    //       if (data.isTyping) {
-    //         io.to(user.id).emit("isTyping", { channel: "isTyping", data: user });
-    //       } else {
-    //         io.to(user.id).emit("isTyping", null);
-    //       }
-    //     }
-    //   }
-    // );
+    socket.on("offer", async (data: RTCOfferResponse["message"]) => {
+      const { receivers } = data;
+      for (const user of receivers) {
+        io.to(user).emit("offer", {
+          status: "success",
+          message: data,
+        });
+      }
+    });
+
+    socket.on("answer", (data: RTCOfferResponse["message"]) => {
+      io.to(data.caller).emit("answer", { status: "success", message: data });
+    });
+
+    socket.on("ice", (data: RTCIceCandidateResponse["message"]) => {
+      console.log("RECEIEVED ICE CANDIDATE", data);
+      const { receivers } = data;
+      for (const receiver of receivers) {
+        io.to(receiver).emit("ice", { status: "success", message: data });
+      }
+    });
 
     socket.on("onMessage", () => {
       try {
@@ -42,12 +49,8 @@ export const initSocket = (io: Server) => {
             { event: "*", schema: "public", table: "messages" },
             async (payload) => {
               const messageData = payload.new as TMessage;
-              const { data, error } = await supabase
-                .from("chatroom_users")
-                .select("user_id, is_active")
-                .eq("chatroom_id", messageData.chatroom_id);
-
-              if (error || !data) {
+              const { data, status } = await getChatroomUsersFromID(messageData.chatroom_id);
+              if (status === "error" || !data) {
                 supabase.channel("onMessage").unsubscribe();
                 return;
               }

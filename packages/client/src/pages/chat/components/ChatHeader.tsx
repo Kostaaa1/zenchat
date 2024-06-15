@@ -1,15 +1,18 @@
 import { Info, Phone } from "lucide-react";
 import RenderAvatar from "../../../components/avatar/RenderAvatar";
-import useChatStore from "../../../lib/stores/chatStore";
+import useChatStore from "../../../stores/chatStore";
 import useUser from "../../../hooks/useUser";
 import { useNavigate } from "react-router-dom";
-import useGeneralStore from "../../../lib/stores/generalStore";
+import useGeneralStore from "../../../stores/generalStore";
 import Icon from "../../../components/Icon";
+import { TChatroom } from "../../../../../server/src/types/types";
 import { cn } from "../../../utils/utils";
 import { FC } from "react";
-import { TChatroom } from "../../../../../server/src/types/types";
 
 const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
+  const { userData } = useUser();
+  const navigate = useNavigate();
+  const isMobile = useGeneralStore((state) => state.isMobile);
   const { activeChatroomTitle, showDetails } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
     activeChatroomTitle: state.activeChatroomTitle,
@@ -18,13 +21,10 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
   const { setShowDetails, setActiveChatroom } = useChatStore(
     (state) => state.actions,
   );
-  const { userData } = useUser();
-  const navigate = useNavigate();
-  const isMobile = useGeneralStore((state) => state.isMobile);
-
   const iconSize = showDetails ? 30 : 26;
   const fillColor = showDetails ? "white" : "";
   const color = showDetails ? "black" : "white";
+  const { is_group, users } = chat;
 
   const handleIconClick = () => {
     setShowDetails(!showDetails);
@@ -34,7 +34,6 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
     setActiveChatroom(null);
     navigate("/inbox");
   };
-  const { is_group, users } = chat;
 
   const handleNavigate = () => {
     is_group
@@ -42,6 +41,10 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
       : navigate(
           `/${users.find((x) => x.username !== userData?.username)?.username}`,
         );
+  };
+
+  const callRoom = () => {
+    navigate(`/call/${chat.chatroom_id}`);
   };
 
   return (
@@ -80,6 +83,7 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
           strokeWidth={1.8}
           strokeLinecap="round"
           className="cursor-pointer"
+          onClick={callRoom}
         />
         <Info
           onClick={handleIconClick}

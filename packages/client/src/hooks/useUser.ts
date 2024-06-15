@@ -1,5 +1,5 @@
 import { trpc } from "../lib/trpcClient";
-import useGeneralStore from "../lib/stores/generalStore";
+import useGeneralStore from "../stores/generalStore";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 

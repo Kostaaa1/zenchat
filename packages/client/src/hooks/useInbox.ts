@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import useChatStore from "../lib/stores/chatStore";
+import useChatStore from "../stores/chatStore";
 import useUser from "./useUser";
 import { trpc } from "../lib/trpcClient";
-import useChatMapStore from "../lib/stores/chatMapStore";
+import useChatMapStore from "../stores/chatMapStore";
 import { loadImage } from "../utils/image";
 import { useParams } from "react-router-dom";
 
 const useInbox = () => {
-  const { chatRoomId } = useParams<{ chatRoomId: string }>();
+  const { chatroomId } = useParams<{ chatroomId: string }>();
   const { userData } = useUser();
   const inputImages = useChatMapStore((state) => state.inputImages);
   const inputMessages = useChatMapStore((state) => state.inputMessages);
@@ -45,7 +45,7 @@ const useInbox = () => {
   useEffect(() => {
     if (!userChats || userChats.length === 0 || !userData) return;
     const activeChat = userChats.find(
-      (chat) => chat.chatroom_id === chatRoomId,
+      (chat) => chat.chatroom_id === chatroomId,
     );
     if (activeChat) {
       setActiveChatroom(activeChat);
@@ -57,7 +57,7 @@ const useInbox = () => {
       );
     }
     setIsUserChatsLoading(false);
-  }, [userChats, chatRoomId, userData]);
+  }, [userChats, chatroomId, userData]);
 
   return {
     userChats,

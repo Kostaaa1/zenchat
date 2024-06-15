@@ -2,7 +2,7 @@ import { FC, ReactNode, forwardRef } from "react";
 import { Modal } from "./Modals";
 import { cn } from "../../utils/utils";
 import useModals from "./hooks/useModals";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import { Link } from "react-router-dom";
 import useUser from "../../hooks/useUser";
 

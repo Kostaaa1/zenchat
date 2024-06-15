@@ -3,7 +3,7 @@ import { cva, VariantProps } from "class-variance-authority";
 import { FC, ReactElement, ReactNode, useState } from "react";
 import RenderAvatar from "./avatar/RenderAvatar";
 import { motion } from "framer-motion";
-import useGeneralStore from "../lib/stores/generalStore";
+import useGeneralStore from "../stores/generalStore";
 
 export const listVariants = cva(
   "flex cursor-pointer w-full py-2 justify-between items-center overflow-hidden whitespace-nowrap",

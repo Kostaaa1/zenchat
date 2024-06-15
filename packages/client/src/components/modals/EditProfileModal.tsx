@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useState } from "react";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";

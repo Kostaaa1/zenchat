@@ -6,11 +6,11 @@ import Logo from "../Logo";
 import { cn } from "../../utils/utils";
 import Avatar from "../avatar/Avatar";
 import useUser from "../../hooks/useUser";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import BottomNavbar from "./BottomNav";
 import NavHamburger from "./NavHamburger";
 import { NavListItems } from "../../hooks/useNavbar";
-import useChatStore from "../../lib/stores/chatStore";
+import useChatStore from "../../stores/chatStore";
 
 type NavbarProps = {
   navListItems: NavListItems[];

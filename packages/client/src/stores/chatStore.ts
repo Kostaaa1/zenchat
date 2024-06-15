@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TChatroom } from "../../../../server/src/types/types";
+import { TChatroom } from "../../../server/src/types/types";
 
 type ChatStore = {
   showEmojiPicker: boolean;

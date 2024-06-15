@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 import useUser from "../../hooks/useUser";
 import RecentSearchedUsers from "./RecentSearchedUsers";
 import { cn } from "../../utils/utils";
-import useGeneralStore from "../../lib/stores/generalStore";
+import useGeneralStore from "../../stores/generalStore";
 import { trpc } from "../../lib/trpcClient";
-import useSearchStore from "../../lib/stores/searchStore";
+import useSearchStore from "../../stores/searchStore";
 import useWindowSize from "../../hooks/useWindowSize";
 
 const SearchWrapper: FC<{ children: ReactNode }> = ({ children }) => {

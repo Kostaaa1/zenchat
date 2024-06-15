@@ -1,4 +1,4 @@
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import EditProfileModal from "./EditProfileModal";
 import ImageModal from "./ImageModal";
 import NewMessageModal from "./NewMessageModal";

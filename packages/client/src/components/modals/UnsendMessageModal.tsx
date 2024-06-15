@@ -1,7 +1,7 @@
 import { forwardRef, useState } from "react";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import useChatCache from "../../hooks/useChatCache";
-import useChatStore from "../../lib/stores/chatStore";
+import useChatStore from "../../stores/chatStore";
 import { trpc } from "../../lib/trpcClient";
 import { Modal } from "./Modals";
 import Button from "../Button";

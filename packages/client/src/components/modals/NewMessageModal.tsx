@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useState } from "react";
 import Icon from "../Icon";
 import Button from "../Button";
-import useModalStore from "../../lib/stores/modalStore";
+import useModalStore from "../../stores/modalStore";
 import { trpc } from "../../lib/trpcClient";
 import { TUserDataState } from "../../../../server/src/types/types";
 import useUser from "../../hooks/useUser";

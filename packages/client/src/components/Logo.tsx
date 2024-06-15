@@ -2,8 +2,8 @@ import { SiZend } from "react-icons/si";
 import NavList from "./NavList";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import useGeneralStore from "../lib/stores/generalStore";
-import useSearchStore from "../lib/stores/searchStore";
+import useGeneralStore from "../stores/generalStore";
+import useSearchStore from "../stores/searchStore";
 import { FC } from "react";
 
 type LogoProps = {

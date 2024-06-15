@@ -1,6 +1,6 @@
 import React, { FC, FormEvent, useRef } from "react";
 import Icon from "../../../components/Icon";
-import useChatStore from "../../../lib/stores/chatStore";
+import useChatStore from "../../../stores/chatStore";
 import { cn } from "../../../utils/utils";
 import { EmojiPickerContainer } from "./EmojiPicker";
 import { TChatroom } from "../../../../../server/src/types/types";

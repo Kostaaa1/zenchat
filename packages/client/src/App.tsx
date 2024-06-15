@@ -19,11 +19,12 @@ import { useEffect, useState } from "react";
 import { isImage, loadImage } from "./utils/image";
 import { Tables } from "../../server/src/types/supabase";
 import useChatSocket from "./hooks/useChatSocket";
-import useGeneralStore from "./lib/stores/generalStore";
+import useGeneralStore from "./stores/generalStore";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/home/Home";
 import ErrorPage from "./pages/ErrorPage";
-import useChatStore from "./lib/stores/chatStore";
+import useChatStore from "./stores/chatStore";
+import RTCVoiceCall from "./pages/chat/components/RTCVoiceCall";
 
 function App() {
   const { user } = useUser();
@@ -33,6 +34,7 @@ function App() {
   const username = useGeneralStore((state) => state.username);
   const location = useLocation();
   const [isFetched, setIsFetched] = useState<boolean>(false);
+  const [hideHeader, setHideHeader] = useState<boolean>(false);
   const { setUnreadMessagesCount } = useChatStore((state) => state.actions);
   useChatSocket();
 
@@ -84,6 +86,12 @@ function App() {
     }
   }, [userData]);
 
+  useEffect(() => {
+    if (location.pathname.startsWith("/call")) {
+      setHideHeader(true);
+    }
+  }, [location]);
+
   return (
     <>
       <SignedIn>
@@ -91,7 +99,7 @@ function App() {
           <LoadingPage />
         ) : (
           <>
-            <Header />
+            {!hideHeader && <Header />}
             <Routes location={location}>
               <Route
                 path="/sign-in/*"
@@ -103,9 +111,10 @@ function App() {
               />
               <Route path="/" element={<Home />} />
               <Route path="/inbox" element={<Inbox />} />
-              <Route path="/inbox/:chatRoomId" element={<Inbox />} />
+              <Route path="/inbox/:chatroomId" element={<Inbox />} />
               <Route path="/:username" element={<Dashboard />} />
               <Route path="*" element={<ErrorPage />} />
+              <Route path="/call/:chatroomId" element={<RTCVoiceCall />} />
             </Routes>
             <Modals />
             <ToastContainer position={"bottom-right"} className="font-bold" />

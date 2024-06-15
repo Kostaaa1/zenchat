@@ -1,8 +1,8 @@
 import Navbar from "./Navbar";
 import Search from "../search/Search";
 import { AnimatePresence } from "framer-motion";
-import useGeneralStore from "../../lib/stores/generalStore";
-import useSearchStore from "../../lib/stores/searchStore";
+import useGeneralStore from "../../stores/generalStore";
+import useSearchStore from "../../stores/searchStore";
 import { useLocation } from "react-router-dom";
 import useNavbar from "../../hooks/useNavbar";
 import useOutsideClick from "../../hooks/useOutsideClick";

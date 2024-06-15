@@ -4,7 +4,7 @@ import Icon from "../Icon";
 import Avatar from "../avatar/Avatar";
 import { NavListItems } from "../../hooks/useNavbar";
 import { FC } from "react";
-import useChatStore from "../../lib/stores/chatStore";
+import useChatStore from "../../stores/chatStore";
 
 type BottomNavbarProps = {
   navListItems: NavListItems[];

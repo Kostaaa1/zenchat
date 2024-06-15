@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import useModalStore from "../../../lib/stores/modalStore";
+import useModalStore from "../../../stores/modalStore";
 import { trpc } from "../../../lib/trpcClient";
 import useUser from "../../../hooks/useUser";
 

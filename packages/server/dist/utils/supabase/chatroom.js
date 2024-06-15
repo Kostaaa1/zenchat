@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.triggerReadMessages = exports.deleteConversation = exports.getChatroomId = exports.insertUserChatroom = exports.createChatRoom = exports.addUserToChatHistory = exports.deleteAllSearchedChats = exports.deleteSearchChat = exports.getSearchedHistory = exports.getUserChatRooms = exports.getChatroomData = exports.sendMessage = exports.unsendMessage = exports.getMoreMessages = exports.getMessages = void 0;
+exports.triggerReadMessages = exports.getChatroomUsersFromID = exports.deleteConversation = exports.getChatroomId = exports.insertUserChatroom = exports.createChatRoom = exports.addUserToChatHistory = exports.deleteAllSearchedChats = exports.deleteSearchChat = exports.getSearchedHistory = exports.getUserChatRooms = exports.getChatroomData = exports.sendMessage = exports.unsendMessage = exports.getMoreMessages = exports.getMessages = void 0;
 require("dotenv/config");
 const server_1 = require("@trpc/server");
 const supabase_1 = __importDefault(require("../../config/supabase"));
@@ -305,6 +305,22 @@ const deleteConversation = async (chatroom_id, user_id) => {
     }
 };
 exports.deleteConversation = deleteConversation;
+const getChatroomUsersFromID = async (chatroom_id) => {
+    const { data, error } = await supabase_1.default
+        .from("chatroom_users")
+        .select("user_id, is_active, users(image_url, username)")
+        .eq("chatroom_id", chatroom_id);
+    if (error) {
+        return { status: "error", data: error };
+    }
+    const users = data.map((user) => ({
+        ...user.users,
+        is_active: user.is_active,
+        user_id: user.user_id,
+    }));
+    return { status: "success", data: users };
+};
+exports.getChatroomUsersFromID = getChatroomUsersFromID;
 const triggerReadMessages = async (id) => {
     const { error } = await supabase_1.default
         .from("chatroom_users")

@@ -1,7 +1,7 @@
 import { TMessage } from "../../../server/src/types/types";
 import { useCallback } from "react";
 import { trpc } from "../lib/trpcClient";
-import useChatStore from "../lib/stores/chatStore";
+import useChatStore from "../stores/chatStore";
 import useUser from "./useUser";
 import { useNavigate } from "react-router-dom";
 
@@ -43,6 +43,7 @@ const useChatCache = () => {
 
   const updateUserReadMessage = useCallback(
     (id: string, is_message_seen: boolean) => {
+      console.log("skrt ??");
       return utils.chat.get.user_chatrooms.setData(userData?.id, (state) => {
         if (state && userData) {
           console.log("State: ", state, "To update: ", id);
@@ -59,7 +60,7 @@ const useChatCache = () => {
         }
       });
     },
-    [],
+    [userData, utils.chat.get.user_chatrooms],
   );
 
   return {
