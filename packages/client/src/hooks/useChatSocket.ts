@@ -138,7 +138,6 @@ const useChatSocket = () => {
 
   const recieveCallOffer = async (res: RTCOfferResponse) => {
     console.log("Offer: ", res);
-
     if (res.status === "success") {
       const { message } = res;
       const { offer, caller, chatroomId, receivers } = message;
@@ -160,7 +159,6 @@ const useChatSocket = () => {
         el.srcObject = localStream;
       }
       /////////////////////
-
       conn.onicecandidate = (ev) => {
         if (ev.candidate) {
           console.log("Callee onicecnadidate event received", ev);
@@ -171,7 +169,6 @@ const useChatSocket = () => {
           });
         }
       };
-
       conn.ontrack = (event) => {
         console.log("received remote track: ", event.streams);
         const remoteAudio = document.getElementById("remote");
@@ -180,7 +177,6 @@ const useChatSocket = () => {
           el.srcObject = event.streams[0];
         }
       };
-
       if (offer) {
         conn.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await conn.createAnswer();

@@ -6,6 +6,20 @@ import useUser from "../../../hooks/useUser";
 import Avatar from "../../../components/avatar/Avatar";
 import usePeerConnection from "../../../stores/peerConnection";
 
+const setLocalMedia = async (peerConnection: RTCPeerConnection) => {
+  const localStream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: false,
+  });
+  localStream
+    .getTracks()
+    .forEach((track) => peerConnection.addTrack(track, localStream));
+  const audioElement = document.getElementById("local");
+  if (audioElement) {
+    const el = audioElement as HTMLAudioElement;
+    el.srcObject = localStream;
+  } };
+
 const RTCVoiceCall = () => {
   const { chatroomId } = useParams<{ chatroomId: string }>();
   const { setPeerConnection } = usePeerConnection((state) => state.actions);
@@ -19,7 +33,6 @@ const RTCVoiceCall = () => {
   const makeCall = async () => {
     if (!chatroomId || !userData || !chatroomUsers) return;
     const receivers = chatroomUsers.map((x) => x.user_id);
-
     const peerConnection = new RTCPeerConnection({
       iceServers: [
         {
@@ -27,23 +40,10 @@ const RTCVoiceCall = () => {
         },
       ],
     });
-    setPeerConnection(peerConnection);
-
-    ////////////
-    const localStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: false,
-    });
-    localStream
-      .getTracks()
-      .forEach((track) => peerConnection.addTrack(track, localStream));
-    const audioElement = document.getElementById("local");
-    if (audioElement) {
-      const el = audioElement as HTMLAudioElement;
-      el.srcObject = localStream;
-    }
     ////////////////
-
+    setLocalMedia(peerConnection);
+    setPeerConnection(peerConnection);
+    ////////////////
     peerConnection.onicecandidate = (ev) => {
       if (ev.candidate) {
         console.log("Received candidate should send via socket", ev);
@@ -54,7 +54,6 @@ const RTCVoiceCall = () => {
         });
       }
     };
-
     peerConnection.ontrack = (event) => {
       console.log("received remote track: ", event.streams);
       const remoteAudio = document.getElementById("remote");
@@ -79,7 +78,7 @@ const RTCVoiceCall = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center">
+    <div className="flex h-[100svh] w-screen items-center justify-center">
       {isLoading || !userData ? (
         <div>Loading...</div>
       ) : (
@@ -97,6 +96,12 @@ const RTCVoiceCall = () => {
           </Button>
         </div>
       )}
+      <div>
+        {/* <video id="local" autoPlay muted width={250} height={250} />
+        <video id="remote" autoPlay width={250} height={250} /> */}
+        <audio id="local" autoPlay muted />
+        <audio id="remote" autoPlay />
+      </div>
     </div>
   );
 };

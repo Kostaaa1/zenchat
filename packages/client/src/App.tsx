@@ -122,8 +122,6 @@ function App() {
             </Routes>
             <Modals />
             <ToastContainer position={"bottom-right"} className="font-bold" />
-            <audio id="local" autoPlay muted />
-            <audio id="remote" autoPlay />
           </>
         )}
       </SignedIn>
