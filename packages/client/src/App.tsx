@@ -25,6 +25,7 @@ import Home from "./pages/home/Home";
 import ErrorPage from "./pages/ErrorPage";
 import useChatStore from "./stores/chatStore";
 import RTCVoiceCall from "./pages/chat/components/RTCVoiceCall";
+import { socket } from "./lib/socket";
 
 function App() {
   const { user } = useUser();
@@ -36,7 +37,7 @@ function App() {
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const [hideHeader, setHideHeader] = useState<boolean>(false);
   const { setUnreadMessagesCount } = useChatStore((state) => state.actions);
-  useChatSocket();
+  useChatSocket(socket);
 
   useEffect(() => {
     if (!user || !user.username) return;
@@ -87,10 +88,7 @@ function App() {
   }, [userData]);
 
   useEffect(() => {
-    if (location.pathname.startsWith("/call")) {
-      setHideHeader(true);
-    }
-
+    if (location.pathname.startsWith("/call")) setHideHeader(true);
     return () => {
       setHideHeader(false);
     };
@@ -117,11 +115,13 @@ function App() {
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/inbox/:chatroomId" element={<Inbox />} />
               <Route path="/:username" element={<Dashboard />} />
-              <Route path="*" element={<ErrorPage />} />
               <Route path="/call/:chatroomId" element={<RTCVoiceCall />} />
+              <Route path="*" element={<ErrorPage />} />
             </Routes>
             <Modals />
             <ToastContainer position={"bottom-right"} className="font-bold" />
+            <audio id="source1" />
+            <audio id="sourc2" />
           </>
         )}
       </SignedIn>

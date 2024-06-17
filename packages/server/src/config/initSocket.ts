@@ -1,7 +1,8 @@
 import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
-import { RTCIceCandidateResponse, RTCOfferResponse, TMessage } from "../types/types";
+import { TMessage } from "../types/types";
 import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
+import { SocketCallPayload, RTCIceCandidateResponse, RTCOfferResponse } from "../types/sockets";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -19,6 +20,7 @@ export const initSocket = (io: Server) => {
     });
 
     socket.on("offer", async (data: RTCOfferResponse["message"]) => {
+      console.log("OFFER INITIATEDJ", data);
       const { receivers } = data;
       for (const user of receivers) {
         if (user !== data.caller) {
@@ -31,16 +33,29 @@ export const initSocket = (io: Server) => {
     });
 
     socket.on("answer", (data: RTCOfferResponse["message"]) => {
+      console.log("RECEIEVED ANSWER");
       io.to(data.caller).emit("answer", { status: "success", message: data });
     });
 
     socket.on("ice", (data: RTCIceCandidateResponse["message"]) => {
-      console.log("RECEIEVED ICE CANDIDATE", data);
       const { receivers } = data;
       for (const receiver of receivers) {
         if (receiver !== data.caller) {
           io.to(receiver).emit("ice", { status: "success", message: data });
         }
+      }
+    });
+
+    socket.on("call", (payload: SocketCallPayload) => {
+      const { caller, receivers, status } = payload;
+      if (status === "initiated") {
+        for (const receiver of receivers) {
+          if (receiver !== caller.id) {
+            io.to(receiver).emit("call", payload);
+          }
+        }
+      } else {
+        io.to(caller.id).emit("call", payload);
       }
     });
 
@@ -58,7 +73,6 @@ export const initSocket = (io: Server) => {
                 supabase.channel("onMessage").unsubscribe();
                 return;
               }
-
               for (const reciever of data) {
                 const { is_active, user_id } = reciever;
                 io.to(user_id).emit("onMessage", {

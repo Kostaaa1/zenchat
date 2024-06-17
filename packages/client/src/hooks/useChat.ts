@@ -73,7 +73,7 @@ const useChat = () => {
         (x) => x.user_id === userData.id,
       );
       if (foundUser && !foundUser.is_message_seen) {
-        console.log("Should trigger");
+        console.log("#CHECKRENDERING Should trigger");
         triggerReadMessagesMutation.mutate(foundUser.id);
       }
     }

@@ -44,7 +44,8 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
   };
 
   const callRoom = () => {
-    navigate(`/call/${chat.chatroom_id}`);
+    const url = `/call/${chat.chatroom_id}`;
+    navigate(url);
   };
 
   return (

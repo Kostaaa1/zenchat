@@ -43,7 +43,7 @@ const useChatCache = () => {
 
   const updateUserReadMessage = useCallback(
     (id: string, is_message_seen: boolean) => {
-      console.log("skrt ??");
+      console.log("#CHECKRENDERING skrt ??");
       return utils.chat.get.user_chatrooms.setData(userData?.id, (state) => {
         if (state && userData) {
           console.log("State: ", state, "To update: ", id);

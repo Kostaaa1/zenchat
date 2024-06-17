@@ -14,7 +14,8 @@ export const buttonVariants = cva(
         default: "bg-neutral-700 hover:bg-opacity-80",
         blue: "bg-lightBlue hover:bg-opacity-80",
         white: "bg-white text-black hover:bg-opacity-80",
-        neutral: "bg-none"
+        neutral: "bg-none",
+        danger: "bg-red-500",
       },
       size: {
         full: "w-full",

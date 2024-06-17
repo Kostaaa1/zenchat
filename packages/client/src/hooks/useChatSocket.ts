@@ -1,26 +1,26 @@
 import { useCallback, useEffect } from "react";
 import useUser from "./useUser";
 import useChatStore from "../stores/chatStore";
-import { socket } from "../lib/socket";
-import {
-  RTCAnswerResponse,
-  RTCIceCandidateResponse,
-  RTCOfferResponse,
-  TMessage,
-} from "../../../server/src/types/types";
+import { TMessage } from "../../../server/src/types/types";
 import { trpc } from "../lib/trpcClient";
 import { getCurrentDate } from "../utils/date";
-import { TReceiveNewSocketMessageType } from "../../../server/src/types/sockets";
+import {
+  SocketCallPayload,
+  TReceiveNewSocketMessageType,
+} from "../../../server/src/types/sockets";
 import { loadImage } from "../utils/image";
 import { toast } from "react-toastify";
 import usePeerConnection from "../stores/peerConnection";
+import useModalStore from "../stores/modalStore";
+import type { Socket } from "socket.io-client";
 
-const useChatSocket = () => {
+const useChatSocket = (socket: Socket | null) => {
   const utils = trpc.useUtils();
   const activeChatroom = useChatStore((state) => state.activeChatroom);
   const { userData } = useUser();
-  const peerConnection = usePeerConnection((state) => state.peerConnection);
-  const { setPeerConnection } = usePeerConnection((state) => state.actions);
+  // const peerConnection = usePeerConnection((state) => state.peerConnection);
+  const { setIsCallAccepted } = usePeerConnection((state) => state.actions);
+  const { openModal, setCallerInfo } = useModalStore((state) => state.actions);
 
   const addNewMessageToChatCache = useCallback(
     (messageData: TMessage) => {
@@ -136,111 +136,42 @@ const useChatSocket = () => {
     ],
   );
 
-  const recieveCallOffer = async (res: RTCOfferResponse) => {
-    console.log("Offer: ", res);
-    if (res.status === "success") {
-      const { message } = res;
-      const { offer, caller, chatroomId, receivers } = message;
-      const conn = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-      });
-      setPeerConnection(conn);
-      //////////////////////
-      const localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-      localStream
-        .getTracks()
-        .forEach((track) => conn.addTrack(track, localStream));
-      const audioElement = document.getElementById("local");
-      if (audioElement) {
-        const el = audioElement as HTMLAudioElement;
-        el.srcObject = localStream;
+  const receiveCallPayload = useCallback(
+    (payload: SocketCallPayload) => {
+      console.log("CALL PAYLOAD: ", payload);
+      const { status } = payload;
+      if (status === "initiated") {
+        setCallerInfo(payload);
+        openModal("voiceCall");
       }
-      /////////////////////
-      conn.onicecandidate = (ev) => {
-        if (ev.candidate) {
-          console.log("Callee onicecnadidate event received", ev);
-          socket.emit("ice", {
-            caller: userData?.id,
-            candidate: ev.candidate,
-            receivers,
-          });
-        }
-      };
-      conn.ontrack = (event) => {
-        console.log("received remote track: ", event.streams);
-        const remoteAudio = document.getElementById("remote");
-        if (remoteAudio) {
-          const el = remoteAudio as HTMLAudioElement;
-          el.srcObject = event.streams[0];
-        }
-      };
-      if (offer) {
-        conn.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await conn.createAnswer();
-        await conn.setLocalDescription(answer);
-        const data: RTCAnswerResponse["message"] = {
-          answer,
-          caller,
-          chatroomId,
-          receivers,
-        };
-        socket.emit("answer", data);
-      }
-    } else {
-      console.log("Error: ", res.message);
-    }
-  };
 
-  const recieveAnswer = async (data: RTCAnswerResponse) => {
-    console.log("Recieved answer: ", data);
-    const { status } = data;
-    if (status === "success") {
-      const remoteDesc = new RTCSessionDescription(data.message.answer);
-      await peerConnection?.setRemoteDescription(remoteDesc);
-    }
-  };
-
-  const receieveIceCandidate = async (data: RTCIceCandidateResponse) => {
-    const { status, message } = data;
-    if (status === "success") {
-      try {
-        console.log("receive ICE message: ", message);
-        await peerConnection?.addIceCandidate(
-          new RTCIceCandidate(message.candidate),
-        );
-      } catch (error) {
-        console.log("Error when adding the ICE candidate", error);
+      if (status === "accepted") {
+        setIsCallAccepted(true);
       }
-    }
-  };
+
+      // if (status === "declined") {
+      //   setIsExchangeAllowed(true);
+      // }
+    },
+    [openModal, setCallerInfo],
+  );
 
   useEffect(() => {
-    if (!userData) return;
-    socket.emit("join-room", userData.id);
-    socket.emit("onMessage", userData.id);
-    socket.on("onMessage", receiveNewSocketMessage);
+    if (!userData || !socket) return;
+    if (socket) {
+      socket.emit("join-room", userData.id);
+      socket.emit("onMessage", userData.id);
+      socket.on("onMessage", receiveNewSocketMessage);
+      socket.on("call", receiveCallPayload);
+    }
 
-    socket.on("offer", recieveCallOffer);
-    socket.on("answer", recieveAnswer);
-    socket.on("ice", receieveIceCandidate);
-
-    const cleanup = () => {
-      socket.off("join-room", receiveNewSocketMessage);
-
-      socket.off("onMessage", receiveNewSocketMessage);
-      socket.off("offer", recieveCallOffer);
-      socket.off("answer", recieveAnswer);
-
-      socket.off("disconnect", () => {
-        console.log("Disconnected from socket");
-      });
+    return () => {
+      if (socket) {
+        console.log("ran cleanup");
+        socket.disconnect();
+      }
     };
-
-    return cleanup;
-  }, [userData, activeChatroom, receiveNewSocketMessage]);
+  }, [userData, socket]);
 };
 
 export default useChatSocket;

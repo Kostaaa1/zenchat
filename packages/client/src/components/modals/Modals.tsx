@@ -7,9 +7,9 @@ import DeleteChatModal from "./DeleteChatModal";
 import DndUpload from "./DndUploadModal";
 import React, { FC, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import useOnClickOutside from "../../hooks/useOutsideClick";
 import PostModal from "./PostModal";
 import ModalOptions from "./ModalOptions";
+import VoiceCallModal from "./VoiceCallModal";
 
 type ModalProps = {
   children?: React.ReactNode;
@@ -43,12 +43,22 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 };
 
 const Modals = () => {
-  const modalPostData = useModalStore((state) => state.modalPostData);
-  const isModalOptionsOpen = useModalStore((state) => state.isModalOptionsOpen);
-  const imageSource = useModalStore((state) => state.imageSource);
-  const isModalOpen = useModalStore((state) => state.isModalOpen);
-  const activeModal = useModalStore((state) => state.activeModal);
-  const { closeModal } = useModalStore((state) => state.actions);
+  // const { closeModal } = useModalStore((state) => state.actions);
+  const {
+    callerInfo,
+    activeModal,
+    imageSource,
+    isModalOpen,
+    isModalOptionsOpen,
+    modalPostData,
+  } = useModalStore((state) => ({
+    modalPostData: state.modalPostData,
+    isModalOptionsOpen: state.isModalOptionsOpen,
+    imageSource: state.imageSource,
+    isModalOpen: state.isModalOpen,
+    activeModal: state.activeModal,
+    callerInfo: state.callerInfo,
+  }));
 
   // Arrows //
   const modalRef = useRef<HTMLDivElement>(null);
@@ -56,18 +66,18 @@ const Modals = () => {
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
 
-  useOnClickOutside(
-    [modalRef, modalOptionRef, leftRef, rightRef],
-    "mousedown",
-    () => {
-      document.body.style.overflow = "";
-      document.body.classList.remove("no-scroll-padding");
-      document
-        .querySelector("#bottomnav")
-        ?.classList.remove("no-scroll-padding");
-      closeModal();
-    },
-  );
+  // useOnClickOutside(
+  //   [modalRef, modalOptionRef, leftRef, rightRef],
+  //   "mousedown",
+  //   () => {
+  //     document.body.style.overflow = "";
+  //     document.body.classList.remove("no-scroll-padding");
+  //     document
+  //       .querySelector("#bottomnav")
+  //       ?.classList.remove("no-scroll-padding");
+  //     closeModal();
+  //   },
+  // );
 
   return (
     <div className="absolute left-0 top-0 w-full">
@@ -94,6 +104,9 @@ const Modals = () => {
               />
             )}
             {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
+            {activeModal === "voiceCall" && callerInfo && (
+              <VoiceCallModal callerInfo={callerInfo} />
+            )}
             {isModalOptionsOpen && modalPostData && (
               <ModalOptions ref={modalOptionRef} />
             )}

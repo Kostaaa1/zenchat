@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { TMessage, TPost } from "../../../server/src/types/types";
+import { SocketCallPayload } from "../../../server/src/types/sockets";
 
 type Modals =
   | "image"
@@ -9,19 +10,21 @@ type Modals =
   | "uploadpost"
   | "unsendmessage"
   | "post"
+  | "voiceCall"
   | null;
 
 type Store = {
   isModalOpen: boolean;
   imageSource: string | null;
-  // unsendMsgData: { id: string; imageUrl: string | null } | null;
   activeMessage: TMessage | null;
   modalPostData: TPost | null;
   isMessageDropdownActive: boolean;
   isAvatarUpdating: boolean;
   activeModal: Modals;
   isModalOptionsOpen: boolean;
+  callerInfo: SocketCallPayload | null;
   actions: {
+    setCallerInfo: (s: SocketCallPayload | null) => void;
     triggerModalOptions: () => void;
     openModal: (activeModal: Modals) => void;
     closeModal: () => void;
@@ -43,7 +46,10 @@ const useModalStore = create<Store>(
     imageSource: null,
     modalPostData: null,
     isModalOptionsOpen: false,
+    callerInfo: null,
     actions: {
+      setCallerInfo: (callerInfo: SocketCallPayload | null) =>
+        set({ callerInfo }),
       triggerModalOptions: () =>
         set((state) => ({ isModalOptionsOpen: !state.isModalOptionsOpen })),
       openModal: (activeModal: Modals) =>

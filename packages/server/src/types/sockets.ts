@@ -8,10 +8,48 @@ export type MessagesChannelData = {
     user_id: string;
   };
 };
-
-// export type TypingChannelData = {
-//   channel: "isTyping";
-//   data: boolean;
-// };
-
 export type TReceiveNewSocketMessageType = MessagesChannelData;
+
+// WebRTC
+export type SocketStatus = "success" | "error";
+export type RTCOfferResponse = {
+  status: SocketStatus;
+  message: {
+    chatroomId: string;
+    receivers: string[];
+    caller: string;
+    offer: any;
+  };
+};
+
+export type RTCAnswerResponse = {
+  status: SocketStatus;
+  message: {
+    chatroomId: string;
+    receivers: string[];
+    caller: string;
+    answer: any;
+  };
+};
+
+export type RTCIceCandidateResponse = {
+  status: SocketStatus;
+  message: {
+    candidate: RTCIceCandidate;
+    caller: string;
+    receivers: string[];
+  };
+};
+
+type CallStatus = "initiated" | "declined" | "accepted" | "hangup";
+
+export type SocketCallPayload = {
+  chatroomId: string;
+  status: CallStatus;
+  receivers: string[];
+  caller: {
+    id: string;
+    username: string;
+    image_url: string | null;
+  };
+};
