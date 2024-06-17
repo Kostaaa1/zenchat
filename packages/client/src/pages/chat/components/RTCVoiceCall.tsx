@@ -14,8 +14,8 @@ const RTCVoiceCall = () => {
     useWebRTC();
   const { isCalling, isCallAccepted } = usePeerConnection((state) => ({
     isCalling: state.isCalling,
-    // peerConnection: state.peerConnection,
     isCallAccepted: state.isCallAccepted,
+    // peerConnection: state.peerConnection,
   }));
 
   const { data: chatroomUsers, isLoading } =
