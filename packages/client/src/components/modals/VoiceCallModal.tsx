@@ -80,9 +80,8 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
       console.log("CALL TIME EXCEEDED, HHANG UPHANG UPHANG UPANG UP!!!!");
       hangup();
     }, 20000);
-
     return () => {
-      console.log("cleanup ran");
+      console.log("VOICE CALL MODAL CLEANUP ran");
       clearTimeout(timeout);
     };
   }, [closeModal]);

@@ -9,10 +9,20 @@ import {
 import useUser from "./useUser";
 import { socket } from "../lib/socket";
 
-const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
+const iceServers = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun.l.google.com:5349" },
+  { urls: "stun:stun1.l.google.com:3478" },
+  { urls: "stun:stun1.l.google.com:5349" },
+  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:5349" },
+  { urls: "stun:stun3.l.google.com:3478" },
+  { urls: "stun:stun3.l.google.com:5349" },
+  { urls: "stun:stun4.l.google.com:19302" },
+  { urls: "stun:stun4.l.google.com:5349" },
+];
 
 const useWebRTC = () => {
-  // const [isConnected, setIsConnected] = useState<boolean>(false);
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const { clearAll, setIsCalling } = usePeerConnection(
@@ -74,9 +84,11 @@ const useWebRTC = () => {
   ) => {
     try {
       if (!userData) return;
-      console.log("CALLEE PICKED, CREATING OFFER MAYBE ?  ?? ? ?  !!!");
-      const peerConnection = createPeerConnection(receivers);
-      setPeerConnection(peerConnection);
+      console.log(
+        "Creating connection, then offer, and sending it to chatroom participants",
+      );
+      const conn = createPeerConnection(receivers);
+      setPeerConnection(conn);
       ////////////////////////
       const localStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -84,19 +96,18 @@ const useWebRTC = () => {
       });
       localStream
         .getTracks()
-        .forEach((track) => peerConnection.addTrack(track, localStream));
+        .forEach((track) => conn.addTrack(track, localStream));
       const audioElement = document.getElementById("local");
       if (audioElement) {
         const el = audioElement as HTMLAudioElement;
         el.srcObject = localStream;
       }
       ////////////////////////
-      const offer = await peerConnection.createOffer({
+      const offer = await conn.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
       });
-      await peerConnection.setLocalDescription(offer);
-
+      await conn.setLocalDescription(offer);
       socket.emit("offer", {
         chatroomId,
         offer,
@@ -112,6 +123,7 @@ const useWebRTC = () => {
     async (data: RTCAnswerResponse) => {
       const { status } = data;
       if (status === "success") {
+        // const conn = peerConnections[caller];
         const remoteDesc = new RTCSessionDescription(data.message.answer);
         await peerConnection?.setRemoteDescription(remoteDesc);
       }
@@ -122,11 +134,13 @@ const useWebRTC = () => {
   const receieveIceCandidate = useCallback(
     async (data: RTCIceCandidateResponse) => {
       const { status, message } = data;
-      if (status === "success" && peerConnection) {
+      if (status === "success") {
         try {
-          await peerConnection.addIceCandidate(
-            new RTCIceCandidate(message.candidate),
-          );
+          if (peerConnection) {
+            await peerConnection.addIceCandidate(
+              new RTCIceCandidate(message.candidate),
+            );
+          }
         } catch (error) {
           console.log("Error when adding the ICE candidate", error);
         }
@@ -137,7 +151,10 @@ const useWebRTC = () => {
 
   const receiveOfferAndListenICE = useCallback(
     async (res: RTCOfferResponse) => {
-      if (!userData) return;
+      console.log(
+        "received offer, now need to create new connection and send the answer to caller",
+        res,
+      );
       if (res.status === "success") {
         const { message } = res;
         const { offer, caller, chatroomId, receivers } = message;
@@ -159,6 +176,7 @@ const useWebRTC = () => {
         //////////////////////
         conn.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await conn.createAnswer();
+        console.log("ANSWER: ", answer);
         await conn.setLocalDescription(answer);
         const data: RTCAnswerResponse["message"] = {
           answer,
@@ -166,19 +184,16 @@ const useWebRTC = () => {
           chatroomId,
           receivers,
         };
-        console.log("ANSWER SENDING: ", data);
         socket.emit("answer", data);
       } else {
         console.log("Error: ", res.message);
       }
     },
-    [userData],
+    [createPeerConnection],
   );
 
   const cleanUp = useCallback(() => {
     console.log("RTCVOICELCALL CLEANUP RAN");
-    if (!userData) return;
-
     socket.off("ice", receieveIceCandidate);
     socket.off("offer", receiveOfferAndListenICE);
     socket.off("answer", receiveAnswer);
@@ -192,7 +207,6 @@ const useWebRTC = () => {
     }
     clearAll();
   }, [
-    userData,
     peerConnection,
     clearAll,
     receieveIceCandidate,
@@ -204,7 +218,6 @@ const useWebRTC = () => {
     socket.on("ice", receieveIceCandidate);
     socket.on("offer", receiveOfferAndListenICE);
     socket.on("answer", receiveAnswer);
-
     return () => {
       cleanUp();
     };

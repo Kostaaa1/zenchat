@@ -31,12 +31,12 @@ const RTCVoiceCall = () => {
     }
   }, [isCalling, isCallAccepted, chatroomUsers, chatroomId]);
 
-  useEffect(() => {
-    return () => {
-      console.log("You left the CALL page. Cleaning up...");
-      cleanUp();
-    };
-  }, [cleanUp]);
+  // useEffect(() => {
+  //   return () => {
+  //     console.log("You left the CALL page. Cleaning up...");
+  //     cleanUp();
+  //   };
+  // }, [cleanUp]);
 
   return (
     <div className="flex h-[100svh] w-screen flex-col items-center justify-center">
