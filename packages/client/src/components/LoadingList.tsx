@@ -7,7 +7,7 @@ const LoadingList = () => {
         <div className="h-4 w-[80px] rounded-lg bg-neutral-800"> </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoadingList;
+export default LoadingList

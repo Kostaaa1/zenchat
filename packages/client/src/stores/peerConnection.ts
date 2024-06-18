@@ -1,37 +1,49 @@
-import { create } from "zustand";
+import { create } from "zustand"
 
-export type ActiveList = "inbox" | "user" | "";
-
+export type ActiveList = "inbox" | "user" | ""
 type Store = {
-  // peerConnection: RTCPeerConnection | null;
-  isCalling: boolean;
-  isCallAccepted: boolean;
+  isCalling: boolean
+  isCallAccepted: boolean
+  peerConnection: RTCPeerConnection | null
   actions: {
-    setIsCallAccepted: (v: boolean) => void;
-    setIsCalling: (v: boolean) => void;
-    // setPeerConnection: (v: RTCPeerConnection) => void;
-    clearAll: () => void;
-  };
-};
+    setPeerConnetcion: (conn: RTCPeerConnection | null) => void
+    setIsCallAccepted: (v: boolean) => void
+    setIsCalling: (v: boolean) => void
+    clearAll: () => void
+  }
+}
 
 const usePeerConnection = create<Store>(
   (set): Store => ({
-    // peerConnection: null,
     isCalling: false,
     isCallAccepted: false,
+    peerConnection: null,
     actions: {
+      setPeerConnetcion: (conn: RTCPeerConnection | null) => set({ peerConnection: conn }),
       setIsCallAccepted: (isCallAccepted: boolean) => set({ isCallAccepted }),
       setIsCalling: (isCalling: boolean) => set({ isCalling }),
-      // setPeerConnection: (conn: RTCPeerConnection) =>
-      //   set({ peerConnection: conn }),
       clearAll: () =>
-        set({
-          // peerConnection: null,
-          isCalling: false,
-          isCallAccepted: false,
-        }),
-    },
-  }),
-);
+        set((state) => {
+          const { peerConnection } = state
+          if (peerConnection) {
+            peerConnection.onicecandidate = null
+            peerConnection.ontrack = null
+            peerConnection.oniceconnectionstatechange = null
+            peerConnection.close()
+          }
+          return {
+            isCallAccepted: false,
+            isCalling: false,
+            peerConnection: null
+          }
+        })
+      // clearAll: () =>
+      //   set({
+      //     isCalling: false,
+      //     isCallAccepted: false
+      //   })
+    }
+  })
+)
 
-export default usePeerConnection;
+export default usePeerConnection

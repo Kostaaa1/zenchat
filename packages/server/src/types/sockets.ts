@@ -10,8 +10,28 @@ export type MessagesChannelData = {
 };
 export type TReceiveNewSocketMessageType = MessagesChannelData;
 
-// WebRTC
+// type RTCIceCandidateSignal = {
+//   type: "ice";
+//   candidate: RTCIceCandidate;
+// };
+// type RTCOfferSignal = {
+//   type: "offer";
+//   offer: RTCSessionDescriptionInit;
+// };
+// type RTCAnswerSignal = {
+//   type: "answer";
+//   answer: RTCSessionDescriptionInit;
+// };
+// export type RTCSignals = (RTCIceCandidateSignal | RTCOfferSignal | RTCAnswerSignal) & {
+//   chatroomId: string;
+//   receivers: string[];
+//   caller: string;
+// };
+
 export type SocketStatus = "success" | "error";
+export type RTCSignal = {
+  type: "offer" | "answer" | "ice";
+};
 export type RTCOfferResponse = {
   status: SocketStatus;
   message: {
@@ -21,7 +41,6 @@ export type RTCOfferResponse = {
     offer: any;
   };
 };
-
 export type RTCAnswerResponse = {
   status: SocketStatus;
   message: {
@@ -31,21 +50,19 @@ export type RTCAnswerResponse = {
     answer: any;
   };
 };
-
 export type RTCIceCandidateResponse = {
   status: SocketStatus;
   message: {
+    receivers: string[];
     candidate: RTCIceCandidate;
     caller: string;
-    receivers: string[];
   };
 };
 
 type CallStatus = "initiated" | "declined" | "accepted" | "hangup";
-
 export type SocketCallPayload = {
-  chatroomId: string;
   status: CallStatus;
+  chatroomId: string;
   receivers: string[];
   caller: {
     id: string;

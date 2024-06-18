@@ -1,75 +1,72 @@
-import { useEffect, useState } from "react";
-import Icon from "../Icon";
-import UseUser from "../../hooks/useUser";
-import { debounce } from "lodash";
-import { trpc } from "../../lib/trpcClient";
-import useSearchStore from "../../stores/searchStore";
-import { cn } from "../../utils/utils";
-import useGeneralStore from "../../stores/generalStore";
-import { loadImage } from "../../utils/image";
+import { useEffect, useState } from "react"
+import Icon from "../Icon"
+import UseUser from "../../hooks/useUser"
+import { debounce } from "lodash"
+import { trpc } from "../../lib/trpcClient"
+import useSearchStore from "../../stores/searchStore"
+import { cn } from "../../utils/utils"
+import useGeneralStore from "../../stores/generalStore"
+import { loadImage } from "../../utils/image"
 
 const SearchInput = () => {
-  const { userData } = UseUser();
-  const inputRef = useSearchStore((state) => state.searchInputRef);
-  const search = useSearchStore((state) => state.search);
-  const isSearchActive = useSearchStore((state) => state.isSearchActive);
-  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
-  const { user } = trpc.useUtils();
-  const isMobile = useGeneralStore((state) => state.isMobile);
-  const {
-    setSearchedUsers,
-    setIsSearchingForUsers,
-    setSearch,
-    setIsSearchActive,
-  } = useSearchStore((state) => state.actions);
+  const { userData } = UseUser()
+  const inputRef = useSearchStore((state) => state.searchInputRef)
+  const search = useSearchStore((state) => state.search)
+  const isSearchActive = useSearchStore((state) => state.isSearchActive)
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false)
+  const { user } = trpc.useUtils()
+  const isMobile = useGeneralStore((state) => state.isMobile)
+  const { setSearchedUsers, setIsSearchingForUsers, setSearch, setIsSearchActive } = useSearchStore(
+    (state) => state.actions
+  )
 
   const debounceEmit = debounce(
     async () => {
       if (!userData) {
-        console.log("There is not user data.");
-        return null;
+        console.log("There is not user data.")
+        return null
       }
       const searchedUsers = await user.search.fetch({
         username: userData?.username,
-        searchValue: search,
-      });
+        searchValue: search
+      })
       if (searchedUsers) {
-        setSearchedUsers(searchedUsers);
+        setSearchedUsers(searchedUsers)
 
         await Promise.all(
           searchedUsers.map(async (x) => {
-            if (x.image_url) await loadImage(x.image_url);
-          }),
-        );
-        setIsSearchingForUsers(false);
+            if (x.image_url) await loadImage(x.image_url)
+          })
+        )
+        setIsSearchingForUsers(false)
       }
     },
-    Math.floor(Math.random() * 500 + 300),
-  );
+    Math.floor(Math.random() * 500 + 300)
+  )
 
   useEffect(() => {
-    setIsSearchingForUsers(true);
+    setIsSearchingForUsers(true)
     if (search.length === 0) {
-      setSearchedUsers([]);
-      setIsSearchingForUsers(false);
-      return;
+      setSearchedUsers([])
+      setIsSearchingForUsers(false)
+      return
     }
-    debounceEmit();
+    debounceEmit()
     return () => {
-      debounceEmit.cancel();
-    };
-  }, [search, userData]);
+      debounceEmit.cancel()
+    }
+  }, [search, userData])
 
   useEffect(() => {
     if (isSearchActive && inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus()
     }
-  }, [isSearchActive]);
+  }, [isSearchActive])
 
   const onInputFocus = () => {
-    setIsSearchActive(true);
-    setIsInputFocused(true);
-  };
+    setIsSearchActive(true)
+    setIsInputFocused(true)
+  }
 
   // const onInputBlur = () => {
   //   // setIsSearchActive(false);
@@ -77,8 +74,8 @@ const SearchInput = () => {
   // };
 
   useEffect(() => {
-    setIsInputFocused(false);
-  }, []);
+    setIsInputFocused(false)
+  }, [])
 
   return (
     <div className="relative flex select-none text-neutral-400">
@@ -91,7 +88,7 @@ const SearchInput = () => {
       <input
         className={cn(
           "rounded-md bg-[#303030] pl-8 text-neutral-400 placeholder-neutral-400 focus:text-white",
-          isMobile ? "py-1" : "py-2",
+          isMobile ? "py-1" : "py-2"
         )}
         ref={inputRef}
         type="text"
@@ -109,7 +106,7 @@ const SearchInput = () => {
         </div>
       ) : null}
     </div>
-  );
-};
+  )
+}
 
-export default SearchInput;
+export default SearchInput

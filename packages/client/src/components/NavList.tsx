@@ -1,7 +1,7 @@
-import { cn } from "../utils/utils";
-import { cva, VariantProps } from "class-variance-authority";
-import { motion } from "framer-motion";
-import { FC, ReactElement } from "react";
+import { cn } from "../utils/utils"
+import { cva, VariantProps } from "class-variance-authority"
+import { motion } from "framer-motion"
+import { FC, ReactElement } from "react"
 
 export const listVariants = cva(
   "relative transition-colors px-[10px] flex active:text-zinc-500 h-[47px] items-center justify-start cursor-pointer w-full rounded-lg",
@@ -9,52 +9,34 @@ export const listVariants = cva(
     variants: {
       variant: {
         default: "max-w-[47px] transition-all duration-200 group",
-        list: "active:bg-opacity-10",
+        list: "active:bg-opacity-10"
       },
       hover: {
-        darker:
-          "transition-colors duration-100 hover:bg-white hover:bg-opacity-10",
-        blank: "",
-      },
+        darker: "transition-colors duration-100 hover:bg-white hover:bg-opacity-10",
+        blank: ""
+      }
     },
     defaultVariants: {
       variant: "list",
-      hover: "darker",
-    },
-  },
-);
+      hover: "darker"
+    }
+  }
+)
 
 export interface NavListProps extends VariantProps<typeof listVariants> {
-  children: ReactElement;
-  title?: string;
-  head?: string;
-  className?: string;
-  onClick?: () => void;
+  children: ReactElement
+  title?: string
+  head?: string
+  className?: string
+  onClick?: () => void
 }
 
-const NavListItem: FC<NavListProps> = ({
-  onClick,
-  title,
-  head,
-  variant,
-  hover,
-  className,
-  children,
-  ...props
-}) => {
+const NavListItem: FC<NavListProps> = ({ onClick, title, head, variant, hover, className, children, ...props }) => {
   return (
-    <li
-      onClick={onClick}
-      className={cn(listVariants({ variant, className, hover }))}
-      {...props}
-    >
+    <li onClick={onClick} className={cn(listVariants({ variant, className, hover }))} {...props}>
       {children}
       {title ? (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="pl-3 text-lg"
-        >
+        <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pl-3 text-lg">
           {title}
         </motion.span>
       ) : null}
@@ -68,7 +50,7 @@ const NavListItem: FC<NavListProps> = ({
         </motion.h1>
       ) : null}
     </li>
-  );
-};
+  )
+}
 
-export default NavListItem;
+export default NavListItem

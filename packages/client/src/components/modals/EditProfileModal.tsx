@@ -1,159 +1,151 @@
-import { forwardRef, useEffect, useState } from "react";
-import useModalStore from "../../stores/modalStore";
-import Icon from "../Icon";
-import Avatar from "../avatar/Avatar";
-import useUser from "../../hooks/useUser";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { renameFile } from "../../utils/file";
-import { loadImage } from "../../utils/image";
-import { trpc } from "../../lib/trpcClient";
-import { Modal } from "./Modals";
-import { useUser as useClerkUser } from "@clerk/clerk-react";
-import { Loader2 } from "lucide-react";
-import axios from "axios";
+import { forwardRef, useEffect, useState } from "react"
+import useModalStore from "../../stores/modalStore"
+import Icon from "../Icon"
+import Avatar from "../avatar/Avatar"
+import useUser from "../../hooks/useUser"
+import { useForm, SubmitHandler } from "react-hook-form"
+import { useNavigate } from "react-router-dom"
+import { renameFile } from "../../utils/file"
+import { loadImage } from "../../utils/image"
+import { trpc } from "../../lib/trpcClient"
+import { Modal } from "./Modals"
+import { useUser as useClerkUser } from "@clerk/clerk-react"
+import { Loader2 } from "lucide-react"
+import axios from "axios"
 
 export type CommonInput = {
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  image_url?: string | undefined;
-  description?: string;
-  [key: string]: string | undefined;
-};
+  first_name?: string
+  last_name?: string
+  username?: string
+  image_url?: string | undefined
+  description?: string
+  [key: string]: string | undefined
+}
 
 export type Inputs = CommonInput & {
-  file: FileList;
-};
+  file: FileList
+}
 
 const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
-  const { user } = useClerkUser();
-  const [fileUrl, setFileUrl] = useState<string>("");
-  const { userData, token, updateUser } = useUser();
-  const navigate = useNavigate();
-  const utils = trpc.useUtils();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { closeModal, setIsAvatarUpdating } = useModalStore(
-    (state) => state.actions,
-  );
-  const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating);
+  const { user } = useClerkUser()
+  const [fileUrl, setFileUrl] = useState<string>("")
+  const { userData, token, updateUser } = useUser()
+  const navigate = useNavigate()
+  const utils = trpc.useUtils()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const { closeModal, setIsAvatarUpdating } = useModalStore((state) => state.actions)
+  const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating)
   const {
     register,
     formState: { errors, isDirty, dirtyFields },
     setError,
     handleSubmit,
     watch,
-    reset,
-  } = useForm<Inputs>();
+    reset
+  } = useForm<Inputs>()
 
   const updateUserDataMutation = trpc.user.updateUserData.useMutation({
     onSuccess: async (data) => {
-      console.log("On success", data);
-      const { username, last_name, first_name } = data;
+      console.log("On success", data)
+      const { username, last_name, first_name } = data
 
       const processes = [
         user?.update({
           username,
           firstName: first_name,
-          lastName: last_name,
+          lastName: last_name
         }),
         utils.user.get.refetch({
           data: userData!.username,
-          type: "username",
-        }),
-      ];
-      await Promise.all(processes);
+          type: "username"
+        })
+      ]
+      await Promise.all(processes)
 
-      setFileUrl("");
-      setIsLoading(false);
-      reset();
-      navigate(`/${username}`);
+      setFileUrl("")
+      setIsLoading(false)
+      reset()
+      navigate(`/${username}`)
     },
     onError: (error) => {
-      const { data } = error;
+      const { data } = error
       if (data?.httpStatus === 422) {
         setError("username", {
           type: "custom",
-          message:
-            "Failed to update since username already exists. Please try using different username.",
-        });
+          message: "Failed to update since username already exists. Please try using different username."
+        })
       }
-    },
-  });
+    }
+  })
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
-      if (!userData) return;
-      const { file } = formData;
-      setIsLoading(true);
+      if (!userData) return
+      const { file } = formData
+      setIsLoading(true)
 
       if (file && file.length > 0) {
-        setIsAvatarUpdating(true);
-        const renamedFile = renameFile(file[0]);
+        setIsAvatarUpdating(true)
+        const renamedFile = renameFile(file[0])
 
-        const form = new FormData();
-        form.append("serialized", JSON.stringify({ userId: userData.id }));
-        form.append("images", renamedFile);
-        const { data: image_url } = await axios.post(
-          `${import.meta.env.VITE_SERVER_URL}/api/upload/avatar`,
-          form,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        await loadImage(image_url);
-        updateUser({ username: userData!.username, newFields: { image_url } });
-        setIsAvatarUpdating(false);
-        setFileUrl(image_url);
+        const form = new FormData()
+        form.append("serialized", JSON.stringify({ userId: userData.id }))
+        form.append("images", renamedFile)
+        const { data: image_url } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/upload/avatar`, form, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        await loadImage(image_url)
+        updateUser({ username: userData!.username, newFields: { image_url } })
+        setIsAvatarUpdating(false)
+        setFileUrl(image_url)
       }
 
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
-        setIsLoading(false);
-        reset();
-        return;
+        setIsLoading(false)
+        reset()
+        return
       }
 
       utils.user.get.invalidate({
         data: userData?.username,
-        type: "username",
-      });
+        type: "username"
+      })
 
       // @ts-expect-error dsako
-      delete formData.file;
-      delete formData.image_url;
+      delete formData.file
+      delete formData.image_url
 
       updateUserDataMutation.mutate({
         userId: userData.id,
-        userData: formData,
-      });
+        userData: formData
+      })
     } catch (error) {
-      console.log("From server error: ", error);
+      console.log("From server error: ", error)
       // @ts-expect-error dskao
       if (error.status === 422) {
         setError("username", {
           type: "custom",
-          message:
-            "Failed to update since username already exists. Please try using different username.",
-        });
+          message: "Failed to update since username already exists. Please try using different username."
+        })
       }
     }
-  };
+  }
 
   useEffect(() => {
-    const newFile = watch("file");
+    const newFile = watch("file")
     if (newFile.length > 0 && newFile[0].type.split("/")[0] !== "image") {
       setError("file", {
         type: "custom",
-        message: "The file that is provided is not an image",
-      });
-      return;
+        message: "The file that is provided is not an image"
+      })
+      return
     }
-    if (newFile.length === 0) return;
-    const url = URL.createObjectURL(newFile[0]);
-    setFileUrl(url);
-  }, [watch("file")]);
+    if (newFile.length === 0) return
+    const url = URL.createObjectURL(newFile[0])
+    setFileUrl(url)
+  }, [watch("file")])
 
   return (
     <Modal>
@@ -165,9 +157,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         >
           <div className="flex w-full items-center justify-between">
             <div className="relative flex items-center justify-between">
-              <p className="pl-8 text-base font-semibold text-neutral-300">
-                Edit Profile
-              </p>
+              <p className="pl-8 text-base font-semibold text-neutral-300">Edit Profile</p>
               <div
                 onClick={() => closeModal()}
                 className="absolute top-1/2 -translate-y-1/2 rounded-full text-neutral-300 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
@@ -195,23 +185,11 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
                 className="absolute left-0 top-0 z-10 block h-full w-full cursor-pointer rounded-full bg-black bg-opacity-0 
         transition-all duration-200 hover:bg-opacity-20"
               ></label>
-              <input
-                {...register("file")}
-                id="file"
-                type="file"
-                className="hidden"
-                accept="image/*"
-              />
-              <Avatar
-                image_url={fileUrl.length > 0 ? fileUrl : userData?.image_url}
-                size="xl"
-                className="outline"
-              />
+              <input {...register("file")} id="file" type="file" className="hidden" accept="image/*" />
+              <Avatar image_url={fileUrl.length > 0 ? fileUrl : userData?.image_url} size="xl" className="outline" />
             </div>
             <div className="text-sm text-red-600">
-              {errors.file && errors.file.type === "custom" && (
-                <span>{errors.file.message}</span>
-              )}
+              {errors.file && errors.file.type === "custom" && <span>{errors.file.message}</span>}
             </div>
           </div>
           <div className="flex h-full w-full flex-col items-start justify-around space-y-2">
@@ -222,25 +200,20 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
                 {...register("username", {
                   pattern: {
                     value: /^[a-z0-9]+$/,
-                    message: "Entered value does not match email format",
+                    message: "Entered value does not match email format"
                   },
                   maxLength: 25,
-                  minLength: 3,
+                  minLength: 3
                 })}
                 defaultValue={userData?.username}
                 className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
               />
               <div className="text-sm text-red-600">
                 {errors.username && errors.username.type === "maxLength" && (
-                  <span>
-                    Exceeded the maximum number of characters for an username
-                    (25)
-                  </span>
+                  <span>Exceeded the maximum number of characters for an username (25)</span>
                 )}
                 {errors.username && errors.username.type === "minLength" && (
-                  <span>
-                    The username needs to be at least 3 characters long.
-                  </span>
+                  <span>The username needs to be at least 3 characters long.</span>
                 )}
                 {errors.username && errors.username.type === "pattern" && (
                   <span>The username needs to be lower cased.</span>
@@ -281,7 +254,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         </form>
       </div>
     </Modal>
-  );
-});
+  )
+})
 
-export default EditProfileModal;
+export default EditProfileModal

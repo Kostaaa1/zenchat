@@ -1,13 +1,11 @@
-import { FC, ReactElement } from "react";
+import { FC, ReactElement } from "react"
 
 type ContainerProps = {
-  children: ReactElement;
-};
+  children: ReactElement
+}
 
 const MainContainer: FC<ContainerProps> = ({ children }) => {
-  return (
-    <div className="flex w-full items-center justify-center">{children}</div>
-  );
-};
+  return <div className="flex w-full items-center justify-center">{children}</div>
+}
 
-export default MainContainer;
+export default MainContainer

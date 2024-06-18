@@ -1,19 +1,17 @@
-import { useState } from "react";
-import List from "../../../components/List";
-import { Link } from "react-router-dom";
-import { cn } from "../../../utils/utils";
-import useModalStore from "../../../stores/modalStore";
-import useChatStore from "../../../stores/chatStore";
-import useUser from "../../../hooks/useUser";
+import { useState } from "react"
+import List from "../../../components/List"
+import { Link } from "react-router-dom"
+import { cn } from "../../../utils/utils"
+import useModalStore from "../../../stores/modalStore"
+import useChatStore from "../../../stores/chatStore"
+import useUser from "../../../hooks/useUser"
 
 const ChatDetails = () => {
-  const activeChatroom = useChatStore((state) => state.activeChatroom);
-  const [isMuteActive, setIsMuteActive] = useState<boolean>(false);
-  const { openModal } = useModalStore((state) => state.actions);
-  const { userData } = useUser();
-  const componentLists = [
-    { list: "Delete", id: 0, fn: () => openModal("deletechat") },
-  ];
+  const activeChatroom = useChatStore((state) => state.activeChatroom)
+  const [isMuteActive, setIsMuteActive] = useState<boolean>(false)
+  const { openModal } = useModalStore((state) => state.actions)
+  const { userData } = useUser()
+  const componentLists = [{ list: "Delete", id: 0, fn: () => openModal("deletechat") }]
 
   return (
     <div className="flex h-full w-[370px] flex-col border border-y-0 border-r-0 border-l-[#262626] ">
@@ -25,13 +23,13 @@ const ChatDetails = () => {
             onClick={() => setIsMuteActive(!isMuteActive)}
             className={cn(
               "relative flex h-6 w-10 items-center rounded-xl transition-colors duration-200",
-              isMuteActive ? "bg-gray-400" : "bg-lightBlue",
+              isMuteActive ? "bg-gray-400" : "bg-lightBlue"
             )}
           >
             <div
               className={cn(
                 "absolute left-0 h-6 w-6 cursor-pointer rounded-full border border-gray-400 bg-gray-200 transition-transform duration-200",
-                isMuteActive ? "translate-x-0" : "translate-x-4",
+                isMuteActive ? "translate-x-0" : "translate-x-4"
               )}
             ></div>
           </div>
@@ -44,11 +42,7 @@ const ChatDetails = () => {
           .filter((x) => x.username !== userData!.username)
           .map((user) => (
             <Link key={user.user_id} to={`/${user.username}`}>
-              <List
-                image_url={[user.image_url]}
-                title={user.username}
-                avatarSize="md"
-              />
+              <List image_url={[user.image_url]} title={user.username} avatarSize="md" />
             </Link>
           ))}
       </ul>
@@ -64,7 +58,7 @@ const ChatDetails = () => {
         ))}
       </ul>
     </div>
-  );
-};
+  )
+}
 
-export default ChatDetails;
+export default ChatDetails

@@ -1,30 +1,24 @@
-import { FC } from "react";
-import useModalStore from "../../stores/modalStore";
-import { TPost } from "../../../../server/src/types/types";
-import { Play } from "lucide-react";
+import { FC } from "react"
+import useModalStore from "../../stores/modalStore"
+import { TPost } from "../../../../server/src/types/types"
+import { Play } from "lucide-react"
 
 type PostProps = {
-  post: TPost;
-};
+  post: TPost
+}
 
 const Post: FC<PostProps> = ({ post }) => {
-  const { media_url, thumbnail_url, id } = post;
-  const { setModalPostData, openModal } = useModalStore(
-    (state) => state.actions,
-  );
+  const { media_url, thumbnail_url, id } = post
+  const { setModalPostData, openModal } = useModalStore((state) => state.actions)
   const handleClick = () => {
-    openModal("post");
-    setModalPostData(post);
-  };
+    openModal("post")
+    setModalPostData(post)
+  }
 
   return (
     <li className="relative cursor-pointer select-none" onClick={handleClick}>
       <div className=" w-full">
-        <img
-          className="aspect-square"
-          src={thumbnail_url ?? media_url}
-          alt={id}
-        />
+        <img className="aspect-square" src={thumbnail_url ?? media_url} alt={id} />
       </div>
       {post.type.startsWith("video/") && (
         <div className="absolute right-1 top-1">
@@ -33,7 +27,7 @@ const Post: FC<PostProps> = ({ post }) => {
       )}
       <div className="group absolute top-0 h-full w-full bg-black bg-opacity-0 transition-colors hover:bg-opacity-20"></div>
     </li>
-  );
-};
+  )
+}
 
-export default Post;
+export default Post

@@ -1,33 +1,33 @@
-import { forwardRef, useState } from "react";
-import useModalStore from "../../stores/modalStore";
-import useChatCache from "../../hooks/useChatCache";
-import useChatStore from "../../stores/chatStore";
-import { trpc } from "../../lib/trpcClient";
-import { Modal } from "./Modals";
-import Button from "../Button";
+import { forwardRef, useState } from "react"
+import useModalStore from "../../stores/modalStore"
+import useChatCache from "../../hooks/useChatCache"
+import useChatStore from "../../stores/chatStore"
+import { trpc } from "../../lib/trpcClient"
+import { Modal } from "./Modals"
+import Button from "../Button"
 
 const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
-  const { closeModal } = useModalStore((state) => state.actions);
-  const activeMessage = useModalStore((state) => state.activeMessage);
-  const activeChatroom = useChatStore((state) => state.activeChatroom);
-  const { removeMessageCache } = useChatCache();
-  const unsendMessageMutation = trpc.chat.messages.unsend.useMutation();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { closeModal } = useModalStore((state) => state.actions)
+  const activeMessage = useModalStore((state) => state.activeMessage)
+  const activeChatroom = useChatStore((state) => state.activeChatroom)
+  const { removeMessageCache } = useChatCache()
+  const unsendMessageMutation = trpc.chat.messages.unsend.useMutation()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const handleConfirmUnsend = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     if (activeMessage && activeChatroom) {
-      console.log("removing message");
-      const { id, content, is_image } = activeMessage;
-      removeMessageCache(activeMessage.id, activeChatroom.chatroom_id);
-      closeModal();
+      console.log("removing message")
+      const { id, content, is_image } = activeMessage
+      removeMessageCache(activeMessage.id, activeChatroom.chatroom_id)
+      closeModal()
       await unsendMessageMutation.mutateAsync({
         id,
-        imageUrl: is_image ? content : null,
-      });
+        imageUrl: is_image ? content : null
+      })
     }
-    setIsLoading(false);
-  };
+    setIsLoading(false)
+  }
 
   return (
     <Modal>
@@ -37,8 +37,7 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
       >
         <h4 className="py-2 text-xl">Unsend message?</h4>
         <p className="text-sm leading-4 text-neutral-400">
-          This will remove the message for everyone but people may have seen it
-          already.
+          This will remove the message for everyone but people may have seen it already.
         </p>
         <div className="flex w-full flex-col pt-4 text-sm font-semibold">
           <div className="-mx-2 transition-colors duration-200">
@@ -61,7 +60,7 @@ const UnsendMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </div>
     </Modal>
-  );
-});
+  )
+})
 
-export default UnsendMessageModal;
+export default UnsendMessageModal

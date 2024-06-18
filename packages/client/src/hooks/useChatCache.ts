@@ -1,74 +1,70 @@
-import { TMessage } from "../../../server/src/types/types";
-import { useCallback } from "react";
-import { trpc } from "../lib/trpcClient";
-import useChatStore from "../stores/chatStore";
-import useUser from "./useUser";
-import { useNavigate } from "react-router-dom";
+import { TMessage } from "../../../server/src/types/types"
+import { useCallback } from "react"
+import { trpc } from "../lib/trpcClient"
+import useChatStore from "../stores/chatStore"
+import useUser from "./useUser"
+import { useNavigate } from "react-router-dom"
 
 const useChatCache = () => {
-  const utils = trpc.useUtils();
-  const { setActiveChatroom } = useChatStore((state) => state.actions);
-  const { userData } = useUser();
-  const navigate = useNavigate();
+  const utils = trpc.useUtils()
+  const { setActiveChatroom } = useChatStore((state) => state.actions)
+  const { userData } = useUser()
+  const navigate = useNavigate()
 
   const addNewMessageToChatCache = useCallback(
     (messageData: TMessage) => {
       utils.chat.messages.get.setData(
         {
-          chatroom_id: messageData.chatroom_id,
+          chatroom_id: messageData.chatroom_id
         },
         (staleChats) => {
           if (staleChats && messageData) {
-            return [messageData, ...staleChats];
+            return [messageData, ...staleChats]
           }
-        },
-      );
+        }
+      )
     },
-    [utils.chat.messages.get],
-  );
+    [utils.chat.messages.get]
+  )
 
   const removeMessageCache = (id: string, chatroom_id: string) => {
-    utils.chat.messages.get.setData({ chatroom_id }, (state) =>
-      state ? state.filter((x) => x.id !== id) : state,
-    );
-  };
+    utils.chat.messages.get.setData({ chatroom_id }, (state) => (state ? state.filter((x) => x.id !== id) : state))
+  }
 
   const removeChatFromUserChats = (chatroom_id: string) => {
     utils.chat.get.user_chatrooms.setData(userData!.id, (state) => {
-      return state?.filter((x) => x.chatroom_id !== chatroom_id);
-    });
-    setActiveChatroom(null);
-    navigate("/inbox");
-  };
+      return state?.filter((x) => x.chatroom_id !== chatroom_id)
+    })
+    setActiveChatroom(null)
+    navigate("/inbox")
+  }
 
   const updateUserReadMessage = useCallback(
     (id: string, is_message_seen: boolean) => {
-      console.log("#CHECKRENDERING skrt ??");
+      console.log("#CHECKRENDERING skrt ??")
       return utils.chat.get.user_chatrooms.setData(userData?.id, (state) => {
         if (state && userData) {
-          console.log("State: ", state, "To update: ", id);
+          console.log("State: ", state, "To update: ", id)
           return state.map((chatrooms) =>
             chatrooms.chatroom_id === id
               ? {
                   ...chatrooms,
-                  users: chatrooms.users.map((x) =>
-                    x.user_id === userData.id ? { ...x, is_message_seen } : x,
-                  ),
+                  users: chatrooms.users.map((x) => (x.user_id === userData.id ? { ...x, is_message_seen } : x))
                 }
-              : chatrooms,
-          );
+              : chatrooms
+          )
         }
-      });
+      })
     },
-    [userData, utils.chat.get.user_chatrooms],
-  );
+    [userData, utils.chat.get.user_chatrooms]
+  )
 
   return {
     removeChatFromUserChats,
     removeMessageCache,
     updateUserReadMessage,
-    addNewMessageToChatCache,
-  };
-};
+    addNewMessageToChatCache
+  }
+}
 
-export default useChatCache;
+export default useChatCache

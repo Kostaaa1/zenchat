@@ -1,90 +1,92 @@
-import { FC, useEffect } from "react";
-import { Modal } from "./Modals";
-import { cn } from "../../utils/utils";
-import { PhoneCall, PhoneMissed } from "lucide-react";
-import useModalStore from "../../stores/modalStore";
-// import { socket } from "../../lib/socket";
-import { SocketCallPayload } from "../../../../server/src/types/sockets";
-import Avatar from "../avatar/Avatar";
-import useGeneralStore from "../../stores/generalStore";
-import incomming from "../../../public/incomming.mp3";
-import usePeerConnection from "../../stores/peerConnection";
-import { socket } from "../../lib/socket";
-import { useNavigate } from "react-router-dom";
+import { FC, useEffect } from "react"
+import { Modal } from "./Modals"
+import { cn } from "../../utils/utils"
+import { PhoneCall, PhoneMissed } from "lucide-react"
+import useModalStore from "../../stores/modalStore"
+import { SocketCallPayload } from "../../../../server/src/types/sockets"
+import Avatar from "../avatar/Avatar"
+import useGeneralStore from "../../stores/generalStore"
+import incomming from "../../../public/incomming.mp3"
+import usePeerConnection from "../../stores/peerConnection"
+import { socket } from "../../lib/socket"
+import { useNavigate } from "react-router-dom"
 
 type ModalProps = {
-  callerInfo: SocketCallPayload;
-};
+  callerInfo: SocketCallPayload
+}
 
 const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
-  const { setIsCallAccepted } = usePeerConnection((state) => state.actions);
-  const { caller, receivers } = callerInfo;
-  const volume = useGeneralStore((state) => state.volume);
-  const navigate = useNavigate();
-  const { setCallerInfo, closeModal } = useModalStore((state) => state.actions);
+  const { setIsCallAccepted } = usePeerConnection((state) => state.actions)
+  const { caller, receivers } = callerInfo
+  const volume = useGeneralStore((state) => state.volume)
+  const navigate = useNavigate()
+  const { setCallerInfo, closeModal } = useModalStore((state) => state.actions)
 
   const startRinging = () => {
-    const init = document.getElementById("ring");
+    const init = document.getElementById("ring")
     if (init) {
-      const el = init as HTMLAudioElement;
-      el.src = incomming;
-      el.volume = volume;
-      el.play();
+      const el = init as HTMLAudioElement
+      el.src = incomming
+      el.volume = volume
+      el.play()
     }
-  };
+  }
 
   const stopRinging = () => {
-    const init = document.getElementById("ring");
+    const init = document.getElementById("ring")
     if (init) {
-      const el = init as HTMLAudioElement;
-      el.src = incomming;
-      el.volume = volume;
-      el.pause();
+      const el = init as HTMLAudioElement
+      el.src = incomming
+      el.volume = volume
+      el.pause()
     }
-  };
+  }
 
   ////////////////////////////////
   const pickup = () => {
-    const { caller, chatroomId, receivers } = callerInfo;
-    setIsCallAccepted(true);
+    const { caller, chatroomId, receivers } = callerInfo
+    setIsCallAccepted(true)
     const p: SocketCallPayload = {
       status: "accepted",
       caller,
       receivers,
-      chatroomId,
-    };
-    socket.emit("call", p);
-    stopRinging();
-    closeModal();
-    navigate(`/call/${chatroomId}`);
-  };
+      chatroomId
+    }
+    socket.emit("call", p)
+    stopRinging()
+    closeModal()
+
+    if (!location.pathname.includes("/call")) {
+      navigate(`/call/${chatroomId}`)
+    }
+  }
 
   const hangup = () => {
     if (caller) {
-      stopRinging();
+      stopRinging()
       const p: SocketCallPayload = {
         status: "declined",
         caller,
         receivers,
-        chatroomId: callerInfo.chatroomId,
-      };
-      socket.emit("call", p);
-      setCallerInfo(null);
-      closeModal();
+        chatroomId: callerInfo.chatroomId
+      }
+      socket.emit("call", p)
+      setCallerInfo(null)
+      closeModal()
     }
-  };
+  }
 
   useEffect(() => {
-    startRinging();
+    startRinging()
     const timeout = setTimeout(() => {
-      console.log("CALL TIME EXCEEDED, HHANG UPHANG UPHANG UPANG UP!!!!");
-      hangup();
-    }, 20000);
+      console.log("CALL TIME EXCEEDED, HHANG UPHANG UPHANG UPANG UP!!!!")
+      hangup()
+    }, 20000)
     return () => {
-      console.log("VOICE CALL MODAL CLEANUP ran");
-      clearTimeout(timeout);
-    };
-  }, [closeModal]);
+      console.log("VOICE CALL MODAL CLEANUP ran")
+      clearTimeout(timeout)
+    }
+  }, [closeModal])
 
   return (
     <Modal>
@@ -99,20 +101,14 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
             <p>{caller.username} is calling you</p>
           </div>
           <div className="flex w-full justify-between">
-            <PhoneCall
-              onClick={pickup}
-              className="h-10 w-10 cursor-pointer rounded-full bg-green-600 p-2"
-            />
-            <PhoneMissed
-              onClick={hangup}
-              className="h-10 w-10 cursor-pointer rounded-full bg-red-600 p-2"
-            />
+            <PhoneCall onClick={pickup} className="h-10 w-10 cursor-pointer rounded-full bg-green-600 p-2" />
+            <PhoneMissed onClick={hangup} className="h-10 w-10 cursor-pointer rounded-full bg-red-600 p-2" />
           </div>
         </div>
       </div>
       <audio id="ring" loop />
       {/* <audio id="ring" loop autoPlay src={incomming} /> */}
     </Modal>
-  );
-};
-export default VoiceCallModal;
+  )
+}
+export default VoiceCallModal

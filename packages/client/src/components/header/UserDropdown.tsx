@@ -1,17 +1,17 @@
-import React, { FC } from "react";
-import { useAuth } from "@clerk/clerk-react";
-import { motion } from "framer-motion";
-import { trpc } from "../../lib/trpcClient";
-import { useNavigate } from "react-router-dom";
+import React, { FC } from "react"
+import { useAuth } from "@clerk/clerk-react"
+import { motion } from "framer-motion"
+import { trpc } from "../../lib/trpcClient"
+import { useNavigate } from "react-router-dom"
 
 type UserDropdownProps = {
-  dropdownRef: React.RefObject<HTMLDivElement>;
-};
+  dropdownRef: React.RefObject<HTMLDivElement>
+}
 
 type LiProps = {
-  text: string;
-  onClick: () => void;
-};
+  text: string
+  onClick: () => void
+}
 
 const Li: FC<LiProps> = ({ onClick, text }) => {
   return (
@@ -21,19 +21,19 @@ const Li: FC<LiProps> = ({ onClick, text }) => {
     >
       {text}
     </li>
-  );
-};
+  )
+}
 
 const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
-  const { signOut } = useAuth();
-  const ctx = trpc.useUtils();
-  const navigate = useNavigate();
+  const { signOut } = useAuth()
+  const ctx = trpc.useUtils()
+  const navigate = useNavigate()
 
   const handleLogOut = async () => {
-    navigate("/");
-    ctx.invalidate();
-    signOut();
-  };
+    navigate("/")
+    ctx.invalidate()
+    signOut()
+  }
 
   return (
     <>
@@ -50,7 +50,7 @@ const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
         </ul>
       </motion.div>
     </>
-  );
-};
+  )
+}
 
-export default UserDropdown;
+export default UserDropdown

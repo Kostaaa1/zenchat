@@ -1,2 +1,2 @@
-export * from "./convertAndFormatDate";
-export * from "./getCurrentDate";
+export * from "./convertAndFormatDate"
+export * from "./getCurrentDate"

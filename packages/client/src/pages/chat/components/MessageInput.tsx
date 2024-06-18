@@ -1,23 +1,19 @@
-import React, { FC, FormEvent, useRef } from "react";
-import Icon from "../../../components/Icon";
-import useChatStore from "../../../stores/chatStore";
-import { cn } from "../../../utils/utils";
-import { EmojiPickerContainer } from "./EmojiPicker";
-import { TChatroom } from "../../../../../server/src/types/types";
-import useMessageInput from "../../../hooks/useMessageInput";
+import React, { FC, FormEvent, useRef } from "react"
+import Icon from "../../../components/Icon"
+import useChatStore from "../../../stores/chatStore"
+import { cn } from "../../../utils/utils"
+import { EmojiPickerContainer } from "./EmojiPicker"
+import { TChatroom } from "../../../../../server/src/types/types"
+import useMessageInput from "../../../hooks/useMessageInput"
 
 interface MessageInputProps {
-  iconRef: React.RefObject<HTMLDivElement>;
-  scrollToStart: () => void;
-  activeChatroom: TChatroom;
+  iconRef: React.RefObject<HTMLDivElement>
+  scrollToStart: () => void
+  activeChatroom: TChatroom
 }
 
-const MessageInput: FC<MessageInputProps> = ({
-  iconRef,
-  scrollToStart,
-  activeChatroom,
-}) => {
-  const emojiRef = useRef<HTMLDivElement>(null);
+const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart, activeChatroom }) => {
+  const emojiRef = useRef<HTMLDivElement>(null)
   const {
     sendMessage,
     handleFileChange,
@@ -25,42 +21,32 @@ const MessageInput: FC<MessageInputProps> = ({
     messageInput,
     removeFileFromStack,
     handleInputChange,
-    selectEmoji,
-  } = useMessageInput(activeChatroom);
-  const { setShowEmojiPicker } = useChatStore((state) => state.actions);
+    selectEmoji
+  } = useMessageInput(activeChatroom)
+  const { setShowEmojiPicker } = useChatStore((state) => state.actions)
   const { showEmojiPicker } = useChatStore((state) => ({
-    showEmojiPicker: state.showEmojiPicker,
-  }));
+    showEmojiPicker: state.showEmojiPicker
+  }))
 
   const showEmoji = () => {
-    setShowEmojiPicker(!showEmojiPicker);
-  };
+    setShowEmojiPicker(!showEmojiPicker)
+  }
 
   const handleSubmit = (e: FormEvent) => {
-    sendMessage(e);
-    scrollToStart();
-  };
+    sendMessage(e)
+    scrollToStart()
+  }
 
   return (
     <div className="px-4">
       {activeChatroom && (
-        <form
-          onSubmit={handleSubmit}
-          className={cn(
-            "relative flex",
-            imageInputs.length === 0 ? "h-14" : "h-[124px]",
-          )}
-        >
+        <form onSubmit={handleSubmit} className={cn("relative flex", imageInputs.length === 0 ? "h-14" : "h-[124px]")}>
           {imageInputs.length > 0 && (
             <div className="absolute left-6 top-3">
               <div className="flex">
                 {imageInputs?.map((img, id) => (
                   <div key={img} className="relative mr-2">
-                    <img
-                      className="h-12 w-12 rounded-lg"
-                      src={img}
-                      alt="image"
-                    />
+                    <img className="h-12 w-12 rounded-lg" src={img} alt="image" />
                     <div
                       onClick={() => removeFileFromStack(id)}
                       className="absolute right-0 top-0 flex -translate-y-[2px] translate-x-1 items-center rounded-full bg-zinc-300 p-[1px] text-zinc-600"
@@ -88,10 +74,7 @@ const MessageInput: FC<MessageInputProps> = ({
           )}
           <div
             ref={iconRef}
-            className={cn(
-              imageInputs?.length === 0 ? "" : "pt-[69px]",
-              "absolute bottom-1/2 left-6 translate-y-1/2",
-            )}
+            className={cn(imageInputs?.length === 0 ? "" : "pt-[69px]", "absolute bottom-1/2 left-6 translate-y-1/2")}
           >
             <Icon name="Smile" size="24px" onClick={showEmoji} />
           </div>
@@ -100,13 +83,7 @@ const MessageInput: FC<MessageInputProps> = ({
               <label htmlFor="file">
                 <Icon name="Image" size="24px" />
               </label>
-              <input
-                type="file"
-                id="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
+              <input type="file" id="file" className="hidden" accept="image/*" onChange={handleFileChange} />
             </div>
           )}
           <input
@@ -116,14 +93,11 @@ const MessageInput: FC<MessageInputProps> = ({
             onChange={handleInputChange}
             className={cn(
               imageInputs?.length === 0 ? "" : "pt-[69px]",
-              "h-full rounded-3xl border-2 border-[#262626] bg-black px-14 placeholder:text-white",
+              "h-full rounded-3xl border-2 border-[#262626] bg-black px-14 placeholder:text-white"
             )}
           />
           <div
-            className={cn(
-              imageInputs?.length === 0 ? "" : "pt-[69px]",
-              "absolute bottom-1/2 right-6 translate-y-1/2",
-            )}
+            className={cn(imageInputs?.length === 0 ? "" : "pt-[69px]", "absolute bottom-1/2 right-6 translate-y-1/2")}
           >
             {(messageInput || imageInputs?.length > 0) && (
               <input
@@ -135,13 +109,9 @@ const MessageInput: FC<MessageInputProps> = ({
           </div>
         </form>
       )}
-      <EmojiPickerContainer
-        selectEmoji={selectEmoji}
-        emojiRef={emojiRef}
-        showEmojiPicker={showEmojiPicker}
-      />
+      <EmojiPickerContainer selectEmoji={selectEmoji} emojiRef={emojiRef} showEmojiPicker={showEmojiPicker} />
     </div>
-  );
-};
+  )
+}
 
-export default MessageInput;
+export default MessageInput

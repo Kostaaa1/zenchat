@@ -1,39 +1,39 @@
-import { useEffect, useState } from "react";
-import useGeneralStore from "../stores/generalStore";
+import { useEffect, useState } from "react"
+import useGeneralStore from "../stores/generalStore"
 
 type TWindowSize = {
-  width: number;
-  height: number;
-};
+  width: number
+  height: number
+}
 
 const useWindowSize = () => {
   // Imrpove this.
   const [windowSize, setWindowSize] = useState<TWindowSize>({
     width: window.innerWidth,
-    height: window.innerHeight,
-  });
-  const { setIsMobile } = useGeneralStore((state) => state.actions);
+    height: window.innerHeight
+  })
+  const { setIsMobile } = useGeneralStore((state) => state.actions)
 
   const handleWindowSize = () => {
-    const { innerWidth } = window;
-    setIsMobile(innerWidth <= 768);
-    setWindowSize({ width: innerWidth, height: window.innerHeight });
-  };
+    const { innerWidth } = window
+    setIsMobile(innerWidth <= 768)
+    setWindowSize({ width: innerWidth, height: window.innerHeight })
+  }
 
   useEffect(() => {
-    handleWindowSize();
-  }, []);
+    handleWindowSize()
+  }, [])
 
   useEffect(() => {
-    window.addEventListener("resize", handleWindowSize);
-    window.addEventListener("load", handleWindowSize);
+    window.addEventListener("resize", handleWindowSize)
+    window.addEventListener("load", handleWindowSize)
     return () => {
-      window.removeEventListener("resize", handleWindowSize);
-      window.removeEventListener("load", handleWindowSize);
-    };
-  }, []);
+      window.removeEventListener("resize", handleWindowSize)
+      window.removeEventListener("load", handleWindowSize)
+    }
+  }, [])
 
-  return windowSize;
-};
+  return windowSize
+}
 
-export default useWindowSize;
+export default useWindowSize

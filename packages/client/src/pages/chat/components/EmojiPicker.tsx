@@ -1,19 +1,15 @@
-import { FC, RefObject } from "react";
-import Picker from "@emoji-mart/react";
-import { AnimatePresence, motion } from "framer-motion";
-import data from "@emoji-mart/data";
+import { FC, RefObject } from "react"
+import Picker from "@emoji-mart/react"
+import { AnimatePresence, motion } from "framer-motion"
+import data from "@emoji-mart/data"
 
 type EmojiPickerProps = {
-  showEmojiPicker: boolean;
-  emojiRef: RefObject<HTMLDivElement>;
-  selectEmoji: (e: data.Skin) => void;
-};
+  showEmojiPicker: boolean
+  emojiRef: RefObject<HTMLDivElement>
+  selectEmoji: (e: data.Skin) => void
+}
 
-export const EmojiPickerContainer: FC<EmojiPickerProps> = ({
-  showEmojiPicker,
-  emojiRef,
-  selectEmoji,
-}) => {
+export const EmojiPickerContainer: FC<EmojiPickerProps> = ({ showEmojiPicker, emojiRef, selectEmoji }) => {
   return (
     <AnimatePresence>
       {showEmojiPicker ? (
@@ -29,5 +25,5 @@ export const EmojiPickerContainer: FC<EmojiPickerProps> = ({
         </motion.div>
       ) : null}
     </AnimatePresence>
-  );
-};
+  )
+}

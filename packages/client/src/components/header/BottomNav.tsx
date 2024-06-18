@@ -1,20 +1,18 @@
-import NavList from "../NavList";
-import useUser from "../../hooks/useUser";
-import Icon from "../Icon";
-import Avatar from "../avatar/Avatar";
-import { NavListItems } from "../../hooks/useNavbar";
-import { FC } from "react";
-import useChatStore from "../../stores/chatStore";
+import NavList from "../NavList"
+import useUser from "../../hooks/useUser"
+import Icon from "../Icon"
+import Avatar from "../avatar/Avatar"
+import { NavListItems } from "../../hooks/useNavbar"
+import { FC } from "react"
+import useChatStore from "../../stores/chatStore"
 
 type BottomNavbarProps = {
-  navListItems: NavListItems[];
-};
+  navListItems: NavListItems[]
+}
 
 const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
-  const { userData } = useUser();
-  const unreadMessagesCount = useChatStore(
-    (state) => state.unreadMessagesCount,
-  );
+  const { userData } = useUser()
+  const unreadMessagesCount = useChatStore((state) => state.unreadMessagesCount)
 
   return (
     <ul
@@ -23,18 +21,9 @@ const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
     >
       {navListItems.map((li, id) => (
         <div key={id} ref={li.ref} className="relative">
-          <NavList
-            variant="default"
-            onClick={li.onClick}
-            className={li.className}
-          >
+          <NavList variant="default" onClick={li.onClick} className={li.className}>
             {li.iconName ? (
-              <Icon
-                strokeWidth={li.iconStrokeWidth}
-                name={li.iconName}
-                color="white"
-                size="28px"
-              />
+              <Icon strokeWidth={li.iconStrokeWidth} name={li.iconName} color="white" size="28px" />
             ) : (
               <Avatar image_url={userData?.image_url} size="sm" />
             )}
@@ -47,7 +36,7 @@ const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
         </div>
       ))}
     </ul>
-  );
-};
+  )
+}
 
-export default BottomNavbar;
+export default BottomNavbar

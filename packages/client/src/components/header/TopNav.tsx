@@ -1,10 +1,10 @@
-import useSearchStore from "../../stores/searchStore";
-import Logo from "../Logo";
-import Search from "../search/Search";
-import SearchInput from "../search/SearchInput";
+import useSearchStore from "../../stores/searchStore"
+import Logo from "../Logo"
+import Search from "../search/Search"
+import SearchInput from "../search/SearchInput"
 
 export const TopNav = () => {
-  const isSearchActive = useSearchStore((state) => state.isSearchActive);
+  const isSearchActive = useSearchStore((state) => state.isSearchActive)
   return (
     <div className="flex items-center justify-between border-b border-[#232323] bg-black py-2 pr-4">
       <div>
@@ -13,5 +13,5 @@ export const TopNav = () => {
       <SearchInput />
       {isSearchActive ? <Search /> : null}
     </div>
-  );
-};
+  )
+}

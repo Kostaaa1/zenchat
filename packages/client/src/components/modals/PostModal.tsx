@@ -1,38 +1,33 @@
-import Icon from "../Icon";
-import { FC, forwardRef } from "react";
-import useModalStore from "../../stores/modalStore";
-import { Modal } from "./Modals";
-import { trpc } from "../../lib/trpcClient";
-import { TPost, TUserData } from "../../../../server/src/types/types";
-import Avatar from "../avatar/Avatar";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useLocation } from "react-router-dom";
-import Video from "../Video";
-import useGeneralStore from "../../stores/generalStore";
-import { convertAndFormatDate } from "../../utils/date";
-import { cn } from "../../utils/utils";
+import Icon from "../Icon"
+import { FC, forwardRef } from "react"
+import useModalStore from "../../stores/modalStore"
+import { Modal } from "./Modals"
+import { trpc } from "../../lib/trpcClient"
+import { TPost, TUserData } from "../../../../server/src/types/types"
+import Avatar from "../avatar/Avatar"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useLocation } from "react-router-dom"
+import Video from "../Video"
+import useGeneralStore from "../../stores/generalStore"
+import { convertAndFormatDate } from "../../utils/date"
+import { cn } from "../../utils/utils"
 
 type ModalProps = {
-  post: TPost;
-  leftRef?: React.RefObject<HTMLDivElement>;
-  rightRef?: React.RefObject<HTMLDivElement>;
-};
+  post: TPost
+  leftRef?: React.RefObject<HTMLDivElement>
+  rightRef?: React.RefObject<HTMLDivElement>
+}
 
-const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({
-  post,
-  posts,
-  leftRef,
-  rightRef,
-}) => {
-  const { setModalPostData } = useModalStore((state) => state.actions);
+const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({ post, posts, leftRef, rightRef }) => {
+  const { setModalPostData } = useModalStore((state) => state.actions)
   const navigatePost = (direction: "next" | "previous") => {
-    const currentIndex = posts.findIndex(({ id }) => id === post.id);
+    const currentIndex = posts.findIndex(({ id }) => id === post.id)
     if (direction === "next" && currentIndex < posts.length - 1) {
-      setModalPostData(posts[currentIndex + 1]);
+      setModalPostData(posts[currentIndex + 1])
     } else if (direction === "previous" && currentIndex > 0) {
-      setModalPostData(posts[currentIndex - 1]);
+      setModalPostData(posts[currentIndex - 1])
     }
-  };
+  }
   return (
     <>
       {posts[0].id !== post.id && (
@@ -54,11 +49,11 @@ const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({
         </div>
       )}
     </>
-  );
-};
+  )
+}
 
 const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
-  const { triggerModalOptions } = useModalStore((state) => state.actions);
+  const { triggerModalOptions } = useModalStore((state) => state.actions)
   return (
     <div
       className={
@@ -67,9 +62,7 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
     >
       <div className="flex w-full items-center space-x-2">
         <Avatar image_url={userData?.image_url} size="md" />
-        <h3 className="text-normal cursor-pointer font-bold text-white active:text-opacity-60">
-          {userData?.username}
-        </h3>
+        <h3 className="text-normal cursor-pointer font-bold text-white active:text-opacity-60">{userData?.username}</h3>
       </div>
       <Icon
         name="MoreHorizontal"
@@ -78,99 +71,75 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
         size="30px"
       />
     </div>
-  );
-};
+  )
+}
 
-const PostComments: FC<{ post: TPost; userData: TUserData }> = ({
-  post,
-  userData,
-}) => {
-  const isMobile = useGeneralStore((state) => state.isMobile);
+const PostComments: FC<{ post: TPost; userData: TUserData }> = ({ post, userData }) => {
+  const isMobile = useGeneralStore((state) => state.isMobile)
   return (
     <div
-      className={cn(
-        "flex flex-col bg-black",
-        isMobile ? "h-[220px] w-full rounded-b-xl" : "w-[400px] rounded-r-xl",
-      )}
+      className={cn("flex flex-col bg-black", isMobile ? "h-[220px] w-full rounded-b-xl" : "w-[400px] rounded-r-xl")}
     >
       {isMobile ? null : <PostHeader userData={userData} />}
-      <ul
-        className={cn(
-          "overflow-auto p-3 text-sm leading-4",
-          isMobile ? "h-full max-h-[200px]" : "h-[46vw]",
-        )}
-      >
+      <ul className={cn("overflow-auto p-3 text-sm leading-4", isMobile ? "h-full max-h-[200px]" : "h-[46vw]")}>
         {Array(1)
           .fill("")
           .map((_, id) => (
             <li key={id} className="flex items-start space-x-2 py-3">
               <Avatar image_url={userData.image_url} />
               <div className="flex w-full flex-col space-y-2">
-                <h3 className="font-semibold text-white active:text-opacity-60">
-                  {userData.username} &nbsp;
-                </h3>
+                <h3 className="font-semibold text-white active:text-opacity-60">{userData.username} &nbsp;</h3>
                 <div className="flex w-full flex-col space-y-1">
                   <p>{post.caption}</p>
-                  <p className="text-neutral-400">
-                    {convertAndFormatDate(post.created_at)}
-                  </p>
+                  <p className="text-neutral-400">{convertAndFormatDate(post.created_at)}</p>
                 </div>
               </div>
             </li>
           ))}
       </ul>
     </div>
-  );
-};
+  )
+}
 
-const PostModal = forwardRef<HTMLDivElement, ModalProps>(
-  ({ post, leftRef, rightRef }, ref) => {
-    const location = useLocation();
-    const isMobile = useGeneralStore((state) => state.isMobile);
-    const utils = trpc.useUtils();
-    const inspectedUser = utils.user.get.getData({
-      data: location.pathname.split("/")[1],
-      type: "username",
-    });
+const PostModal = forwardRef<HTMLDivElement, ModalProps>(({ post, leftRef, rightRef }, ref) => {
+  const location = useLocation()
+  const isMobile = useGeneralStore((state) => state.isMobile)
+  const utils = trpc.useUtils()
+  const inspectedUser = utils.user.get.getData({
+    data: location.pathname.split("/")[1],
+    type: "username"
+  })
 
-    return (
-      <Modal>
-        {inspectedUser && post && (
-          <div
-            ref={ref}
-            className={cn(
-              "relative mx-auto flex max-h-[90svh] w-full",
-              isMobile ? "max-w-[76vw] flex-col" : "max-w-[90vw]",
+  return (
+    <Modal>
+      {inspectedUser && post && (
+        <div
+          ref={ref}
+          className={cn(
+            "relative mx-auto flex max-h-[90svh] w-full",
+            isMobile ? "max-w-[76vw] flex-col" : "max-w-[90vw]"
+          )}
+        >
+          <ArrowCursors leftRef={leftRef} rightRef={rightRef} post={post} posts={inspectedUser.posts} />
+          {isMobile ? <PostHeader userData={inspectedUser} /> : null}
+          <div>
+            {post.type.startsWith("image/") ? (
+              <img key={post.media_url} src={post.media_url} />
+            ) : (
+              <Video
+                controls={true}
+                autoPlay={true}
+                media_url={post.media_url}
+                poster={post.thumbnail_url}
+                className={cn("aspect-square h-full w-full max-w-[900px] bg-black object-cover")}
+              />
             )}
-          >
-            <ArrowCursors
-              leftRef={leftRef}
-              rightRef={rightRef}
-              post={post}
-              posts={inspectedUser.posts}
-            />
-            {isMobile ? <PostHeader userData={inspectedUser} /> : null}
-            <div>
-              {post.type.startsWith("image/") ? (
-                <img key={post.media_url} src={post.media_url} />
-              ) : (
-                <Video
-                  controls={true}
-                  autoPlay={true}
-                  media_url={post.media_url}
-                  poster={post.thumbnail_url}
-                  className={cn(
-                    "aspect-square h-full w-full max-w-[900px] bg-black object-cover",
-                  )}
-                />
-              )}
-            </div>
-            <PostComments post={post!} userData={inspectedUser} />
           </div>
-        )}
-      </Modal>
-    );
-  },
-);
+          <PostComments post={post!} userData={inspectedUser} />
+        </div>
+      )}
+    </Modal>
+  )
+})
 
-export default PostModal;
+export default PostModal

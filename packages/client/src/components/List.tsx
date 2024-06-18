@@ -1,46 +1,45 @@
-import { cn } from "../utils/utils";
-import { cva, VariantProps } from "class-variance-authority";
-import { FC, ReactElement, ReactNode, useState } from "react";
-import RenderAvatar from "./avatar/RenderAvatar";
-import { motion } from "framer-motion";
-import useGeneralStore from "../stores/generalStore";
+import { cn } from "../utils/utils"
+import { cva, VariantProps } from "class-variance-authority"
+import { FC, ReactElement, ReactNode, useState } from "react"
+import RenderAvatar from "./avatar/RenderAvatar"
+import { motion } from "framer-motion"
+import useGeneralStore from "../stores/generalStore"
 
 export const listVariants = cva(
   "flex cursor-pointer w-full py-2 justify-between items-center overflow-hidden whitespace-nowrap",
   {
     variants: {
       hover: {
-        darker:
-          "transition-colors duration-200 hover:bg-white hover:bg-opacity-5",
-        blank: "",
+        darker: "transition-colors duration-200 hover:bg-white hover:bg-opacity-5",
+        blank: ""
       },
       padding: {
         sm: "px-2",
         md: "px-4",
-        lg: "px-6",
-      },
+        lg: "px-6"
+      }
     },
     defaultVariants: {
       hover: "darker",
-      padding: "sm",
-    },
-  },
-);
+      padding: "sm"
+    }
+  }
+)
 
 export interface ListProps extends VariantProps<typeof listVariants> {
-  children?: ReactElement;
-  title?: string;
-  subtitle?: string | null;
-  image_url?: (string | null | undefined)[];
-  className?: string;
-  onClick?: () => void;
-  isHoverDisabled?: boolean;
-  icon?: ReactNode;
-  isRead?: boolean;
-  isLoading?: boolean;
-  avatarSize?: "sm" | "md" | "lg" | "xl";
-  isOnline?: boolean;
-  onIconClick?: () => void;
+  children?: ReactElement
+  title?: string
+  subtitle?: string | null
+  image_url?: (string | null | undefined)[]
+  className?: string
+  onClick?: () => void
+  isHoverDisabled?: boolean
+  icon?: ReactNode
+  isRead?: boolean
+  isLoading?: boolean
+  avatarSize?: "sm" | "md" | "lg" | "xl"
+  isOnline?: boolean
+  onIconClick?: () => void
 }
 
 const List: FC<ListProps> = ({
@@ -61,12 +60,12 @@ const List: FC<ListProps> = ({
   isLoading = false,
   ...props
 }) => {
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-  const isMobile = useGeneralStore((state) => state.isMobile);
+  const [isHovered, setIsHovered] = useState<boolean>(false)
+  const isMobile = useGeneralStore((state) => state.isMobile)
   const handleHoverList = () => {
-    if (isHoverDisabled) return;
-    setIsHovered(!isHovered);
-  };
+    if (isHoverDisabled) return
+    setIsHovered(!isHovered)
+  }
 
   return (
     <>
@@ -77,14 +76,11 @@ const List: FC<ListProps> = ({
           className={cn(
             icon ? "relative" : null,
             listVariants({ className, hover, padding }),
-            !padding ? (isMobile ? "px-4" : "px-6") : padding,
+            !padding ? (isMobile ? "px-4" : "px-6") : padding
           )}
           {...props}
         >
-          <div
-            className={cn("flex w-full items-center space-x-2")}
-            onClick={onClick}
-          >
+          <div className={cn("flex w-full items-center space-x-2")} onClick={onClick}>
             {children}
             {avatarSize && (
               <RenderAvatar
@@ -92,7 +88,7 @@ const List: FC<ListProps> = ({
                 isOnline={isOnline}
                 image_urls={{
                   image_url_1: image_url?.[0],
-                  image_url_2: image_url?.[1],
+                  image_url_2: image_url?.[1]
                 }}
               />
             )}
@@ -101,7 +97,7 @@ const List: FC<ListProps> = ({
               <p
                 className={cn(
                   "w-full max-w-[256px] overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-semibold",
-                  isRead ? "text-neutral-400" : "text-white",
+                  isRead ? "text-neutral-400" : "text-white"
                 )}
               >
                 {subtitle}
@@ -132,7 +128,7 @@ const List: FC<ListProps> = ({
         </div>
       )}
     </>
-  );
-};
+  )
+}
 
-export default List;
+export default List

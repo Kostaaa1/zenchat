@@ -1,28 +1,28 @@
-import { forwardRef } from "react";
-import useModalStore from "../../stores/modalStore";
-import useChatStore from "../../stores/chatStore";
-import useChatCache from "../../hooks/useChatCache";
-import { trpc } from "../../lib/trpcClient";
-import { Modal } from "./Modals";
-import useUser from "../../hooks/useUser";
+import { forwardRef } from "react"
+import useModalStore from "../../stores/modalStore"
+import useChatStore from "../../stores/chatStore"
+import useChatCache from "../../hooks/useChatCache"
+import { trpc } from "../../lib/trpcClient"
+import { Modal } from "./Modals"
+import useUser from "../../hooks/useUser"
 
 const DeleteChatModal = forwardRef<HTMLDivElement>((_, ref) => {
-  const activeChatroom = useChatStore((state) => state.activeChatroom);
-  const { closeModal } = useModalStore((state) => state.actions);
-  const { removeChatFromUserChats } = useChatCache();
-  const { userData } = useUser();
-  const deleteChatMutation = trpc.chat.delete.useMutation();
+  const activeChatroom = useChatStore((state) => state.activeChatroom)
+  const { closeModal } = useModalStore((state) => state.actions)
+  const { removeChatFromUserChats } = useChatCache()
+  const { userData } = useUser()
+  const deleteChatMutation = trpc.chat.delete.useMutation()
 
   const handleDeleteConversation = async () => {
-    if (!activeChatroom || !userData) return;
-    const { chatroom_id } = activeChatroom;
-    closeModal();
-    removeChatFromUserChats(chatroom_id);
+    if (!activeChatroom || !userData) return
+    const { chatroom_id } = activeChatroom
+    closeModal()
+    removeChatFromUserChats(chatroom_id)
     await deleteChatMutation.mutateAsync({
       user_id: userData.id,
-      chatroom_id,
-    });
-  };
+      chatroom_id
+    })
+  }
 
   return (
     <Modal>
@@ -49,7 +49,7 @@ const DeleteChatModal = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </div>
     </Modal>
-  );
-});
+  )
+})
 
-export default DeleteChatModal;
+export default DeleteChatModal

@@ -2,7 +2,13 @@ import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
 import { TMessage } from "../types/types";
 import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
-import { SocketCallPayload, RTCIceCandidateResponse, RTCOfferResponse } from "../types/sockets";
+// import { SocketCallPayload, RTCIceCandidateResponse, RTCOfferResponse } from "../types/sockets";
+import {
+  SocketCallPayload,
+  RTCIceCandidateResponse,
+  RTCOfferResponse,
+  RTCAnswerResponse,
+} from "../types/sockets";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -19,8 +25,18 @@ export const initSocket = (io: Server) => {
       console.log("Joined room: ", userId, "Rooms", rooms);
     });
 
+    socket.on("answer", (data: RTCAnswerResponse["message"]) => {
+      io.to(data.caller).emit("answer", { status: "success", message: data });
+    });
+    socket.on("ice", (data: RTCIceCandidateResponse["message"]) => {
+      const { receivers } = data;
+      for (const receiver of receivers) {
+        if (receiver !== data.caller) {
+          io.to(receiver).emit("ice", { status: "success", message: data });
+        }
+      }
+    });
     socket.on("offer", async (data: RTCOfferResponse["message"]) => {
-      console.log("OFFER INITIATEDJ", data);
       const { receivers } = data;
       for (const user of receivers) {
         if (user !== data.caller) {
@@ -28,20 +44,6 @@ export const initSocket = (io: Server) => {
             status: "success",
             message: data,
           });
-        }
-      }
-    });
-
-    socket.on("answer", (data: RTCOfferResponse["message"]) => {
-      console.log("RECEIEVED ANSWER");
-      io.to(data.caller).emit("answer", { status: "success", message: data });
-    });
-
-    socket.on("ice", (data: RTCIceCandidateResponse["message"]) => {
-      const { receivers } = data;
-      for (const receiver of receivers) {
-        if (receiver !== data.caller) {
-          io.to(receiver).emit("ice", { status: "success", message: data });
         }
       }
     });
