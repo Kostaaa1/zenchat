@@ -9,19 +9,22 @@ import { S3UploadResponse, TChatroom, TMessage } from "../../../server/src/types
 import { getCurrentDate } from "../utils/date"
 import axios from "axios"
 import { Skin } from "@emoji-mart/data"
+import { serverURL } from "../lib/socket"
 
 const useMessageInput = (chatroom: TChatroom) => {
   const { addNewMessageToChatCache } = useChatCache()
   const [formData, setFormdata] = useState<FormData>(new FormData())
   const sendMessageMutation = trpc.chat.messages.send.useMutation()
   const [trackFiles, setTrackFiles] = useState<File[]>([])
-  const { userData, token } = useUser()
-  const inputImages = useChatMapStore((state) => state.inputImages)
-  const inputMessages = useChatMapStore((state) => state.inputMessages)
+  const { sessionToken, user } = useUser()
   const { addChatInputImage, clearMessageInput, removeChatInputImage, clearImagesInput, addChatInputMessage } =
     useChatMapStore((state) => state.actions)
   const [imageInputs, setImageInputs] = useState<string[]>([])
   const [messageInput, setMessageInput] = useState<string>("")
+  const { inputImages, inputMessages } = useChatMapStore((state) => ({
+    inputImages: state.inputImages,
+    inputMessages: state.inputMessages
+  }))
 
   useEffect(() => {
     const a = inputImages.get(chatroom.chatroom_id) ?? []
@@ -82,15 +85,15 @@ const useMessageInput = (chatroom: TChatroom) => {
       const { content, id, chatroom_id, is_image } = data
       return {
         id: id ?? uuidv4(),
-        sender_id: userData!.id,
-        sender_username: userData!.username,
+        sender_id: user!.id,
+        sender_username: user!.username,
         created_at: getCurrentDate(),
         is_image,
         chatroom_id,
         content
       }
     },
-    [userData]
+    [user]
   )
 
   const sendTextMessage = useCallback(
@@ -109,7 +112,6 @@ const useMessageInput = (chatroom: TChatroom) => {
 
   const sendImageMessage = useCallback(
     async (chatroomId: string) => {
-      console.log(" message ", chatroomId)
       const input_images = inputImages.get(chatroomId)
       if (!input_images) return
       const newMessagesStack: TMessage[] = []
@@ -128,10 +130,10 @@ const useMessageInput = (chatroom: TChatroom) => {
         addNewMessageToChatCache(messageData)
       }
 
-      const { data } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/upload/message`, formData, {
+      const { data } = await axios.post(`${serverURL}/api/upload/message`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${sessionToken}`
         }
       })
 
@@ -143,11 +145,18 @@ const useMessageInput = (chatroom: TChatroom) => {
           await sendMessageMutation.mutateAsync(message)
         })
       )
-
       formData.delete("images")
       setTrackFiles([])
     },
-    [inputImages, clearImagesInput, createNewMessage, addNewMessageToChatCache, formData, token, sendMessageMutation]
+    [
+      inputImages,
+      clearImagesInput,
+      createNewMessage,
+      addNewMessageToChatCache,
+      formData,
+      sessionToken,
+      sendMessageMutation
+    ]
   )
 
   const sendMessage = useCallback(
@@ -155,18 +164,17 @@ const useMessageInput = (chatroom: TChatroom) => {
       e.preventDefault()
       if (chatroom) {
         const { chatroom_id } = chatroom
-        const input_message = inputMessages.get(chatroom_id)
-        const input_images = inputImages.get(chatroom_id)
-
-        if (input_message) {
-          await sendTextMessage(input_message, chatroom_id)
+        const message = inputMessages.get(chatroom_id)
+        const images = inputImages.get(chatroom_id)
+        if (message) {
+          await sendTextMessage(message, chatroom_id)
         }
-        if (input_images && input_images.length > 0) {
+        if (images && images.length > 0) {
           await sendImageMessage(chatroom_id)
         }
       }
     },
-    [chatroom, inputImages, sendImageMessage, inputMessages, sendTextMessage]
+    [inputImages, sendImageMessage, inputMessages, sendTextMessage, chatroom]
   )
 
   const selectEmoji = (e: Skin) => {

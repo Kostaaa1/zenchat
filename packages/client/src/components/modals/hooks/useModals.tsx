@@ -6,14 +6,14 @@ import useUser from "../../../hooks/useUser"
 const useModals = () => {
   const { setModalPostData, triggerModalOptions } = useModalStore((state) => state.actions)
   const post = useModalStore((state) => state.modalPostData)
-  const { userData } = useUser()
+  const { user } = useUser()
   const utils = trpc.useUtils()
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const deletePostMutation = trpc.posts.delete.useMutation()
 
   const deletePost = useCallback(async () => {
     try {
-      if (isDeleting || !post) return
+      if (isDeleting || !post || !user) return
       setIsDeleting(true)
       const { id, media_url, thumbnail_url } = post
       const fileKeys = [media_url]
@@ -24,7 +24,7 @@ const useModals = () => {
         fileKeys
       })
 
-      utils.user.get.setData({ data: userData!.username, type: "username" }, (state) => {
+      utils.user.get.setData({ data: user.username, type: "username" }, (state) => {
         if (state) {
           return {
             ...state,
@@ -32,7 +32,6 @@ const useModals = () => {
           }
         }
       })
-
       triggerModalOptions()
       setModalPostData(null)
       setIsDeleting(false)

@@ -10,7 +10,7 @@ const ChatDetails = () => {
   const activeChatroom = useChatStore((state) => state.activeChatroom)
   const [isMuteActive, setIsMuteActive] = useState<boolean>(false)
   const { openModal } = useModalStore((state) => state.actions)
-  const { userData } = useUser()
+  const { user } = useUser()
   const componentLists = [{ list: "Delete", id: 0, fn: () => openModal("deletechat") }]
 
   return (
@@ -39,7 +39,7 @@ const ChatDetails = () => {
       <ul className="flex h-full flex-col overflow-auto">
         <h4 className="p-6 py-3 font-semibold">Members</h4>
         {activeChatroom!.users
-          .filter((x) => x.username !== userData!.username)
+          .filter((x) => x.username !== user!.username)
           .map((user) => (
             <Link key={user.user_id} to={`/${user.username}`}>
               <List image_url={[user.image_url]} title={user.username} avatarSize="md" />

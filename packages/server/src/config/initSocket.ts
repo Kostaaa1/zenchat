@@ -2,13 +2,7 @@ import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
 import { TMessage } from "../types/types";
 import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
-// import { SocketCallPayload, RTCIceCandidateResponse, RTCOfferResponse } from "../types/sockets";
-import {
-  SocketCallPayload,
-  RTCIceCandidateResponse,
-  RTCOfferResponse,
-  RTCAnswerResponse,
-} from "../types/sockets";
+import { SocketCallPayload, RTCSignals } from "../types/sockets";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -25,36 +19,38 @@ export const initSocket = (io: Server) => {
       console.log("Joined room: ", userId, "Rooms", rooms);
     });
 
-    socket.on("answer", (data: RTCAnswerResponse["message"]) => {
-      io.to(data.caller).emit("answer", { status: "success", message: data });
-    });
-    socket.on("ice", (data: RTCIceCandidateResponse["message"]) => {
-      const { receivers } = data;
-      for (const receiver of receivers) {
-        if (receiver !== data.caller) {
-          io.to(receiver).emit("ice", { status: "success", message: data });
+    socket.on("rtc", async (data: RTCSignals) => {
+      const { type, receivers } = data;
+      if (type === "offer") {
+        for (const user of receivers) {
+          if (user !== data.caller) {
+            io.to(user).emit("rtc", data);
+          }
         }
       }
-    });
-    socket.on("offer", async (data: RTCOfferResponse["message"]) => {
-      const { receivers } = data;
-      for (const user of receivers) {
-        if (user !== data.caller) {
-          io.to(user).emit("offer", {
-            status: "success",
-            message: data,
-          });
+      if (type === "answer") {
+        io.to(data.caller).emit("rtc", data);
+      }
+      if (type === "ice") {
+        for (const receiver of receivers) {
+          if (receiver !== data.caller) {
+            io.to(receiver).emit("rtc", data);
+          }
         }
       }
     });
 
     socket.on("call", (payload: SocketCallPayload) => {
-      const { caller, receivers, status } = payload;
-      if (status === "initiated") {
+      const { caller, receivers, type } = payload;
+      if (type === "initiated") {
         for (const receiver of receivers) {
           if (receiver !== caller.id) {
             io.to(receiver).emit("call", payload);
           }
+        }
+      } else if (type === "hangup") {
+        for (const receiver of receivers) {
+          io.to(receiver).emit("call", payload);
         }
       } else {
         io.to(caller.id).emit("call", payload);
@@ -89,7 +85,6 @@ export const initSocket = (io: Server) => {
         console.log(error);
       }
     });
-
     socket.on("disconnect", () => {
       console.log("A user disconnected");
       supabase.channel("onMessage").unsubscribe();

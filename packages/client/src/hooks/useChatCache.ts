@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom"
 const useChatCache = () => {
   const utils = trpc.useUtils()
   const { setActiveChatroom } = useChatStore((state) => state.actions)
-  const { userData } = useUser()
+  const { user } = useUser()
   const navigate = useNavigate()
 
   const addNewMessageToChatCache = useCallback(
@@ -32,7 +32,7 @@ const useChatCache = () => {
   }
 
   const removeChatFromUserChats = (chatroom_id: string) => {
-    utils.chat.get.user_chatrooms.setData(userData!.id, (state) => {
+    utils.chat.get.user_chatrooms.setData(user!.id, (state) => {
       return state?.filter((x) => x.chatroom_id !== chatroom_id)
     })
     setActiveChatroom(null)
@@ -42,21 +42,21 @@ const useChatCache = () => {
   const updateUserReadMessage = useCallback(
     (id: string, is_message_seen: boolean) => {
       console.log("#CHECKRENDERING skrt ??")
-      return utils.chat.get.user_chatrooms.setData(userData?.id, (state) => {
-        if (state && userData) {
+      return utils.chat.get.user_chatrooms.setData(user?.id, (state) => {
+        if (state && user) {
           console.log("State: ", state, "To update: ", id)
           return state.map((chatrooms) =>
             chatrooms.chatroom_id === id
               ? {
                   ...chatrooms,
-                  users: chatrooms.users.map((x) => (x.user_id === userData.id ? { ...x, is_message_seen } : x))
+                  users: chatrooms.users.map((x) => (x.user_id === user.id ? { ...x, is_message_seen } : x))
                 }
               : chatrooms
           )
         }
       })
     },
-    [userData, utils.chat.get.user_chatrooms]
+    [user, utils.chat.get.user_chatrooms]
   )
 
   return {

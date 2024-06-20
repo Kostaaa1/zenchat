@@ -2,12 +2,9 @@ import { useCallback, useEffect, useState } from "react"
 import usePeerConnection from "../stores/peerConnection"
 import useUser from "./useUser"
 import { socket } from "../lib/socket"
-import {
-  RTCAnswerResponse,
-  RTCIceCandidateResponse,
-  RTCOfferResponse,
-  SocketCallPayload
-} from "../../../server/src/types/sockets"
+import { RTCSignals, SocketCallPayload } from "../../../server/src/types/sockets"
+import { playSound } from "../utils/file"
+import ringingSoundPath from "../../public/ringing.mp3"
 
 const iceServers = [
   { urls: "stun:stun.l.google.com:19302" },
@@ -22,168 +19,145 @@ const iceServers = [
   { urls: "stun:stun4.l.google.com:5349" }
 ]
 
-const mediaConstraints = {
-  audio: { echoCancellation: true },
-  video: true
-}
-
 const useWebRTC = () => {
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null)
   const { clearAll, setIsCalling } = usePeerConnection((state) => state.actions)
-  const { userData } = useUser()
-
-  const createVideo = (id: "local" | "remote", srcObject: MediaStream) => {
-    const parent = document.getElementById("video-calls")
-    const remoteVideo = document.getElementById("remote")
-    if (parent && !remoteVideo) {
-      console.log("Creating video: ", id)
-
-      const video = document.createElement("video")
-      if (id === "remote") {
-        video.classList.add("remote-video")
-      } else {
-        video.classList.add("local-video")
-      }
-      video.setAttribute("id", id)
-
-      video.muted = true
-      video.autoplay = true
-      video.srcObject = srcObject
-      parent.appendChild(video)
-    }
-  }
+  const { user } = useUser()
 
   const createPeerConnection = useCallback(
-    (receivers: string[]) => {
+    (receivers: string[], chatroomId: string) => {
+      console.log("created peer connection: ")
       const conn = new RTCPeerConnection({ iceServers })
       conn.onicecandidate = (ev) => {
         if (ev.candidate) {
-          socket.emit("ice", {
-            caller: userData?.id,
+          socket.emit("rtc", {
+            type: "ice",
+            caller: user?.id,
             candidate: ev.candidate,
+            chatroomId,
             receivers
           })
         }
       }
       conn.ontrack = (event) => {
-        createVideo("remote", event.streams[0])
+        const video = document.querySelector(".remote-video") as HTMLVideoElement
+        if (video) {
+          video.srcObject = event.streams[0]
+          // video.autoplay = true
+        }
       }
       return conn
     },
-    [userData]
+    [user]
   )
 
   const startCall = useCallback(
     async (data: { chatroomId: string; receivers: string[] }) => {
-      console.log("Starting CALL")
-      if (!userData) return
+      if (!user) return
       const { receivers, chatroomId } = data
-      const { id, image_url, username } = userData
-      const payload: SocketCallPayload = {
+      const { id, image_url, username } =user 
+      playSound("source1", ringingSoundPath)
+      socket.emit("call", {
         chatroomId,
-        status: "initiated",
+        type: "initiated",
         receivers,
         caller: {
           id,
           image_url,
           username
         }
-      }
-      socket.emit("call", payload)
+      } as SocketCallPayload)
       setIsCalling(true)
     },
-    [userData, setIsCalling]
+    [user, setIsCalling]
   )
 
   const createOfferAndListenICE = useCallback(
     async (receivers: string[], chatroomId: string) => {
       try {
-        if (!userData) return
-        console.log("Creating connection, then offer, and sending it to chatroom participants")
-        const conn = createPeerConnection(receivers)
+        if (!user) return
+        const conn = createPeerConnection(receivers, chatroomId)
         setPeerConnection(conn)
         ///////////////////////
-        const localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+        // createVideo("local-video", localStream)
+        const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         localStream.getTracks().forEach((track) => conn.addTrack(track, localStream))
-        createVideo("local", localStream)
+        const video = document.querySelector(".local-video") as HTMLVideoElement
+        if (video) {
+          video.srcObject = localStream
+          video.muted = true
+          video.autoplay = true
+        }
         ///////////////////////
         const offer = await conn.createOffer({
           offerToReceiveAudio: true,
           offerToReceiveVideo: true
         })
         await conn.setLocalDescription(offer)
-        socket.emit("offer", {
+        socket.emit("rtc", {
+          type: "offer",
           chatroomId,
           offer,
-          caller: userData?.id,
+          caller: user?.id,
           receivers
         })
       } catch (error) {
         console.log("ERROR: ", error)
       }
     },
-    [createPeerConnection, userData]
+    [user]
   )
 
-  const receiveAnswer = useCallback(
-    async (data: RTCAnswerResponse) => {
-      const { status } = data
-      if (status === "success") {
-        const remoteDesc = new RTCSessionDescription(data.message.answer)
-        await peerConnection?.setRemoteDescription(remoteDesc)
-      }
-    },
-    [peerConnection]
-  )
-
-  const receieveIceCandidate = useCallback(
-    async (data: RTCIceCandidateResponse) => {
-      const { status, message } = data
-      if (status === "success" && peerConnection) {
-        const desc = peerConnection.remoteDescription
-        if (desc && desc.type) {
-          await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate))
-        }
-      }
-    },
-    [peerConnection]
-  )
-
-  const receiveOfferAndListenICE = useCallback(
-    async (res: RTCOfferResponse) => {
-      console.log("received offer, now need to create new connection and send the answer to caller", res)
-      if (res.status === "success") {
-        const { message } = res
-        const { offer, caller, chatroomId, receivers } = message
-        const conn = createPeerConnection(receivers)
+  const receiveRTCSignal = useCallback(
+    async (payload: RTCSignals) => {
+      const { type } = payload
+      if (type === "offer") {
+        const { offer, caller, chatroomId, receivers } = payload
+        const conn = createPeerConnection(receivers, chatroomId)
         setPeerConnection(conn)
         //////////////////////
-        const localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+        // createVideo("local-video", localStream)
+        const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         localStream.getTracks().forEach((track) => conn.addTrack(track, localStream))
-        createVideo("local", localStream)
+        const video = document.querySelector(".local-video") as HTMLVideoElement
+        if (video) {
+          video.srcObject = localStream
+          video.autoplay = true
+          video.muted = true
+        }
         //////////////////////
         await conn.setRemoteDescription(new RTCSessionDescription(offer))
         const answer = await conn.createAnswer()
         await conn.setLocalDescription(answer)
-        const data: RTCAnswerResponse["message"] = {
+        socket.emit("rtc", {
+          type: "answer",
           answer,
           caller,
           chatroomId,
           receivers
+        } as RTCSignals)
+      }
+      if (type === "answer" && peerConnection) {
+        if (peerConnection.signalingState !== "stable") {
+          const remoteDesc = new RTCSessionDescription(payload.answer)
+          await peerConnection?.setRemoteDescription(remoteDesc)
         }
-        socket.emit("answer", data)
-      } else {
-        console.log("Error: ", res.message)
+      }
+      if (type === "ice" && peerConnection) {
+        // const desc = peerConnection.remoteDescription
+        // if (desc && desc.type) {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(payload.candidate))
+        // }
       }
     },
-    [createPeerConnection]
+    [peerConnection]
   )
 
   const cleanUp = useCallback(() => {
-    socket.off("ice", receieveIceCandidate)
-    socket.off("offer", receiveOfferAndListenICE)
-    socket.off("answer", receiveAnswer)
+    socket.off("rtc", receiveRTCSignal)
     if (peerConnection) {
+      // peerConnection.getSenders().forEach((sender) => peerConnection.removeTrack(sender))
+      // peerConnection.getTransceivers().forEach((transceiver) => transceiver.stop())
       peerConnection.onicecandidate = null
       peerConnection.ontrack = null
       peerConnection.oniceconnectionstatechange = null
@@ -191,25 +165,18 @@ const useWebRTC = () => {
       setPeerConnection(null)
     }
     clearAll()
-  }, [peerConnection, clearAll, receieveIceCandidate, receiveAnswer, receiveOfferAndListenICE])
+  }, [peerConnection, clearAll, receiveRTCSignal])
 
   useEffect(() => {
-    socket.on("ice", receieveIceCandidate)
-    socket.on("offer", receiveOfferAndListenICE)
-    socket.on("answer", receiveAnswer)
-    return () => {
-      cleanUp()
-    }
-  }, [receieveIceCandidate, receiveOfferAndListenICE, receiveAnswer, cleanUp])
+    socket.on("rtc", receiveRTCSignal)
+  }, [receiveRTCSignal])
 
   return {
     peerConnection,
     createOfferAndListenICE,
-    receiveOfferAndListenICE,
-    receiveAnswer,
-    receieveIceCandidate,
     startCall,
     cleanUp
   }
 }
+
 export default useWebRTC

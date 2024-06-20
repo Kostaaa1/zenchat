@@ -9,3 +9,19 @@ export const renameFile = (fileImage: File, chatroom_id?: string, cb?: (file: Fi
   if (cb) cb(newFile)
   return newFile
 }
+
+export const playSound = (id: string, path: string, volume?: number) => {
+  const el = document.getElementById(id) as HTMLAudioElement
+  if (el) {
+    el.src = path
+    el.volume = volume || 0.05
+    el.play()
+  }
+}
+
+export const stopSound = (id: string) => {
+  const el = document.getElementById(id) as HTMLAudioElement
+  if (el) {
+    el.pause()
+  }
+}

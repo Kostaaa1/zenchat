@@ -23,16 +23,15 @@ export const Separator: FC<SeparatorProps> = ({ className }) => {
 
 const Dashboard = () => {
   const params = useParams<{ username: string }>()
-  const { userData } = useUser()
+  const { user } = useUser()
   const { openModal } = useModalStore((state) => state.actions)
-  const username = useGeneralStore((state) => state.username)
   const isMobile = useGeneralStore((state) => state.isMobile)
   const [postsLoaded, setPostsLoaded] = useState<boolean>(false)
 
   const { data: inspectedUserData, isFetched } = trpc.user.get.useQuery(
     { data: params.username!, type: "username" },
     {
-      enabled: !!userData && !!username && !!params.username,
+      enabled: !!user && !!params.username,
       refetchOnMount: "always"
     }
   )
@@ -61,7 +60,7 @@ const Dashboard = () => {
   }, [])
 
   const openUploadModal = () => {
-    if (params.username === userData!.username) {
+    if (params.username === user!.username) {
       openModal("uploadpost")
     }
   }
@@ -79,11 +78,11 @@ const Dashboard = () => {
               </div>
             ) : (
               <>
-                <DashboardHeader username={userData?.username} userData={inspectedUserData} />
+                <DashboardHeader username={user?.username} userData={inspectedUserData} />
                 <Separator className="mb-8" />
                 {inspectedUserData?.posts.length === 0 ? (
                   <div className="flex h-max w-full flex-col items-center justify-center space-y-4 py-6">
-                    {userData?.username === params.username ? (
+                    {user?.username === params.username ? (
                       <>
                         <Icon
                           name="Camera"

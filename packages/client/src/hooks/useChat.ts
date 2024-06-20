@@ -1,26 +1,54 @@
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import useGeneralStore from "../stores/generalStore"
+import useModalStore from "../stores/modalStore"
 import useChatStore from "../stores/chatStore"
-import { TMessage } from "../../../server/src/types/types"
 import { trpc } from "../lib/trpcClient"
-import { loadImage } from "../utils/image"
-import { useParams } from "react-router-dom"
 import useChatCache from "./useChatCache"
+import { TMessage } from "../../../server/src/types/types"
 import useUser from "./useUser"
+import { loadImage } from "../utils/image"
+import { debounce } from "lodash"
 
-const useChat = () => {
-  const MESSAGE_FETCH_LIMIT = 22
-  const utils = trpc.useUtils()
-  const { updateUserReadMessage } = useChatCache()
-  const { userData } = useUser()
+const MESSAGE_FETCH_LIMIT = 22
+
+const useChatMessages = () => {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const { user } = useUser()
   const { chatroomId } = useParams<{ chatroomId: string }>()
-  const { activeChatroom } = useChatStore((state) => ({
+  const isMobile = useGeneralStore((state) => state.isMobile)
+  const { setActiveMessage } = useModalStore((state) => state.actions)
+  const { activeMessage } = useModalStore((state) => ({
+    activeMessage: state.activeMessage
+  }))
+  const [lastMessageDate, setLastMessageDate] = useState<string | null>(null)
+  const { activeChatroomTitle, activeChatroom, shouldFetchMoreMessages } = useChatStore((state) => ({
+    activeChatroomTitle: state.activeChatroomTitle,
+    shouldFetchMoreMessages: state.shouldFetchMoreMessages,
     activeChatroom: state.activeChatroom
   }))
-  const { setLastMessageDate, setActiveChatroom, setIsMessagesLoading } = useChatStore((state) => state.actions)
-  const { data: messages, isLoading } = trpc.chat.messages.get.useQuery(
+  const utils = trpc.useUtils()
+  const { updateUserReadMessage } = useChatCache()
+  const { setActiveChatroom } = useChatStore((state) => state.actions)
+  const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(true)
+  const { data: messages } = trpc.chat.messages.get.useQuery(
     { chatroom_id: chatroomId! },
     { enabled: !!activeChatroom && !!chatroomId }
   )
+  const { setShouldFetchMoreMessages, setShowDetails } = useChatStore((state) => state.actions)
+  const triggerReadMessagesMutation = trpc.chat.messages.triggerReadMessages.useMutation({
+    onSuccess: () => {
+      if (activeChatroom) {
+        // decrementUnreadMessagesCount()
+        // remove from the unreadChats ?
+        updateUserReadMessage(activeChatroom.chatroom_id, true)
+      }
+    },
+    onError: (err) => {
+      console.log("error", err)
+    }
+  })
 
   const loadMessages = useCallback(
     async (messages: TMessage[]) => {
@@ -33,64 +61,47 @@ const useChat = () => {
     },
     [setIsMessagesLoading]
   )
+  const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 })
 
   useEffect(() => {
-    if (!isLoading && messages) {
-      messages.length === 0 ? setIsMessagesLoading(false) : loadMessages(messages)
-    }
-  }, [isLoading, messages])
-
-  const { shouldFetchMoreMessages } = useChatStore((state) => ({
-    shouldFetchMoreMessages: state.shouldFetchMoreMessages
-  }))
-
-  const { decrementUnreadMessagesCount, setShouldFetchMoreMessages, setShowDetails } = useChatStore(
-    (state) => state.actions
-  )
-
-  const triggerReadMessagesMutation = trpc.chat.messages.triggerReadMessages.useMutation({
-    onSuccess: () => {
-      if (activeChatroom) {
-        decrementUnreadMessagesCount()
-        updateUserReadMessage(activeChatroom.chatroom_id, true)
-      }
-    },
-    onError: (err) => {
-      console.log("error", err)
-    }
-  })
-
-  useEffect(() => {
-    if (activeChatroom && userData) {
-      const foundUser = activeChatroom.users.find((x) => x.user_id === userData.id)
+    if (activeChatroom && user) {
+      const foundUser = activeChatroom.users.find((x) => x.user_id === user.id)
       if (foundUser && !foundUser.is_message_seen) {
         console.log("#CHECKRENDERING Should trigger")
         triggerReadMessagesMutation.mutate(foundUser.id)
       }
     }
-  }, [activeChatroom, triggerReadMessagesMutation, userData])
+  }, [activeChatroom, user])
 
   const { mutateAsync: getMoreMutation } = trpc.chat.messages.getMore.useMutation({
-    mutationKey: [
-      {
-        chatroom_id: activeChatroom?.chatroom_id
-      }
-    ],
+    mutationKey: [{ chatroom_id: activeChatroom?.chatroom_id }],
     onSuccess: (messages) => {
       if (!messages || !shouldFetchMoreMessages || !activeChatroom) return
-      utils.chat.messages.get.setData(
-        {
-          chatroom_id: activeChatroom.chatroom_id
-        },
-        (staleChats) => {
-          if (staleChats && messages) return [...staleChats, ...messages]
-        }
-      )
+      utils.chat.messages.get.setData({ chatroom_id: activeChatroom.chatroom_id }, (staleChats) => {
+        if (staleChats && messages) return [...staleChats, ...messages]
+      })
       if (messages.length < MESSAGE_FETCH_LIMIT) {
         setShouldFetchMoreMessages(false)
       }
+    },
+    onError: (err) => {
+      console.error("Error fetching more messages:", err)
     }
   })
+
+  useEffect(() => {
+    // if (messages) {
+    //   messages.length === 0 ? setIsMessagesLoading(false) : loadMessages(messages)
+    // }
+    if (messages) loadMessages(messages)
+  }, [messages, loadMessages])
+
+  useEffect(() => {
+    return () => {
+      setActiveChatroom(null)
+      setShowDetails(false)
+    }
+  }, [setActiveChatroom, setShowDetails])
 
   useEffect(() => {
     if (!messages) return
@@ -101,19 +112,56 @@ const useChat = () => {
     if (messages.length > 0) {
       setLastMessageDate(messages[messages.length - 1].created_at)
     }
-  }, [messages])
+  }, [messages, setLastMessageDate, setShouldFetchMoreMessages])
 
   useEffect(() => {
-    return () => {
-      setActiveChatroom(null)
-      setShowDetails(false)
+    const container = scrollRef.current
+    if (!container || !activeChatroom || isMessagesLoading) return
+
+    const cleanup = () => {
+      container.removeEventListener("scroll", fetchMoreMessagesObserver)
+      fetchMoreMessagesObserver.cancel()
     }
-  }, [])
+
+    const fetchMoreMessagesObserver = debounce(() => {
+      if (shouldFetchMoreMessages && lastMessageDate) {
+        const { scrollTop, clientHeight, scrollHeight } = container
+        const scrollTolerance = 40
+        const diff = scrollHeight - clientHeight - scrollTolerance
+
+        if (Math.abs(scrollTop) >= diff) {
+          getMoreMutation({
+            chatroom_id: activeChatroom?.chatroom_id,
+            lastMessageDate
+          })
+        } else {
+          if (!shouldFetchMoreMessages) {
+            cleanup()
+          }
+        }
+      }
+    }, 300)
+    container.addEventListener("scroll", fetchMoreMessagesObserver)
+
+    return () => {
+      cleanup()
+    }
+  }, [activeChatroom, shouldFetchMoreMessages, lastMessageDate, isMessagesLoading])
 
   return {
+    scrollRef,
+    isMessagesLoading,
     messages,
-    getMoreMutation
+    loadMessages,
+    setActiveMessage,
+    navigate,
+    activeMessage,
+    scrollToStart,
+    activeChatroomTitle,
+    chatroomId,
+    shouldFetchMoreMessages,
+    isMobile
   }
 }
 
-export default useChat
+export default useChatMessages

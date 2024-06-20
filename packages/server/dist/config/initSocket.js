@@ -16,37 +16,38 @@ const initSocket = (io) => {
             socket.leave(socket.id);
             console.log("Joined room: ", userId, "Rooms", exports.rooms);
         });
-        socket.on("offer", async (data) => {
-            console.log("OFFER INITIATEDJ", data);
-            const { receivers } = data;
-            for (const user of receivers) {
-                if (user !== data.caller) {
-                    io.to(user).emit("offer", {
-                        status: "success",
-                        message: data,
-                    });
+        socket.on("rtc", async (data) => {
+            const { type, receivers } = data;
+            if (type === "offer") {
+                for (const user of receivers) {
+                    if (user !== data.caller) {
+                        io.to(user).emit("rtc", data);
+                    }
                 }
             }
-        });
-        socket.on("answer", (data) => {
-            console.log("RECEIEVED ANSWER");
-            io.to(data.caller).emit("answer", { status: "success", message: data });
-        });
-        socket.on("ice", (data) => {
-            const { receivers } = data;
-            for (const receiver of receivers) {
-                if (receiver !== data.caller) {
-                    io.to(receiver).emit("ice", { status: "success", message: data });
+            if (type === "answer") {
+                io.to(data.caller).emit("rtc", data);
+            }
+            if (type === "ice") {
+                for (const receiver of receivers) {
+                    if (receiver !== data.caller) {
+                        io.to(receiver).emit("rtc", data);
+                    }
                 }
             }
         });
         socket.on("call", (payload) => {
-            const { caller, receivers, status } = payload;
-            if (status === "initiated") {
+            const { caller, receivers, type } = payload;
+            if (type === "initiated") {
                 for (const receiver of receivers) {
                     if (receiver !== caller.id) {
                         io.to(receiver).emit("call", payload);
                     }
+                }
+            }
+            else if (type === "hangup") {
+                for (const receiver of receivers) {
+                    io.to(receiver).emit("call", payload);
                 }
             }
             else {

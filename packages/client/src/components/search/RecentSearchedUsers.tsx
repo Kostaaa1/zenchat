@@ -13,17 +13,18 @@ interface RecentSearchedUsersProps {
 const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({ navigateToUserDashboard }) => {
   const { chat } = trpc.useUtils()
   const isMobile = useGeneralStore((state) => state.isMobile)
-  const { userData } = useUser()
+  const { user } = useUser()
   const { width } = useWindowSize()
   const removeUserMutation = trpc.chat.history.removeUser.useMutation()
   const clearChatHistoryMutation = trpc.chat.history.clearChatHistory.useMutation()
 
-  const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(userData!.id, {
-    enabled: !!userData?.id
+  const { data: searchedChats, isLoading } = trpc.chat.history.getAll.useQuery(user!.id, {
+    enabled: !!user?.id
   })
 
   const handleDeleteSingleChat = async (user_id: string) => {
-    chat.history.getAll.setData(userData!.id, (prevData) => {
+    if (!user) return
+    chat.history.getAll.setData(user.id, (prevData) => {
       return prevData?.filter((data) => data.user_id !== user_id)
     })
     await removeUserMutation.mutateAsync(user_id)
@@ -31,8 +32,8 @@ const RecentSearchedUsers: FC<RecentSearchedUsersProps> = ({ navigateToUserDashb
 
   const handleDeleteAll = async () => {
     try {
-      chat.history.getAll.setData(userData!.id, [])
-      clearChatHistoryMutation.mutate(userData!.id)
+      chat.history.getAll.setData(user!.id, [])
+      clearChatHistoryMutation.mutate(user!.id)
     } catch (error) {
       console.log(error)
     }

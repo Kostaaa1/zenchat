@@ -29,11 +29,11 @@ const List: FC<ListProps> = ({ onClick, className, children }) => {
 const ModalOptions = forwardRef<HTMLUListElement>((_, ref) => {
   const { deletePost } = useModals()
   const { modalPostData } = useModalStore()
-  const { userData } = useUser()
+  const { user } = useUser()
   return (
     <Modal>
       <ul ref={ref} className="h-max w-[90vw] max-w-[320px] rounded-lg bg-neutral-800">
-        {userData?.id === modalPostData?.user_id && (
+        {user?.id === modalPostData?.user_id && (
           <List onClick={() => deletePost()} className="text-red-500">
             Delete
           </List>

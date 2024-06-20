@@ -20,7 +20,7 @@ export type NavListItems = {
 const useNavbar = () => {
   const navigate = useNavigate()
   const isSearchActive = useSearchStore((state) => state.isSearchActive)
-  const { userData } = useUser()
+  const { user } = useUser()
   const isResponsive = useGeneralStore((state) => state.isResponsive)
   const { openModal } = useModalStore((state) => state.actions)
   const { width } = useWindowSize()
@@ -43,25 +43,21 @@ const useNavbar = () => {
         setActiveNavList(list)
         setIsSearchActive(false)
         if (list === "user") {
-          navigate(`/${userData?.username}`)
+          navigate(`/${user?.username}`)
         } else if (list === "inbox") {
           navigate(`/inbox`)
         }
       } else {
         setIsSearchActive(!isSearchActive)
-
         if (width >= 1024) {
           setIsResponsive(
             location.pathname.includes("inbox") || (!location.pathname.includes("inbox") && !isSearchActive)
           )
         }
-
-        if (isMobile && location.pathname !== "/") {
-          navigate(`/${userData!.username}`)
-        }
+        if (isMobile && location.pathname !== "/") navigate(`/${user!.username}`)
       }
     },
-    [isSearchActive, location.pathname, isMobile]
+    [isSearchActive, location.pathname, isMobile, user]
   )
 
   const activeListClass = "bg-neutral-900"
@@ -70,18 +66,18 @@ const useNavbar = () => {
       iconName: "MessageCircle",
       iconStrokeWidth: activeNavList === "inbox" ? "2" : "",
       title: isResponsive ? "" : "Messages",
+      className: `${location.pathname.includes("/inbox") || activeNavList === "inbox" ? activeListClass : null}`,
       onClick: () => {
         handleActiveElement("inbox")
-      },
-      className: `${location.pathname.includes("/inbox") || activeNavList === "inbox" ? activeListClass : null}`
+      }
     },
     {
       iconName: "Search",
       iconStrokeWidth: isSearchActive ? "2" : "",
       title: isResponsive ? "" : "Search",
       className: `${isSearchActive ? activeListClass : null} `,
-      onClick: () => handleActiveElement(null),
-      ref: searchInputRef
+      ref: searchInputRef,
+      onClick: () => handleActiveElement(null)
     },
     {
       iconName: "PlusSquare",
@@ -90,10 +86,10 @@ const useNavbar = () => {
     },
     {
       title: isResponsive ? "" : "Profile",
+      className: `${location.pathname === `/${user?.username}` ? activeListClass : null}`,
       onClick: () => {
         handleActiveElement("user")
-      },
-      className: `${location.pathname === `/${userData?.username}` ? activeListClass : null}`
+      }
     }
   ]
 

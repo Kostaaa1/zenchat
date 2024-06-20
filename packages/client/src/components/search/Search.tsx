@@ -39,7 +39,7 @@ const Search = () => {
   const { width } = useWindowSize()
   const { setIsSearchActive, setSearch } = useSearchStore((state) => state.actions)
   const isSearchingForUsers = useSearchStore((state) => state.isSearchingForUsers)
-  const { userData } = useUser()
+  const { user } = useUser()
   const utils = trpc.useUtils()
   const addToHistoryMutation = trpc.chat.history.addUser.useMutation({
     onSuccess: () => {
@@ -57,7 +57,7 @@ const Search = () => {
     if (!username && !id) return
     setSearch("")
     addToHistoryMutation.mutate({
-      main_user_id: userData?.id as string,
+      main_user_id: user?.id as string,
       user_id: id
     })
     navigateToUserDashboard(username)

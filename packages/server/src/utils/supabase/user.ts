@@ -5,7 +5,6 @@ import { SupabaseResponse, TCreateUserInput, TUserQueryParam } from "../../types
 
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
-
   const { data: userData, error } = await supabase
     .from("users")
     .select("*, posts(*)")
@@ -15,17 +14,37 @@ export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (error) throw new Error(`Error occurred ${error}`);
   if (!userData || userData.length === 0) return null;
 
-  const { error: countError, count } = await supabase
-    .from("chatroom_users")
-    .select("*", { count: "exact", head: true })
-    .eq("is_message_seen", false)
-    .eq("user_id", userData[0].id);
+  // const { error: countError, count } = await supabase
+  //   .from("chatroom_users")
+  //   .select("*", { count: "exact", head: true })
+  //   .eq("is_message_seen", false)
+  //   .eq("user_id", userData[0].id);
+  // if (countError) {
+  //   throw new Error(`Error occurred when getting the count of unread messages ${countError}`);
+  // }
 
-  if (countError) {
-    throw new Error(`Error occurred when getting the count of unread messages ${countError}`);
-  }
-  const returnData = { ...userData[0], unread_messages_count: count || 0 };
+  const returnData = { ...userData[0] };
   return returnData;
+};
+
+export const createUser = async ({ username, email, firstName, lastName }: TCreateUserInput) => {
+  const { data, error } = await supabase
+    .from("users")
+    .insert({
+      username,
+      email,
+      image_url: null,
+      first_name: firstName,
+      last_name: lastName,
+    })
+    .select("*, posts(*)");
+
+  if (error) throw new Error(`Error while creating user: ${error.message}`);
+  if (!data || data.length === 0) {
+    throw new Error("User creation failed");
+  }
+  console.log("Created new user: ", data);
+  return { ...data[0] };
 };
 
 export const updateUserAvatar = async ({
@@ -78,24 +97,4 @@ export const getSeachedUsers = async (username: string, searchValue: string) => 
 
   if (!users) throw new Error(error.message);
   return users;
-};
-
-export const createUser = async ({ username, email, firstName, lastName }: TCreateUserInput) => {
-  const { data, error } = await supabase
-    .from("users")
-    .insert({
-      username,
-      email,
-      image_url: null,
-      first_name: firstName,
-      last_name: lastName,
-    })
-    .select("*, posts(*)");
-
-  if (error) throw new Error(`Error while creating user: ${error.message}`);
-  if (!data || data.length === 0) {
-    throw new Error("User creation failed");
-  }
-  console.log("Created new user: ", data);
-  return { ...data[0], unread_messages_count: 0 };
 };

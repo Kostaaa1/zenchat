@@ -12,7 +12,7 @@ interface MessageInputProps {
   activeChatroom: TChatroom
 }
 
-const MessageInput: FC<MessageInputProps> = ({ iconRef, scrollToStart, activeChatroom }) => {
+const MessageInput: FC<MessageInputProps> = ({ iconRef, activeChatroom, scrollToStart }) => {
   const emojiRef = useRef<HTMLDivElement>(null)
   const {
     sendMessage,

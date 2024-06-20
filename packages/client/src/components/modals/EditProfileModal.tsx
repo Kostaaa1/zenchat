@@ -12,6 +12,7 @@ import { Modal } from "./Modals"
 import { useUser as useClerkUser } from "@clerk/clerk-react"
 import { Loader2 } from "lucide-react"
 import axios from "axios"
+import { serverURL } from "../../lib/socket"
 
 export type CommonInput = {
   first_name?: string
@@ -27,9 +28,9 @@ export type Inputs = CommonInput & {
 }
 
 const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
-  const { user } = useClerkUser()
+  const { user: clerkUser } = useClerkUser()
   const [fileUrl, setFileUrl] = useState<string>("")
-  const { userData, token, updateUser } = useUser()
+  const { user, sessionToken, updateUser } = useUser()
   const navigate = useNavigate()
   const utils = trpc.useUtils()
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -50,13 +51,13 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       const { username, last_name, first_name } = data
 
       const processes = [
-        user?.update({
+        clerkUser?.update({
           username,
           firstName: first_name,
           lastName: last_name
         }),
         utils.user.get.refetch({
-          data: userData!.username,
+          data: user!.username,
           type: "username"
         })
       ]
@@ -80,24 +81,24 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
 
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
-      if (!userData) return
+      if (!user) return
+
       const { file } = formData
       setIsLoading(true)
-
       if (file && file.length > 0) {
         setIsAvatarUpdating(true)
         const renamedFile = renameFile(file[0])
 
         const form = new FormData()
-        form.append("serialized", JSON.stringify({ userId: userData.id }))
+        form.append("serialized", JSON.stringify({ userId: user.id }))
         form.append("images", renamedFile)
-        const { data: image_url } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/upload/avatar`, form, {
+        const { data: image_url } = await axios.post(`${serverURL}/api/upload/avatar`, form, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${sessionToken}`
           }
         })
         await loadImage(image_url)
-        updateUser({ username: userData!.username, newFields: { image_url } })
+        updateUser({ username: user!.username, newFields: { image_url } })
         setIsAvatarUpdating(false)
         setFileUrl(image_url)
       }
@@ -109,7 +110,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       }
 
       utils.user.get.invalidate({
-        data: userData?.username,
+        data: user?.username,
         type: "username"
       })
 
@@ -118,7 +119,7 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       delete formData.image_url
 
       updateUserDataMutation.mutate({
-        userId: userData.id,
+        userId: user.id,
         userData: formData
       })
     } catch (error) {
@@ -148,112 +149,116 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   }, [watch("file")])
 
   return (
-    <Modal>
-      <div ref={ref}>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          autoComplete="off"
-          className="w- flex w-[90vw] max-w-[450px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
-        >
-          <div className="flex w-full items-center justify-between">
-            <div className="relative flex items-center justify-between">
-              <p className="pl-8 text-base font-semibold text-neutral-300">Edit Profile</p>
-              <div
-                onClick={() => closeModal()}
-                className="absolute top-1/2 -translate-y-1/2 rounded-full text-neutral-300 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
-              >
-                <Icon name="X" className="cursor-pointer p-[2px]" size="26px" />
+    <>
+      {user && (
+        <Modal>
+          <div ref={ref}>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              autoComplete="off"
+              className="w- flex w-[90vw] max-w-[450px] flex-col items-center rounded-xl bg-[#262626] p-3 text-center"
+            >
+              <div className="flex w-full items-center justify-between">
+                <div className="relative flex items-center justify-between">
+                  <p className="pl-8 text-base font-semibold text-neutral-300">Edit Profile</p>
+                  <div
+                    onClick={() => closeModal()}
+                    className="absolute top-1/2 -translate-y-1/2 rounded-full text-neutral-300 transition-colors duration-200 hover:bg-white hover:bg-opacity-10"
+                  >
+                    <Icon name="X" className="cursor-pointer p-[2px]" size="26px" />
+                  </div>
+                </div>
+                {isAvatarUpdating || isLoading ? (
+                  <div className="flex w-16 cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-[2px] font-bold text-black text-opacity-70 outline-none transition-all duration-200 hover:bg-opacity-80">
+                    <Loader2 className="animate-spin" />
+                  </div>
+                ) : (
+                  <input
+                    disabled={!isDirty}
+                    type="submit"
+                    value="Save"
+                    className="w-16 cursor-pointer rounded-lg bg-white px-3 py-[2px] font-bold text-black outline-none transition-all duration-200 hover:bg-opacity-80"
+                  />
+                )}
               </div>
-            </div>
-            {isAvatarUpdating || isLoading ? (
-              <div className="flex w-16 cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-[2px] font-bold text-black text-opacity-70 outline-none transition-all duration-200 hover:bg-opacity-80">
-                <Loader2 className="animate-spin" />
-              </div>
-            ) : (
-              <input
-                disabled={!isDirty}
-                type="submit"
-                value="Save"
-                className="w-16 cursor-pointer rounded-lg bg-white px-3 py-[2px] font-bold text-black outline-none transition-all duration-200 hover:bg-opacity-80"
-              />
-            )}
-          </div>
-          <div className="flex w-full flex-col items-center justify-center space-y-2 py-8">
-            <div className="relative h-max w-max">
-              <label
-                htmlFor="file"
-                className="absolute left-0 top-0 z-10 block h-full w-full cursor-pointer rounded-full bg-black bg-opacity-0 
+              <div className="flex w-full flex-col items-center justify-center space-y-2 py-8">
+                <div className="relative h-max w-max">
+                  <label
+                    htmlFor="file"
+                    className="absolute left-0 top-0 z-10 block h-full w-full cursor-pointer rounded-full bg-black bg-opacity-0 
         transition-all duration-200 hover:bg-opacity-20"
-              ></label>
-              <input {...register("file")} id="file" type="file" className="hidden" accept="image/*" />
-              <Avatar image_url={fileUrl.length > 0 ? fileUrl : userData?.image_url} size="xl" className="outline" />
-            </div>
-            <div className="text-sm text-red-600">
-              {errors.file && errors.file.type === "custom" && <span>{errors.file.message}</span>}
-            </div>
-          </div>
-          <div className="flex h-full w-full flex-col items-start justify-around space-y-2">
-            <div className="flex w-full flex-col items-start justify-start">
-              <input
-                placeholder="Username"
-                type="text"
-                {...register("username", {
-                  pattern: {
-                    value: /^[a-z0-9]+$/,
-                    message: "Entered value does not match email format"
-                  },
-                  maxLength: 25,
-                  minLength: 3
-                })}
-                defaultValue={userData?.username}
-                className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-              />
-              <div className="text-sm text-red-600">
-                {errors.username && errors.username.type === "maxLength" && (
-                  <span>Exceeded the maximum number of characters for an username (25)</span>
-                )}
-                {errors.username && errors.username.type === "minLength" && (
-                  <span>The username needs to be at least 3 characters long.</span>
-                )}
-                {errors.username && errors.username.type === "pattern" && (
-                  <span>The username needs to be lower cased.</span>
-                )}
-                {errors.username && errors.username.type === "custom" && (
-                  <span>The username is used. Use different username.</span>
-                )}
+                  ></label>
+                  <input {...register("file")} id="file" type="file" className="hidden" accept="image/*" />
+                  <Avatar image_url={fileUrl.length > 0 ? fileUrl : user?.image_url} size="xl" className="outline" />
+                </div>
+                <div className="text-sm text-red-600">
+                  {errors.file && errors.file.type === "custom" && <span>{errors.file.message}</span>}
+                </div>
               </div>
-            </div>
-            <div className="flex w-full flex-col items-start justify-start">
-              <input
-                placeholder="First name"
-                defaultValue={userData?.first_name}
-                {...register("first_name")}
-                type="text"
-                className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-              />
-            </div>
-            <div className="flex w-full flex-col items-start justify-start">
-              <input
-                placeholder="Last name"
-                defaultValue={userData?.last_name}
-                {...register("last_name")}
-                type="text"
-                className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-              />
-            </div>
-            <textarea
-              cols={30}
-              rows={4}
-              maxLength={20}
-              defaultValue={userData?.description || ""}
-              {...register("description")}
-              placeholder="About you"
-              className="flex w-full rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
-            ></textarea>
+              <div className="flex h-full w-full flex-col items-start justify-around space-y-2">
+                <div className="flex w-full flex-col items-start justify-start">
+                  <input
+                    placeholder="Username"
+                    type="text"
+                    {...register("username", {
+                      pattern: {
+                        value: /^[a-z0-9]+$/,
+                        message: "Entered value does not match email format"
+                      },
+                      maxLength: 25,
+                      minLength: 3
+                    })}
+                    defaultValue={user?.username}
+                    className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+                  />
+                  <div className="text-sm text-red-600">
+                    {errors.username && errors.username.type === "maxLength" && (
+                      <span>Exceeded the maximum number of characters for an username (25)</span>
+                    )}
+                    {errors.username && errors.username.type === "minLength" && (
+                      <span>The username needs to be at least 3 characters long.</span>
+                    )}
+                    {errors.username && errors.username.type === "pattern" && (
+                      <span>The username needs to be lower cased.</span>
+                    )}
+                    {errors.username && errors.username.type === "custom" && (
+                      <span>The username is used. Use different username.</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex w-full flex-col items-start justify-start">
+                  <input
+                    placeholder="First name"
+                    defaultValue={user?.first_name}
+                    {...register("first_name")}
+                    type="text"
+                    className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+                  />
+                </div>
+                <div className="flex w-full flex-col items-start justify-start">
+                  <input
+                    placeholder="Last name"
+                    defaultValue={user?.last_name}
+                    {...register("last_name")}
+                    type="text"
+                    className="flex rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+                  />
+                </div>
+                <textarea
+                  cols={30}
+                  rows={4}
+                  maxLength={20}
+                  defaultValue={user?.description || ""}
+                  {...register("description")}
+                  placeholder="About you"
+                  className="flex w-full rounded-lg bg-neutral-600 bg-opacity-20 py-2 pl-2 text-sm text-neutral-400 outline-none placeholder:text-neutral-400"
+                ></textarea>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </Modal>
+        </Modal>
+      )}
+    </>
   )
 })
 

@@ -8,9 +8,10 @@ import { useEffect, useState } from "react"
 import useWebRTC from "../../../hooks/useWebRTC"
 import { Mic, MicOff, Phone, Video, VideoOff } from "lucide-react"
 import { cn } from "../../../utils/utils"
+import { socket } from "../../../lib/socket"
 
 const RTCVoiceCall = () => {
-  const { userData } = useUser()
+  const { user } = useUser()
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
@@ -19,6 +20,7 @@ const RTCVoiceCall = () => {
     isCalling: state.isCalling,
     isCallAccepted: state.isCallAccepted
   }))
+  // const { setIsCalling } = usePeerConnection((state) => state.actions)
   const { data: chatroomUsers, isLoading } = trpc.chat.get.chatroom_users.useQuery(chatroomId!, {
     enabled: !!chatroomId,
     refetchOnMount: true
@@ -47,10 +49,18 @@ const RTCVoiceCall = () => {
 
   useEffect(() => {
     if (isCalling && isCallAccepted && chatroomUsers && chatroomId) {
+      console.log("Creating offer, started negotiation.........")
       const receivers = chatroomUsers.map((x) => x.user_id)
       createOfferAndListenICE(receivers, chatroomId)
+      // setIsCalling(false)
     }
   }, [isCalling, isCallAccepted, chatroomUsers, chatroomId])
+
+  const hangUp = () => {
+    const receivers = chatroomUsers?.map((x) => x.user_id).filter((x) => x !== user?.id)
+    socket.emit("call", { type: "hangup", receivers })
+    cleanUp()
+  }
 
   useEffect(() => {
     return () => {
@@ -61,15 +71,15 @@ const RTCVoiceCall = () => {
 
   return (
     <div className="relative flex h-[100svh] w-full flex-col items-center justify-center">
-      {isLoading || !userData || !chatroomId || !chatroomUsers ? (
+      {isLoading || !user || !chatroomId || !chatroomUsers ? (
         <div>Loading...</div>
       ) : (
         <>
           {!peerConnection && !isCallAccepted && (
             <div className="flex select-none flex-col items-center space-x-2 space-y-2">
-              {chatroomUsers?.map((user) => (
-                <div key={user.user_id}>
-                  {user.user_id !== userData.id && <Avatar image_url={user.image_url} className="mb-4 h-28 w-28" />}
+              {chatroomUsers?.map(({ user_id, image_url }) => (
+                <div key={user_id}>
+                  {user_id !== user.id && <Avatar image_url={image_url} className="mb-4 h-28 w-28" />}
                 </div>
               ))}
               <p>{isCalling ? "Calling..." : "Ready to call?"}</p>
@@ -90,7 +100,10 @@ const RTCVoiceCall = () => {
           )}
           {peerConnection && (
             <>
-              <div id="video-calls" className="space-y-2"></div>
+              <div id="video-calls" className="space-y-2">
+                <video className="local-video" autoPlay muted />
+                <video className="remote-video" autoPlay muted />
+              </div>
               <div className="fixed bottom-4 flex w-full items-center justify-center space-x-4">
                 {buttons.map(({ onIcon, offIcon, id, onClick, isOff }) => (
                   <div
@@ -105,8 +118,9 @@ const RTCVoiceCall = () => {
                   </div>
                 ))}
                 <div
+                  id="hangup"
                   className="flex cursor-pointer items-center justify-center rounded-full bg-red-500 p-[10px] duration-200 hover:bg-red-400"
-                  onClick={cleanUp}
+                  onClick={hangUp}
                 >
                   <Phone size={iconSize} />
                 </div>

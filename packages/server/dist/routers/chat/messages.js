@@ -26,6 +26,7 @@ exports.messageRouter = trpc_1.t.router({
         const { chatroom_id, lastMessageDate } = input;
         if (!chatroom_id)
             return;
+        console.log("Called get more messages: ", input);
         const messages = await (0, chatroom_1.getMoreMessages)(chatroom_id, lastMessageDate);
         return messages;
     }),

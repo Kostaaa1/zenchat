@@ -10,7 +10,7 @@ import { cn } from "../../../utils/utils"
 import { FC } from "react"
 
 const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
-  const { userData } = useUser()
+  const { user } = useUser()
   const navigate = useNavigate()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const { activeChatroomTitle, showDetails } = useChatStore((state) => ({
@@ -34,7 +34,7 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
   }
 
   const handleNavigate = () => {
-    is_group ? setShowDetails(true) : navigate(`/${users.find((x) => x.username !== userData?.username)?.username}`)
+    is_group ? setShowDetails(true) : navigate(`/${users.find((x) => x.username !== user?.username)?.username}`)
   }
 
   const callRoom = () => {
@@ -61,7 +61,7 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
                     image_url_2: users[1]?.image_url
                   }
                 : {
-                    image_url_1: users.find((x) => x.user_id !== userData!.id)?.image_url
+                    image_url_1: users.find((x) => x.user_id !== user?.id)?.image_url
                   }
             }
           />

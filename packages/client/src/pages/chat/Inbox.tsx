@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react"
 import { useLocation, useParams } from "react-router-dom"
 import useChatStore from "../../stores/chatStore"
 import UserChats from "./components/UserChats"
@@ -10,34 +9,47 @@ import MainContainer from "../../components/MainContainer"
 import Icon from "../../components/Icon"
 import Button from "../../components/Button"
 import useModalStore from "../../stores/modalStore"
-import useInbox from "../../hooks/useInbox"
+import useUser from "../../hooks/useUser"
+import { useEffect } from "react"
+// import useInbox from "../../hooks/useInbox"
 
 const Inbox = () => {
   const location = useLocation()
-  const scrollRef = useRef<HTMLDivElement>(null)
   const { chatroomId } = useParams<{ chatroomId: string }>()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const { openModal } = useModalStore((state) => state.actions)
-  const { userChats, isUserChatsLoading } = useInbox()
   const { activeChatroom, showDetails } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
     activeChatroomTitle: state.activeChatroomTitle,
     showDetails: state.showDetails
   }))
+  // const isUserChatsLoading = useChatStore((state) => state.isUserChatsLoading)
+  const { setActiveChatroom, setActiveChatroomTitle } = useChatStore((state) => state.actions)
+  const { user, userChats, areChatsLoading } = useUser()
+
+  useEffect(() => {
+    if (!userChats || !user) return
+    const activeChat = userChats.find((chat) => chat.chatroom_id === chatroomId)
+    if (activeChat) {
+      setActiveChatroom(activeChat)
+      setActiveChatroomTitle(
+        activeChat.users
+          .filter((chat) => chat.username !== user.username)
+          .map((chat) => chat.username)
+          .join(", ")
+      )
+    }
+  }, [userChats, user, chatroomId])
 
   return (
     <MainContainer>
-      <div ref={scrollRef} className={cn("flex h-[100svh] w-full items-center", isMobile ? "pb-16" : "pl-20")}>
-        {(!chatroomId || (chatroomId && !isMobile)) && (
-          <UserChats userChats={userChats} isLoading={isUserChatsLoading} />
-        )}
-        {location.pathname !== "/inbox" && activeChatroom && (
-          <Chat activeChatroom={activeChatroom} scrollRef={scrollRef} />
-        )}
+      <div className={cn("flex h-[100svh] w-full items-center", isMobile ? "pb-16" : "pl-20")}>
+        {(!chatroomId || (chatroomId && !isMobile)) && <UserChats />}
+        {location.pathname !== "/inbox" && activeChatroom && <Chat activeChatroom={activeChatroom} />}
         {showDetails && activeChatroom && <ChatDetails />}
-        {!isMobile && !activeChatroom && (
+        {!isMobile && location.pathname === "/inbox" && (
           <div className="flex h-full w-full flex-col items-center justify-center text-center">
-            {isUserChatsLoading ? (
+            {areChatsLoading ? (
               <>
                 <div className="h-[100px] w-[100px] animate-pulse rounded-full bg-neutral-800 pb-6"></div>
                 <div className="flex h-max flex-col items-center space-y-3 pt-4">

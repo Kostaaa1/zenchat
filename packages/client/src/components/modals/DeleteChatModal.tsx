@@ -10,16 +10,16 @@ const DeleteChatModal = forwardRef<HTMLDivElement>((_, ref) => {
   const activeChatroom = useChatStore((state) => state.activeChatroom)
   const { closeModal } = useModalStore((state) => state.actions)
   const { removeChatFromUserChats } = useChatCache()
-  const { userData } = useUser()
+  const { user } = useUser()
   const deleteChatMutation = trpc.chat.delete.useMutation()
 
   const handleDeleteConversation = async () => {
-    if (!activeChatroom || !userData) return
+    if (!activeChatroom || !user) return
     const { chatroom_id } = activeChatroom
     closeModal()
     removeChatFromUserChats(chatroom_id)
     await deleteChatMutation.mutateAsync({
-      user_id: userData.id,
+      user_id: user.id,
       chatroom_id
     })
   }

@@ -32,6 +32,7 @@ export const messageRouter = t.router({
     .mutation(async ({ input }) => {
       const { chatroom_id, lastMessageDate } = input;
       if (!chatroom_id) return;
+      console.log("Called get more messages: ", input);
       const messages = await getMoreMessages(chatroom_id, lastMessageDate);
       return messages;
     }),

@@ -19,6 +19,7 @@ import { nanoid } from "nanoid"
 import { TPost } from "../../../../server/src/types/types"
 import axios from "axios"
 import Video from "../Video"
+import { serverURL } from "../../lib/socket"
 
 interface Props {
   onDrop: (droppedFile: File) => void
@@ -68,7 +69,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
   const FILE_LIMIT_MB = 310
   const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024
   const { closeModal } = useModalStore((state) => state.actions)
-  const { userData, token } = useUser()
+  const { sessionToken, user } = useUser()
   const utils = trpc.useUtils()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const [file, setFile] = useState<File | null>(null)
@@ -94,10 +95,6 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     setFile(null)
     setMediaSrc(null)
   }
-
-  useEffect(() => {
-    console.log(file)
-  }, [file])
 
   useEffect(() => {
     if (videoRef.current) {
@@ -131,7 +128,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
   }
 
   const handleCreatingPost = async () => {
-    if (!file || !userData?.id) return
+    if (!file || !user?.id) return
     setModalTitle("Processing")
     setIsUploading(true)
     const { name, type, size } = file
@@ -150,7 +147,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     const formData = new FormData()
     const unified: Partial<TPost> = {
       id: nanoid(),
-      user_id: userData.id,
+      user_id: user.id,
       caption,
       type,
       media_name: name,
@@ -162,18 +159,17 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
     formData.append("post", file)
     if (thumbnailFile) formData.append("post", thumbnailFile)
 
-    const url = `${import.meta.env.VITE_SERVER_URL}/api/upload/post/${type.startsWith("video/") ? "video" : "image"}`
-
+    const url = `${serverURL}/api/upload/post/${type.startsWith("video/") ? "video" : "image"}`
     try {
       const { data }: { data: TPost } = await axios.post(url, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${sessionToken}`
         }
       })
 
       await loadImage(data.thumbnail_url ?? data.media_url)
-      utils.user.get.setData({ data: userData.username, type: "username" }, (state) => {
+      utils.user.get.setData({ data: user.username, type: "username" }, (state) => {
         if (state) {
           return { ...state, posts: [data, ...state.posts] }
         }
@@ -250,8 +246,8 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
                     )}
                   >
                     <div className="flex w-full items-center justify-start space-x-2 border-[1px] border-x-0 border-t-0 border-b-neutral-600 p-2">
-                      <Avatar image_url={userData?.image_url} size="sm" />
-                      <p className="">{userData?.username}</p>
+                      <Avatar image_url={user?.image_url} size="sm" />
+                      <p className="">{user?.username}</p>
                     </div>
                     <div className="flex flex-col items-end px-2">
                       <textarea

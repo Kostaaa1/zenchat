@@ -10,6 +10,7 @@ import incomming from "../../../public/incomming.mp3"
 import usePeerConnection from "../../stores/peerConnection"
 import { socket } from "../../lib/socket"
 import { useNavigate } from "react-router-dom"
+import { playSound } from "../../utils/file"
 
 type ModalProps = {
   callerInfo: SocketCallPayload
@@ -22,15 +23,15 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
   const navigate = useNavigate()
   const { setCallerInfo, closeModal } = useModalStore((state) => state.actions)
 
-  const startRinging = () => {
-    const init = document.getElementById("ring")
-    if (init) {
-      const el = init as HTMLAudioElement
-      el.src = incomming
-      el.volume = volume
-      el.play()
-    }
-  }
+  // const playSound = (id: string, path: string, volume?: number) => {
+  //   const init = document.getElementById(id)
+  //   if (init) {
+  //     const el = init as HTMLAudioElement
+  //     el.src = path
+  //     el.volume = volume || 0.05
+  //     el.play()
+  //   }
+  // }
 
   const stopRinging = () => {
     const init = document.getElementById("ring")
@@ -47,7 +48,7 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
     const { caller, chatroomId, receivers } = callerInfo
     setIsCallAccepted(true)
     const p: SocketCallPayload = {
-      status: "accepted",
+      type: "accepted",
       caller,
       receivers,
       chatroomId
@@ -65,7 +66,7 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
     if (caller) {
       stopRinging()
       const p: SocketCallPayload = {
-        status: "declined",
+        type: "declined",
         caller,
         receivers,
         chatroomId: callerInfo.chatroomId
@@ -77,7 +78,7 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
   }
 
   useEffect(() => {
-    startRinging()
+    playSound("ring", incomming, volume)
     const timeout = setTimeout(() => {
       console.log("CALL TIME EXCEEDED, HHANG UPHANG UPHANG UPANG UP!!!!")
       hangup()

@@ -14,21 +14,20 @@ import { Modal } from "./Modals"
 const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
   const [search, setSearch] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
-  const { userData } = useUser()
+  const { user } = useUser()
   const [searchedUsers, setSearchedUsers] = useState<TUserDataState[]>([])
   const [selectedUsers, setSelectedUsers] = useState<TUserDataState[]>([])
   const navigate = useNavigate()
-  const { user, chat } = trpc.useUtils()
+  const utils = trpc.useUtils()
   const { closeModal } = useModalStore((state) => state.actions)
 
   const debounceEmit = debounce(
     async () => {
-      if (!userData) return null
-      const searchedUsers = await user.search.fetch({
-        username: userData?.username,
+      if (!user) return null
+      const searchedUsers = await utils.user.search.fetch({
+        username: user?.username,
         searchValue: search
       })
-
       if (searchedUsers) {
         setSearchedUsers(searchedUsers)
         setLoading(false)
@@ -48,7 +47,7 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
     return () => {
       debounceEmit.cancel()
     }
-  }, [search, userData])
+  }, [search, user])
 
   const handleClick = (user: TUserDataState) => {
     setSearch("")
@@ -63,14 +62,12 @@ const NewMessageModal = forwardRef<HTMLDivElement>((_, ref) => {
 
   const handlaCreateChatroom = async () => {
     setLoading(true)
-    console.log("clicked chat")
     const userIds = selectedUsers.map((x) => x.id)
-    const newChatroomId = await chat.get.chatroom_id.fetch({
-      userIds: [...userIds, userData!.id],
-      admin: userData!.id
+    const newChatroomId = await utils.chat.get.chatroom_id.fetch({
+      userIds: [...userIds, user!.id],
+      admin: user!.id
     })
-    await chat.get.user_chatrooms.refetch(userData!.id)
-
+    await utils.chat.get.user_chatrooms.refetch(user!.id)
     if (newChatroomId) {
       closeModal()
       setLoading(false)

@@ -9,12 +9,12 @@ import useGeneralStore from "../../stores/generalStore"
 import { loadImage } from "../../utils/image"
 
 const SearchInput = () => {
-  const { userData } = UseUser()
+  const { user } = UseUser()
   const inputRef = useSearchStore((state) => state.searchInputRef)
   const search = useSearchStore((state) => state.search)
   const isSearchActive = useSearchStore((state) => state.isSearchActive)
   const [isInputFocused, setIsInputFocused] = useState<boolean>(false)
-  const { user } = trpc.useUtils()
+  const utils = trpc.useUtils()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const { setSearchedUsers, setIsSearchingForUsers, setSearch, setIsSearchActive } = useSearchStore(
     (state) => state.actions
@@ -22,12 +22,12 @@ const SearchInput = () => {
 
   const debounceEmit = debounce(
     async () => {
-      if (!userData) {
+      if (!user) {
         console.log("There is not user data.")
         return null
       }
-      const searchedUsers = await user.search.fetch({
-        username: userData?.username,
+      const searchedUsers = await utils.user.search.fetch({
+        username: user?.username,
         searchValue: search
       })
       if (searchedUsers) {
@@ -55,7 +55,7 @@ const SearchInput = () => {
     return () => {
       debounceEmit.cancel()
     }
-  }, [search, userData])
+  }, [search, user])
 
   useEffect(() => {
     if (isSearchActive && inputRef.current) {

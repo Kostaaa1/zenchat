@@ -6,7 +6,6 @@ type ChatStore = {
   actions: {
     addChatInputMessage: (chatroomId: string, text: string) => void
     addChatInputImage: (chatroomId: string, text: string) => void
-    //////////////
     clearMessageInput: (chatroomId: string) => void
     clearImagesInput: (chatroomId: string) => void
     removeChatInputImage: (chatroomId: string, id: number) => void

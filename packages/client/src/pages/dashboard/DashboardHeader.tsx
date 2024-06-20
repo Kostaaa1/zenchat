@@ -16,7 +16,7 @@ export const DashboardHeader = ({
   username: string | undefined
 }) => {
   const navigate = useNavigate()
-  const { userData: loggedUser } = useUser()
+  const { user: loggedUser } = useUser()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating)

@@ -18,14 +18,14 @@ interface MessageProps {
 }
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(({ message, rounded1, rounded2, onClick }, ref) => {
-  const { userData } = useUser()
+  const { user } = useUser()
   const [isHovered, setIsHovered] = useState<boolean>(false)
   const { content, created_at, id, sender_id, is_image } = message
   const activeChatroom = useChatStore((state) => state.activeChatroom)
   const activeMessage = useModalStore((state) => state.activeMessage)
   const { setImageSource, openModal } = useModalStore((state) => state.actions)
 
-  const isLoggedUserASender = sender_id === userData?.id
+  const isLoggedUserASender = sender_id === user?.id
 
   return (
     <li
