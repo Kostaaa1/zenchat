@@ -1,6 +1,6 @@
 import "react-toastify/dist/ReactToastify.css"
 import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from "@clerk/clerk-react"
-import { Route, Routes } from "react-router-dom"
+import { Route, Routes, useLocation } from "react-router-dom"
 import Header from "./components/header/Header"
 import Inbox from "./pages/chat/Inbox"
 import Dashboard from "./pages/dashboard/Dashboard"
@@ -17,6 +17,7 @@ import useApp from "./hooks/useApp"
 
 function App() {
   useChatSocket(socket)
+  const location = useLocation()
   const [hideHeader, setHideHeader] = useState<boolean>(false)
   const { isFetched } = useApp()
 
@@ -25,7 +26,7 @@ function App() {
     return () => {
       setHideHeader(false)
     }
-  }, [])
+  }, [location.pathname])
 
   return (
     <>

@@ -26,7 +26,6 @@ const useWebRTC = () => {
 
   const createPeerConnection = useCallback(
     (receivers: string[], chatroomId: string) => {
-      console.log("created peer connection: ")
       const conn = new RTCPeerConnection({ iceServers })
       conn.onicecandidate = (ev) => {
         if (ev.candidate) {
@@ -55,7 +54,7 @@ const useWebRTC = () => {
     async (data: { chatroomId: string; receivers: string[] }) => {
       if (!user) return
       const { receivers, chatroomId } = data
-      const { id, image_url, username } =user 
+      const { id, image_url, username } = user
       playSound("source1", ringingSoundPath)
       socket.emit("call", {
         chatroomId,

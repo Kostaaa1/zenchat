@@ -52,13 +52,11 @@ const useApp = () => {
     const filtered = posts.filter((x) => isImage(x.media_url))
     await Promise.all(filtered.map(async (x) => await loadImage(x.media_url)))
     if (image_url) await loadImage(image_url)
-    console.log("posts lodaed", filtered)
     setUser(data)
     setIsFetched(true)
   }
 
   useEffect(() => {
-    console.log("userData", userData)
     if (userData === null) createUser()
     if (userData) {
       loadPosts(userData)

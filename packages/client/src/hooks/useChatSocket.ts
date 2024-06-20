@@ -162,7 +162,6 @@ const useChatSocket = (socket: Socket | null) => {
 
   const receiveCallPayload = useCallback(
     (payload: SocketCallPayload) => {
-      console.log("CALL PAYLOAD: ", payload)
       const { type } = payload
       stopSound("source1")
       if (type === "initiated") {

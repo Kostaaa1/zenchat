@@ -84,7 +84,6 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
       hangup()
     }, 20000)
     return () => {
-      console.log("VOICE CALL MODAL CLEANUP ran")
       clearTimeout(timeout)
     }
   }, [closeModal])
