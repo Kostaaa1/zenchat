@@ -17,11 +17,11 @@ type ModalProps = {
 }
 
 const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callerInfo }, ref) => {
-  const { setIsCallAccepted } = usePeerConnection((state) => state.actions)
+  const { setIsCallAccepted, setCallerInfo } = usePeerConnection((state) => state.actions)
   const { caller, receivers } = callerInfo
   const volume = useGeneralStore((state) => state.volume)
   const navigate = useNavigate()
-  const { setCallerInfo, closeModal } = useModalStore((state) => state.actions)
+  const { closeModal } = useModalStore((state) => state.actions)
 
   // const playSound = (id: string, path: string, volume?: number) => {
   //   const init = document.getElementById(id)

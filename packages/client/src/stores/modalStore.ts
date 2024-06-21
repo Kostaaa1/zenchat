@@ -30,11 +30,9 @@ type Store = {
   isMessageDropdownActive: boolean
   isAvatarUpdating: boolean
   activeModal: Modals
-  callerInfo: SocketCallPayload | null
   options: TModalOptions[]
   actions: {
     setOptions: (opt: TModalOptions[]) => void
-    setCallerInfo: (s: SocketCallPayload | null) => void
     openModal: (activeModal: Modals) => void
     closeModal: () => void
     setImageSource: (src: string) => void
@@ -54,11 +52,9 @@ const useModalStore = create<Store>(
     isMessageDropdownActive: false,
     imageSource: null,
     modalPostData: null,
-    callerInfo: null,
     options: [],
     actions: {
       setOptions: (opts: TModalOptions[]) => set({ options: opts, isModalOpen: true }),
-      setCallerInfo: (callerInfo: SocketCallPayload | null) => set({ callerInfo }),
       openModal: (activeModal: Modals) => set({ isModalOpen: true, activeModal }),
       closeModal: () =>
         set((state) => {

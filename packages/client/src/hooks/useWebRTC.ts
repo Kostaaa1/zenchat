@@ -23,7 +23,6 @@ const useWebRTC = () => {
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null)
   const { clearAll, setIsCalling } = usePeerConnection((state) => state.actions)
   const { user } = useUser()
-
   const createPeerConnection = useCallback(
     (receivers: string[], chatroomId: string) => {
       const conn = new RTCPeerConnection({ iceServers })

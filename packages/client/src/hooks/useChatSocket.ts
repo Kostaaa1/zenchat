@@ -15,8 +15,8 @@ import { stopSound } from "../utils/file"
 const useChatSocket = (socket: Socket | null) => {
   const { user, unreadChatIds } = useUser()
   const utils = trpc.useUtils()
-  const { setIsCallAccepted } = usePeerConnectionStore((state) => state.actions)
-  const { openModal, setCallerInfo } = useModalStore((state) => state.actions)
+  const { setIsCallAccepted, setCallerInfo } = usePeerConnectionStore((state) => state.actions)
+  const { openModal } = useModalStore((state) => state.actions)
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom
   }))

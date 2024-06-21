@@ -11,6 +11,7 @@ import useOutsideClick from "../../hooks/useOutsideClick"
 import ModalOptions from "./ModalOptions"
 import VoiceCallModal from "./VoiceCallModal"
 import { motion, AnimatePresence } from "framer-motion"
+import usePeerConnectionStore from "../../stores/peerConnection"
 
 type ModalProps = {
   children?: React.ReactNode
@@ -45,13 +46,13 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 
 const Modals = () => {
   const { closeModal } = useModalStore((state) => state.actions)
-  const { callerInfo, activeModal, options, imageSource, isModalOpen, modalPostData } = useModalStore((state) => ({
+  const callerInfo = usePeerConnectionStore((state) => state.callerInfo)
+  const { activeModal, options, imageSource, isModalOpen, modalPostData } = useModalStore((state) => ({
     options: state.options,
     modalPostData: state.modalPostData,
     imageSource: state.imageSource,
     isModalOpen: state.isModalOpen,
-    activeModal: state.activeModal,
-    callerInfo: state.callerInfo
+    activeModal: state.activeModal
   }))
 
   const modalRef = useRef<HTMLDivElement>(null)
