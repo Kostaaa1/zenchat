@@ -1,6 +1,5 @@
 import { create } from "zustand"
 import { TMessage, TPost } from "../../../server/src/types/types"
-import { SocketCallPayload } from "../../../server/src/types/sockets"
 
 type TModalOptions = {
   id: number

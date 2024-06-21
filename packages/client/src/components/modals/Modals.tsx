@@ -46,7 +46,7 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 
 const Modals = () => {
   const { closeModal } = useModalStore((state) => state.actions)
-  const callerInfo = usePeerConnectionStore((state) => state.callerInfo)
+  const callInfo = usePeerConnectionStore((state) => state.callInfo)
   const { activeModal, options, imageSource, isModalOpen, modalPostData } = useModalStore((state) => ({
     options: state.options,
     modalPostData: state.modalPostData,
@@ -81,7 +81,7 @@ const Modals = () => {
               <PostModal post={modalPostData} ref={modalRef} leftRef={leftRef} rightRef={rightRef} />
             )}
             {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
-            {activeModal === "voiceCall" && callerInfo && <VoiceCallModal ref={modalRef} callerInfo={callerInfo} />}
+            {activeModal === "voiceCall" && callInfo && <VoiceCallModal ref={modalRef} callInfo={callInfo} />}
             {options.length > 0 && <ModalOptions ref={modalOptionRef} />}
           </>
         )}

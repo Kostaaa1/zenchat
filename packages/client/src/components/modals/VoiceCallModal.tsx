@@ -13,12 +13,12 @@ import { useNavigate } from "react-router-dom"
 import { playSound } from "../../utils/file"
 
 type ModalProps = {
-  callerInfo: SocketCallPayload
+  callInfo: SocketCallPayload
 }
 
-const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callerInfo }, ref) => {
-  const { setIsCallAccepted, setCallerInfo } = usePeerConnection((state) => state.actions)
-  const { caller, receivers } = callerInfo
+const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref) => {
+  const { setIsCallAccepted, setCallInfo } = usePeerConnection((state) => state.actions)
+  const { caller, chatroomId, participants } = callInfo
   const volume = useGeneralStore((state) => state.volume)
   const navigate = useNavigate()
   const { closeModal } = useModalStore((state) => state.actions)
@@ -45,12 +45,12 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callerInfo }, r
 
   ////////////////////////////////
   const pickup = () => {
-    const { caller, chatroomId, receivers } = callerInfo
+    const { caller, chatroomId, participants } = callInfo
     setIsCallAccepted(true)
     const p: SocketCallPayload = {
       type: "accepted",
       caller,
-      receivers,
+      participants,
       chatroomId
     }
     socket.emit("call", p)
@@ -68,11 +68,11 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callerInfo }, r
       const p: SocketCallPayload = {
         type: "declined",
         caller,
-        receivers,
-        chatroomId: callerInfo.chatroomId
+        participants,
+        chatroomId
       }
       socket.emit("call", p)
-      setCallerInfo(null)
+      setCallInfo(null)
       closeModal()
     }
   }

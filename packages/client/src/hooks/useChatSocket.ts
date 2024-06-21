@@ -15,7 +15,7 @@ import { stopSound } from "../utils/file"
 const useChatSocket = (socket: Socket | null) => {
   const { user, unreadChatIds } = useUser()
   const utils = trpc.useUtils()
-  const { setIsCallAccepted, setCallerInfo } = usePeerConnectionStore((state) => state.actions)
+  const { setIsCallAccepted, setCallInfo } = usePeerConnectionStore((state) => state.actions)
   const { openModal } = useModalStore((state) => state.actions)
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom
@@ -36,6 +36,7 @@ const useChatSocket = (socket: Socket | null) => {
     },
     [utils.chat.messages.get]
   )
+
   const replacePreviewImage = useCallback(
     (messageData: TMessage) => {
       utils.chat.messages.get.setData(
@@ -103,7 +104,6 @@ const useChatSocket = (socket: Socket | null) => {
   const receiveNewSocketMessage = useCallback(
     async (socketData: TReceiveNewSocketMessageType) => {
       if (!user) return
-      // console.log("UNREADCHATS: ", unreadChats)
       const { channel, data } = socketData
       if (channel === "onMessage") {
         const { message, shouldActivate } = data
@@ -115,6 +115,7 @@ const useChatSocket = (socket: Socket | null) => {
           await user_chatrooms.invalidate(user.id)
           await user_chatrooms.refetch(user.id)
         }
+
         updateUserChatLastMessageCache(message)
         const isLoggedUserSender = sender_id === user?.id
         if (!isLoggedUserSender) {
@@ -143,13 +144,15 @@ const useChatSocket = (socket: Socket | null) => {
 
   const receiveCallPayload = useCallback(
     (payload: SocketCallPayload) => {
+      console.log("PAYLOAD", payload)
       const { type } = payload
       stopSound("source1")
       if (type === "initiated") {
-        setCallerInfo(payload)
+        setCallInfo(payload)
         openModal("voiceCall")
       }
       if (type === "accepted") {
+        setCallInfo(payload)
         setIsCallAccepted(true)
       }
       if (type === "hangup") {

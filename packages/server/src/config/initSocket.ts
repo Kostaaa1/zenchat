@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
 import { TMessage } from "../types/types";
 import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
-import { SocketCallPayload, RTCSignals } from "../types/sockets";
+import { SocketCallPayload } from "../types/sockets";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -19,37 +19,16 @@ export const initSocket = (io: Server) => {
       console.log("Joined room: ", userId, "Rooms", rooms);
     });
 
-    socket.on("rtc", async (data: RTCSignals) => {
-      const { type, receivers } = data;
-      if (type === "offer") {
-        for (const user of receivers) {
-          if (user !== data.caller) {
-            io.to(user).emit("rtc", data);
-          }
-        }
-      }
-      if (type === "answer") {
-        io.to(data.caller).emit("rtc", data);
-      }
-      if (type === "ice") {
-        for (const receiver of receivers) {
-          if (receiver !== data.caller) {
-            io.to(receiver).emit("rtc", data);
-          }
-        }
-      }
-    });
-
     socket.on("call", (payload: SocketCallPayload) => {
-      const { caller, receivers, type } = payload;
+      const { caller, participants, type } = payload;
       if (type === "initiated") {
-        for (const receiver of receivers) {
+        for (const receiver of participants) {
           if (receiver !== caller.id) {
             io.to(receiver).emit("call", payload);
           }
         }
       } else if (type === "hangup") {
-        for (const receiver of receivers) {
+        for (const receiver of participants) {
           io.to(receiver).emit("call", payload);
         }
       } else {

@@ -29,6 +29,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.266.0",
     "nanoid": "^5.0.2",
+    "peerjs": "^1.5.4",
     "react": "^18.3.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",

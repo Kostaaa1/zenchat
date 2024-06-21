@@ -16,37 +16,17 @@ const initSocket = (io) => {
             socket.leave(socket.id);
             console.log("Joined room: ", userId, "Rooms", exports.rooms);
         });
-        socket.on("rtc", async (data) => {
-            const { type, receivers } = data;
-            if (type === "offer") {
-                for (const user of receivers) {
-                    if (user !== data.caller) {
-                        io.to(user).emit("rtc", data);
-                    }
-                }
-            }
-            if (type === "answer") {
-                io.to(data.caller).emit("rtc", data);
-            }
-            if (type === "ice") {
-                for (const receiver of receivers) {
-                    if (receiver !== data.caller) {
-                        io.to(receiver).emit("rtc", data);
-                    }
-                }
-            }
-        });
         socket.on("call", (payload) => {
-            const { caller, receivers, type } = payload;
+            const { caller, participants, type } = payload;
             if (type === "initiated") {
-                for (const receiver of receivers) {
+                for (const receiver of participants) {
                     if (receiver !== caller.id) {
                         io.to(receiver).emit("call", payload);
                     }
                 }
             }
             else if (type === "hangup") {
-                for (const receiver of receivers) {
+                for (const receiver of participants) {
                     io.to(receiver).emit("call", payload);
                 }
             }
