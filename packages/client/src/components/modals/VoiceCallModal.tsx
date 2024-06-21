@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react"
+import { forwardRef, useEffect } from "react"
 import { Modal } from "./Modals"
 import { cn } from "../../utils/utils"
 import { PhoneCall, PhoneMissed } from "lucide-react"
@@ -16,7 +16,7 @@ type ModalProps = {
   callerInfo: SocketCallPayload
 }
 
-const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
+const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callerInfo }, ref) => {
   const { setIsCallAccepted } = usePeerConnection((state) => state.actions)
   const { caller, receivers } = callerInfo
   const volume = useGeneralStore((state) => state.volume)
@@ -90,7 +90,7 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
 
   return (
     <Modal>
-      <div className={cn("relative mx-auto max-h-[90svh] w-full")}>
+      <div ref={ref} className={cn("relative mx-auto max-h-[90svh] w-full")}>
         <div className="flex w-max flex-col space-y-3 rounded-2xl bg-neutral-800 p-4">
           <div className="flex flex-col items-center justify-center">
             {caller.image_url && (
@@ -110,5 +110,6 @@ const VoiceCallModal: FC<ModalProps> = ({ callerInfo }) => {
       {/* <audio id="ring" loop autoPlay src={incomming} /> */}
     </Modal>
   )
-}
+})
+
 export default VoiceCallModal

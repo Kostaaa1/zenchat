@@ -1,8 +1,14 @@
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@clerk/clerk-react"
 import { trpc } from "../lib/trpcClient"
 import useUserStore from "../stores/userStore"
 
 const useUser = () => {
+  const { signOut } = useAuth()
   const utils = trpc.useUtils()
+  const navigate = useNavigate()
+  const ctx = trpc.useUtils()
+  const actions = useUserStore((state) => state.actions)
   const { areChatsLoading, sessionToken, unreadChatIds, user, userChats } = useUserStore((state) => ({
     sessionToken: state.sessionToken,
     areChatsLoading: state.areChatsLoading,
@@ -17,13 +23,21 @@ const useUser = () => {
     })
   }
 
+  const logout = () => {
+    navigate("/")
+    ctx.invalidate()
+    signOut()
+  }
+
   return {
+    ...actions,
     areChatsLoading,
     sessionToken,
     unreadChatIds,
     user,
     userChats,
-    updateUser
+    updateUser,
+    logout
   }
 }
 

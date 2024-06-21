@@ -19,8 +19,7 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
   const isMobile = useGeneralStore((state) => state.isMobile)
   const isResponsive = useGeneralStore((state) => state.isResponsive)
   const [list, setList] = useState<"list" | "default">("default")
-  const { user } = useUser()
-  // const unreadMessagesCount = useChatStore((state) => state.unreadMessagesCount)
+  const { user, unreadChatIds } = useUser()
 
   useEffect(() => {
     setList(isResponsive ? "default" : "list")
@@ -49,11 +48,11 @@ const Navbar: FC<NavbarProps> = ({ navListItems }) => {
                       <Avatar image_url={user?.image_url} size="sm" />
                     )}
                   </NavList>
-                  {/* {li.iconName === "MessageCircle" && unreadMessagesCount > 0 && (
+                  {li.iconName === "MessageCircle" && unreadChatIds.length > 0 && (
                     <span className="absolute left-[2px] top-[2px] flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-base">
-                      {unreadMessagesCount}
+                      {unreadChatIds.length}
                     </span>
-                  )} */}
+                  )}
                 </div>
               ))}
             </div>

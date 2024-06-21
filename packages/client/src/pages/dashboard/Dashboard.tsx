@@ -27,7 +27,6 @@ const Dashboard = () => {
   const { openModal } = useModalStore((state) => state.actions)
   const isMobile = useGeneralStore((state) => state.isMobile)
   const [postsLoaded, setPostsLoaded] = useState<boolean>(false)
-
   const { data: inspectedUserData, isFetched } = trpc.user.get.useQuery(
     { data: params.username!, type: "username" },
     {

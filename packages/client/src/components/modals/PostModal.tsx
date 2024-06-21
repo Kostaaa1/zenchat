@@ -6,11 +6,12 @@ import { trpc } from "../../lib/trpcClient"
 import { TPost, TUserData } from "../../../../server/src/types/types"
 import Avatar from "../avatar/Avatar"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { useLocation } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import Video from "../Video"
 import useGeneralStore from "../../stores/generalStore"
 import { convertAndFormatDate } from "../../utils/date"
 import { cn } from "../../utils/utils"
+import useModals from "./hooks/useModals"
 
 type ModalProps = {
   post: TPost
@@ -53,7 +54,27 @@ const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({ post, posts, leftRe
 }
 
 const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
-  const { triggerModalOptions } = useModalStore((state) => state.actions)
+  const { setOptions } = useModalStore((state) => state.actions)
+  const modalPostData = useModalStore((state) => state.modalPostData)
+  const { deletePost } = useModals()
+
+  const opts = [
+    {
+      id: 0,
+      child: <p>Delete</p>,
+      className: "text-red-500",
+      onClick: deletePost,
+      condition: userData?.id === modalPostData?.user_id
+    },
+    {
+      id: 1,
+      child: modalPostData ? <Link to={modalPostData?.media_url}>Download</Link> : <p></p>,
+      className: "",
+      onClick: deletePost,
+      condition: !!modalPostData
+    }
+  ]
+
   return (
     <div
       className={
@@ -67,7 +88,7 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
       <Icon
         name="MoreHorizontal"
         className="rounded-full p-1 text-white transition-colors duration-200 hover:bg-white  hover:bg-opacity-20"
-        onClick={triggerModalOptions}
+        onClick={() => setOptions(opts)}
         size="30px"
       />
     </div>

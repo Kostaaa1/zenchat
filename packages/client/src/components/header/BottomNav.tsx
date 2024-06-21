@@ -10,7 +10,7 @@ type BottomNavbarProps = {
 }
 
 const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
-  const { user } = useUser()
+  const { user, unreadChatIds } = useUser()
   return (
     <ul
       id="bottomnav"
@@ -25,11 +25,11 @@ const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
               <Avatar image_url={user?.image_url} size="sm" />
             )}
           </NavList>
-          {/* {li.iconName === "MessageCircle" && unreadMessagesCount > 0 && (
+          {li.iconName === "MessageCircle" && unreadChatIds.length > 0 && (
             <span className="absolute left-[2px] top-[2px] flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-base">
-              {unreadMessagesCount}
+              {unreadChatIds.length}
             </span>
-          )} */}
+          )}
         </div>
       ))}
     </ul>

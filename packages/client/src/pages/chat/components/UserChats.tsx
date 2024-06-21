@@ -14,7 +14,6 @@ const UserChats = () => {
   const params = useParams<{ chatroomId: string }>()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const { setShowDetails, setActiveChatroom, setShouldFetchMoreMessages } = useChatStore((state) => state.actions)
-  // const isLoading = useChatStore((state) => state.isUserChatsLoading)
 
   const handleChatUserClick = (chatroom_id: string) => {
     if (params.chatroomId === chatroom_id) return
@@ -79,44 +78,6 @@ const UserChats = () => {
             )}
           </>
         )}
-
-        {/* {isLoading ? (
-          Array(2)
-            .fill("")
-            .map((_, id) => <List key={id} padding={isMobile ? "md" : "lg"} isLoading={isLoading} />)
-        ) : (
-          <>
-            {userChats?.length === 0 && (
-              <div className="flex h-full items-center justify-center">
-                <p className="text-neutral-400">No messages found.</p>
-              </div>
-            )}
-            {userChats?.map(({ chatroom_id, last_message, users, is_group }) => (
-              <List
-                key={chatroom_id}
-                isHoverDisabled={true}
-                hover="darker"
-                subtitle={last_message}
-                padding={isMobile ? "md" : "lg"}
-                isLoading={isLoading}
-                onClick={() => handleChatUserClick(chatroom_id)}
-                avatarSize="lg"
-                isRead={users.find((x) => x.user_id === userData?.id)?.is_message_seen}
-                isOnline={users.filter((x) => x.username !== userData?.username)[0].is_socket_active && !is_group}
-                className={cn("h-20", params.chatroomId === chatroom_id && "bg-white bg-opacity-10")}
-                title={users
-                  .filter((x) => x.username !== userData?.username)
-                  .map((x) => x.username)
-                  .join(", ")}
-                image_url={
-                  is_group && users.length > 1
-                    ? [users[0].image_url, users[1].image_url]
-                    : [users.find((x) => x.user_id !== userData?.id)?.image_url]
-                }
-              />
-            ))}
-          </>
-        )} */}
       </ul>
     </div>
   )

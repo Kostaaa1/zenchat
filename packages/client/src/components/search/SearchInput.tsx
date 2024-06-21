@@ -30,9 +30,9 @@ const SearchInput = () => {
         username: user?.username,
         searchValue: search
       })
+
       if (searchedUsers) {
         setSearchedUsers(searchedUsers)
-
         await Promise.all(
           searchedUsers.map(async (x) => {
             if (x.image_url) await loadImage(x.image_url)
@@ -67,11 +67,6 @@ const SearchInput = () => {
     setIsSearchActive(true)
     setIsInputFocused(true)
   }
-
-  // const onInputBlur = () => {
-  //   // setIsSearchActive(false);
-  //   setIsInputFocused(false);
-  // };
 
   useEffect(() => {
     setIsInputFocused(false)

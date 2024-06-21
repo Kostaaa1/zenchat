@@ -6,10 +6,11 @@ import UnsendMessageModal from "./UnsendMessageModal"
 import DeleteChatModal from "./DeleteChatModal"
 import DndUpload from "./DndUploadModal"
 import React, { FC, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import PostModal from "./PostModal"
+import useOutsideClick from "../../hooks/useOutsideClick"
 import ModalOptions from "./ModalOptions"
 import VoiceCallModal from "./VoiceCallModal"
+import { motion, AnimatePresence } from "framer-motion"
 
 type ModalProps = {
   children?: React.ReactNode
@@ -43,36 +44,27 @@ export const Modal: FC<ModalProps> = ({ children }) => {
 }
 
 const Modals = () => {
-  // const { closeModal } = useModalStore((state) => state.actions);
-  const { callerInfo, activeModal, imageSource, isModalOpen, isModalOptionsOpen, modalPostData } = useModalStore(
-    (state) => ({
-      modalPostData: state.modalPostData,
-      isModalOptionsOpen: state.isModalOptionsOpen,
-      imageSource: state.imageSource,
-      isModalOpen: state.isModalOpen,
-      activeModal: state.activeModal,
-      callerInfo: state.callerInfo
-    })
-  )
+  const { closeModal } = useModalStore((state) => state.actions)
+  const { callerInfo, activeModal, options, imageSource, isModalOpen, modalPostData } = useModalStore((state) => ({
+    options: state.options,
+    modalPostData: state.modalPostData,
+    imageSource: state.imageSource,
+    isModalOpen: state.isModalOpen,
+    activeModal: state.activeModal,
+    callerInfo: state.callerInfo
+  }))
 
-  // Arrows //
   const modalRef = useRef<HTMLDivElement>(null)
   const modalOptionRef = useRef<HTMLUListElement>(null)
   const leftRef = useRef<HTMLDivElement>(null)
   const rightRef = useRef<HTMLDivElement>(null)
 
-  // useOnClickOutside(
-  //   [modalRef, modalOptionRef, leftRef, rightRef],
-  //   "mousedown",
-  //   () => {
-  //     document.body.style.overflow = "";
-  //     document.body.classList.remove("no-scroll-padding");
-  //     document
-  //       .querySelector("#bottomnav")
-  //       ?.classList.remove("no-scroll-padding");
-  //     closeModal();
-  //   },
-  // );
+  useOutsideClick([modalRef, modalOptionRef, leftRef, rightRef], "mousedown", () => {
+    document.body.style.overflow = ""
+    document.body.classList.remove("no-scroll-padding")
+    document.querySelector("#bottomnav")?.classList.remove("no-scroll-padding")
+    closeModal()
+  })
 
   return (
     <div className="absolute left-0 top-0 w-full">
@@ -88,8 +80,8 @@ const Modals = () => {
               <PostModal post={modalPostData} ref={modalRef} leftRef={leftRef} rightRef={rightRef} />
             )}
             {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
-            {activeModal === "voiceCall" && callerInfo && <VoiceCallModal callerInfo={callerInfo} />}
-            {isModalOptionsOpen && modalPostData && <ModalOptions ref={modalOptionRef} />}
+            {activeModal === "voiceCall" && callerInfo && <VoiceCallModal ref={modalRef} callerInfo={callerInfo} />}
+            {options.length > 0 && <ModalOptions ref={modalOptionRef} />}
           </>
         )}
       </AnimatePresence>

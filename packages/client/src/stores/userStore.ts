@@ -8,6 +8,7 @@ type TUserStore = {
   sessionToken: string | null
   unreadChatIds: string[]
   actions: {
+    removeUnreadChatId: (id: string) => void
     setUnreadChatIds: (unreadChats: string[]) => void
     setSessionToken: (token: string) => void
     setAreChatsLoading: (v: boolean) => void
@@ -24,6 +25,8 @@ const useUserStore = create<TUserStore>(
     sessionToken: null,
     unreadChatIds: [],
     actions: {
+      removeUnreadChatId: (id: string) =>
+        set((state) => ({ unreadChatIds: state.unreadChatIds.filter((x) => x !== id) })),
       setUnreadChatIds: (unreadChatIds: string[]) => set({ unreadChatIds }),
       setAreChatsLoading: (areChatsLoading: boolean) => set({ areChatsLoading }),
       setUser: (user: TUserData) => set({ user }),

@@ -40,10 +40,7 @@ const useWebRTC = () => {
       }
       conn.ontrack = (event) => {
         const video = document.querySelector(".remote-video") as HTMLVideoElement
-        if (video) {
-          video.srcObject = event.streams[0]
-          // video.autoplay = true
-        }
+        if (video) video.srcObject = event.streams[0]
       }
       return conn
     },
@@ -74,11 +71,10 @@ const useWebRTC = () => {
   const createOfferAndListenICE = useCallback(
     async (receivers: string[], chatroomId: string) => {
       try {
-        if (!user) return
+        if (!user || peerConnection) return
         const conn = createPeerConnection(receivers, chatroomId)
         setPeerConnection(conn)
         ///////////////////////
-        // createVideo("local-video", localStream)
         const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         localStream.getTracks().forEach((track) => conn.addTrack(track, localStream))
         const video = document.querySelector(".local-video") as HTMLVideoElement
@@ -104,18 +100,19 @@ const useWebRTC = () => {
         console.log("ERROR: ", error)
       }
     },
-    [user]
+    [user, peerConnection]
   )
 
   const receiveRTCSignal = useCallback(
     async (payload: RTCSignals) => {
       const { type } = payload
       if (type === "offer") {
+        if (peerConnection) return
+
         const { offer, caller, chatroomId, receivers } = payload
         const conn = createPeerConnection(receivers, chatroomId)
         setPeerConnection(conn)
         //////////////////////
-        // createVideo("local-video", localStream)
         const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         localStream.getTracks().forEach((track) => conn.addTrack(track, localStream))
         const video = document.querySelector(".local-video") as HTMLVideoElement
@@ -143,9 +140,9 @@ const useWebRTC = () => {
         }
       }
       if (type === "ice" && peerConnection) {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(payload.candidate))
         // const desc = peerConnection.remoteDescription
         // if (desc && desc.type) {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(payload.candidate))
         // }
       }
     },
@@ -153,10 +150,9 @@ const useWebRTC = () => {
   )
 
   const cleanUp = useCallback(() => {
+    console.log("cleanup ran")
     socket.off("rtc", receiveRTCSignal)
     if (peerConnection) {
-      // peerConnection.getSenders().forEach((sender) => peerConnection.removeTrack(sender))
-      // peerConnection.getTransceivers().forEach((transceiver) => transceiver.stop())
       peerConnection.onicecandidate = null
       peerConnection.ontrack = null
       peerConnection.oniceconnectionstatechange = null

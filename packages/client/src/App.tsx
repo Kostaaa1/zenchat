@@ -16,10 +16,10 @@ import { socket } from "./lib/socket"
 import useApp from "./hooks/useApp"
 
 function App() {
-  useChatSocket(socket)
   const location = useLocation()
   const [hideHeader, setHideHeader] = useState<boolean>(false)
   const { isFetched } = useApp()
+  useChatSocket(socket)
 
   useEffect(() => {
     if (location.pathname.startsWith("/call")) setHideHeader(true)

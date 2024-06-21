@@ -1,10 +1,7 @@
 import { FC, ReactNode, forwardRef } from "react"
 import { Modal } from "./Modals"
-import { cn } from "../../utils/utils"
-import useModals from "./hooks/useModals"
 import useModalStore from "../../stores/modalStore"
-import { Link } from "react-router-dom"
-import useUser from "../../hooks/useUser"
+import { cn } from "../../utils/utils"
 
 type ListProps = {
   children: ReactNode
@@ -27,22 +24,19 @@ const List: FC<ListProps> = ({ onClick, className, children }) => {
 }
 
 const ModalOptions = forwardRef<HTMLUListElement>((_, ref) => {
-  const { deletePost } = useModals()
-  const { modalPostData } = useModalStore()
-  const { user } = useUser()
+  const options = useModalStore((state) => state.options)
   return (
     <Modal>
       <ul ref={ref} className="h-max w-[90vw] max-w-[320px] rounded-lg bg-neutral-800">
-        {user?.id === modalPostData?.user_id && (
-          <List onClick={() => deletePost()} className="text-red-500">
-            Delete
-          </List>
-        )}
-        {modalPostData && (
-          <List>
-            <Link to={modalPostData.media_url}>Download</Link>
-          </List>
-        )}
+        {options.map(({ condition, id, child, className, onClick }) => (
+          <div key={id}>
+            {condition && (
+              <List className={className} onClick={onClick}>
+                {child}
+              </List>
+            )}
+          </div>
+        ))}
       </ul>
     </Modal>
   )

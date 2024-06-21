@@ -7,6 +7,7 @@ import useUser from "../../hooks/useUser"
 import Avatar from "../../components/avatar/Avatar"
 import useModalStore from "../../stores/modalStore"
 import useGeneralStore from "../../stores/generalStore"
+import { Settings } from "lucide-react"
 
 export const DashboardHeader = ({
   userData,
@@ -16,23 +17,21 @@ export const DashboardHeader = ({
   username: string | undefined
 }) => {
   const navigate = useNavigate()
-  const { user: loggedUser } = useUser()
+  const { user: loggedUser, logout } = useUser()
   const isMobile = useGeneralStore((state) => state.isMobile)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const isAvatarUpdating = useModalStore((state) => state.isAvatarUpdating)
   const utils = trpc.useUtils()
-  const { openModal, setImageSource } = useModalStore((state) => state.actions)
+  const { openModal, setImageSource, setOptions } = useModalStore((state) => state.actions)
 
   const handleGetChatRoomId = async () => {
     if (!userData || !loggedUser) return
     setIsLoading(true)
-
     await utils.chat.get.user_chatrooms.invalidate(loggedUser.id)
     const chatroomIdQuery = {
       userIds: [userData.id, loggedUser.id],
       admin: loggedUser.id
     }
-
     await utils.chat.get.chatroom_id.invalidate(chatroomIdQuery)
     const path = await utils.chat.get.chatroom_id.fetch(chatroomIdQuery)
     if (path) {
@@ -48,6 +47,16 @@ export const DashboardHeader = ({
     }
   }
 
+  const userSettings = [
+    {
+      id: 0,
+      child: <p>Logout</p>,
+      className: "",
+      onClick: logout,
+      condition: true
+    }
+  ]
+
   return (
     <div className="flex h-max max-w-full items-center justify-start py-4 pb-8 md:justify-center">
       <div className="relative flex items-center pr-6 sm:justify-start md:mb-0">
@@ -60,15 +69,15 @@ export const DashboardHeader = ({
         />
       </div>
       <div className="flex flex-col space-y-4 p-0">
-        <div className="flex flex-wrap items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between space-x-1">
           <h1 className="pr-2 text-2xl">{userData?.username}</h1>
           {username !== userData?.username ? (
             <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
               Message
             </Button>
           ) : (
-            <div className="space-y-1">
-              <Button onClick={() => openModal("editprofile")} className="mr-1 text-xs sm:text-sm">
+            <div className="space-x-1 space-y-1">
+              <Button onClick={() => openModal("editprofile")} className="text-xs sm:text-sm">
                 Edit profile
               </Button>
               <Button onClick={() => openModal("uploadpost")} className="text-xs sm:text-sm">
@@ -76,6 +85,10 @@ export const DashboardHeader = ({
               </Button>
             </div>
           )}
+          <Settings
+            className="cursor-pointer duration-500 active:rotate-180"
+            onClick={() => setOptions(userSettings)}
+          />
         </div>
         <div>
           <h4 className="font-semibold">{`${userData?.first_name} ${userData?.last_name}`}</h4>

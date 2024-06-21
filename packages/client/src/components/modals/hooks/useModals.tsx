@@ -4,7 +4,7 @@ import { trpc } from "../../../lib/trpcClient"
 import useUser from "../../../hooks/useUser"
 
 const useModals = () => {
-  const { setModalPostData, triggerModalOptions } = useModalStore((state) => state.actions)
+  const { setModalPostData } = useModalStore((state) => state.actions)
   const post = useModalStore((state) => state.modalPostData)
   const { user } = useUser()
   const utils = trpc.useUtils()
@@ -18,12 +18,10 @@ const useModals = () => {
       const { id, media_url, thumbnail_url } = post
       const fileKeys = [media_url]
       if (thumbnail_url) fileKeys.push(thumbnail_url)
-
       await deletePostMutation.mutateAsync({
         id,
         fileKeys
       })
-
       utils.user.get.setData({ data: user.username, type: "username" }, (state) => {
         if (state) {
           return {
@@ -32,7 +30,6 @@ const useModals = () => {
           }
         }
       })
-      triggerModalOptions()
       setModalPostData(null)
       setIsDeleting(false)
     } catch (error) {

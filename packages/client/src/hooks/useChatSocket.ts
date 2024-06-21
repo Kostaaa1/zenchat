@@ -13,16 +13,13 @@ import usePeerConnectionStore from "../stores/peerConnection"
 import { stopSound } from "../utils/file"
 
 const useChatSocket = (socket: Socket | null) => {
-  const { user } = useUser()
+  const { user, unreadChatIds } = useUser()
   const utils = trpc.useUtils()
   const { setIsCallAccepted } = usePeerConnectionStore((state) => state.actions)
   const { openModal, setCallerInfo } = useModalStore((state) => state.actions)
-  const { setUnreadChats } = useChatStore((state) => state.actions)
-  const { unreadChats, activeChatroom } = useChatStore((state) => ({
-    activeChatroom: state.activeChatroom,
-    unreadChats: state.unreadChats
+  const { activeChatroom } = useChatStore((state) => ({
+    activeChatroom: state.activeChatroom
   }))
-  // const [unreadChats, setUnreadChats] = useState<string[]>([])
 
   const addNewMessageToChatCache = useCallback(
     (messageData: TMessage) => {
@@ -64,6 +61,7 @@ const useChatSocket = (socket: Socket | null) => {
 
   const updateUserChatLastMessageCache = useCallback(
     (msg: TMessage) => {
+      console.log("UnreadChatIds: ", unreadChatIds)
       const { content, chatroom_id } = msg
       let updated: TChatroom[] = []
       utils.chat.get.user_chatrooms.setData(user?.id, (state) => {
@@ -90,7 +88,6 @@ const useChatSocket = (socket: Socket | null) => {
             const dateB = new Date(b.created_at).getTime()
             return dateB - dateA
           })
-
         if (data) {
           updated = data
           return data
@@ -98,45 +95,29 @@ const useChatSocket = (socket: Socket | null) => {
           return state
         }
       })
-
       return updated
     },
-    [utils.chat.get.user_chatrooms, user, activeChatroom]
+    [utils.chat.get.user_chatrooms, user, activeChatroom, unreadChatIds]
   )
 
   const receiveNewSocketMessage = useCallback(
     async (socketData: TReceiveNewSocketMessageType) => {
       if (!user) return
-      console.log("UNREADCHATS: ", unreadChats)
+      // console.log("UNREADCHATS: ", unreadChats)
       const { channel, data } = socketData
       if (channel === "onMessage") {
         const { message, shouldActivate } = data
         const { is_image, sender_id } = message
-        if (is_image) await loadImage(message.content)
         const { user_chatrooms } = utils.chat.get
+        if (is_image) await loadImage(message.content)
+
         if (shouldActivate) {
-          console.log("The chat is inactive, need to refetch")
-          ////////////////////////////////////////////////////
           await user_chatrooms.invalidate(user.id)
           await user_chatrooms.refetch(user.id)
-          ////////////////////////////////////////////////////
         }
-
-        // const chats = updateUserChatLastMessageCache(message)
+        updateUserChatLastMessageCache(message)
         const isLoggedUserSender = sender_id === user?.id
         if (!isLoggedUserSender) {
-          // const chat = chats[0]
-          // const user = chat?.users.find((user) => user.username === userData.username)
-          // setUnreadChats(chat.chatroom_id)
-          // setUnreadChats((state) => {
-          //   console.log("STATE: ", state)
-          //   if (!state.includes(chat.chatroom_id)) {
-          //     incrementUnreadMessagesCount()
-          //     return [chat.chatroom_id, ...state]
-          //   } else {
-          //     return state
-          //   }
-          // })
           if (!activeChatroom && !location.pathname.includes("/inbox")) {
             toast(`${message.sender_username}: ${message.content}`)
           }
@@ -151,11 +132,11 @@ const useChatSocket = (socket: Socket | null) => {
     [
       activeChatroom,
       addNewMessageToChatCache,
+      unreadChatIds,
       replacePreviewImage,
       updateUserChatLastMessageCache,
       user,
-      unreadChats,
-      setUnreadChats,
+      unreadChatIds,
       utils.chat.get
     ]
   )
@@ -176,7 +157,7 @@ const useChatSocket = (socket: Socket | null) => {
         if (btn) btn.click()
       }
       // if (status === "declined") {
-      //   setIsExchangeAllowed(true);
+      // handle declined.......
       // }
     },
     [openModal]

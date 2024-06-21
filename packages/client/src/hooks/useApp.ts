@@ -1,26 +1,25 @@
-import { useAuth, useUser } from "@clerk/clerk-react"
+import { useAuth, useUser as useClerkUser } from "@clerk/clerk-react"
 import { trpc } from "../lib/trpcClient"
 import { useEffect, useState } from "react"
 import { isImage, loadImage } from "../utils/image"
 import useUserStore from "../stores/userStore"
 import useChatMapStore from "../stores/chatMapStore"
 import { TUserData } from "../../../server/src/types/types"
+import useUser from "./useUser"
+import useChatStore from "../stores/chatStore"
 
 const useApp = () => {
-  // const [username, setUsername] = useState<string | null>(null)
-  const { user: clerkUser } = useUser()
+  const { user: clerkUser } = useClerkUser()
+  const { user, userChats } = useUser()
   const { isSignedIn, getToken } = useAuth()
   const ctx = trpc.useUtils()
   const [isFetched, setIsFetched] = useState<boolean>(false)
+  const activeChatroom = useChatStore((state) => state.activeChatroom)
   const { inputImages, inputMessages } = useChatMapStore((state) => ({
     inputImages: state.inputImages,
     inputMessages: state.inputMessages
   }))
-
-  // const {  setUnreadChatIds } = useUserStore(
-  //   (state) => state.actions
-  // )
-
+  const { setUnreadChatIds } = useUserStore((state) => state.actions)
   const { setAreChatsLoading, setSessionToken, setUser, setUserChats } = useUserStore((state) => state.actions)
   const { data: userData } = trpc.user.get.useQuery(
     { data: clerkUser?.username ?? "", type: "username" },
@@ -58,9 +57,7 @@ const useApp = () => {
 
   useEffect(() => {
     if (userData === null) createUser()
-    if (userData) {
-      loadPosts(userData)
-    }
+    if (userData) loadPosts(userData)
   }, [userData])
 
   //////////////////////////////
@@ -71,25 +68,34 @@ const useApp = () => {
   })
 
   useEffect(() => {
-    const prep = async () => {
-      if (!userData || !data) return
-      console.log("prep ran......")
-      const filteredChats = data?.filter((x) => x.users.some((y) => y.username === userData?.username && y.is_active))
-
-      if (filteredChats) {
+    const preparation = async () => {
+      if (!user || !data) return
+      const filtered = data?.filter((x) => x.users.some((y) => y.username === user?.username && y.is_active))
+      if (filtered) {
         await Promise.all(
-          filteredChats.map(async ({ users, chatroom_id }) => {
+          filtered.map(async ({ users, chatroom_id }) => {
             inputMessages.set(chatroom_id, "")
             inputImages.set(chatroom_id, [])
             await Promise.all(users.map(async ({ image_url }) => image_url && loadImage(image_url)))
           })
         )
+        setUserChats(filtered)
         setAreChatsLoading(false)
-        setUserChats(filteredChats)
       }
     }
-    prep()
-  }, [userData, data])
+    preparation()
+  }, [user, data])
+
+  useEffect(() => {
+    if (!userChats || !user) return
+    const splitPath = location.pathname.split("/")
+    if (splitPath.length > 2 && splitPath[2] === activeChatroom?.chatroom_id) return
+
+    const unreadIds = userChats
+      .flatMap(({ users }) => users.filter(({ user_id, is_message_seen }) => user_id === user.id && !is_message_seen))
+      .map(({ user_id }) => user_id)
+    setUnreadChatIds(unreadIds)
+  }, [userChats, user, activeChatroom])
 
   useEffect(() => {
     const fetchToken = async () => {

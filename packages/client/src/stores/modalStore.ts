@@ -2,6 +2,14 @@ import { create } from "zustand"
 import { TMessage, TPost } from "../../../server/src/types/types"
 import { SocketCallPayload } from "../../../server/src/types/sockets"
 
+type TModalOptions = {
+  id: number
+  child: JSX.Element
+  condition: boolean
+  onClick?: () => void | Promise<void>
+  className?: string
+}
+
 type Modals =
   | "image"
   | "editprofile"
@@ -11,6 +19,7 @@ type Modals =
   | "unsendmessage"
   | "post"
   | "voiceCall"
+  | "options"
   | null
 
 type Store = {
@@ -21,11 +30,11 @@ type Store = {
   isMessageDropdownActive: boolean
   isAvatarUpdating: boolean
   activeModal: Modals
-  isModalOptionsOpen: boolean
   callerInfo: SocketCallPayload | null
+  options: TModalOptions[]
   actions: {
+    setOptions: (opt: TModalOptions[]) => void
     setCallerInfo: (s: SocketCallPayload | null) => void
-    triggerModalOptions: () => void
     openModal: (activeModal: Modals) => void
     closeModal: () => void
     setImageSource: (src: string) => void
@@ -45,16 +54,16 @@ const useModalStore = create<Store>(
     isMessageDropdownActive: false,
     imageSource: null,
     modalPostData: null,
-    isModalOptionsOpen: false,
     callerInfo: null,
+    options: [],
     actions: {
+      setOptions: (opts: TModalOptions[]) => set({ options: opts, isModalOpen: true }),
       setCallerInfo: (callerInfo: SocketCallPayload | null) => set({ callerInfo }),
-      triggerModalOptions: () => set((state) => ({ isModalOptionsOpen: !state.isModalOptionsOpen })),
       openModal: (activeModal: Modals) => set({ isModalOpen: true, activeModal }),
       closeModal: () =>
         set((state) => {
-          if (state.isModalOptionsOpen) {
-            return { ...state, isModalOptionsOpen: !state.isModalOptionsOpen }
+          if (state.options.length > 0) {
+            return { ...state, options: [] }
           } else {
             return {
               ...state,
@@ -63,7 +72,11 @@ const useModalStore = create<Store>(
               isMessageDropdownActive: false,
               isAvatarUpdating: false,
               isModalOpen: false,
-              activeModal: null
+              activeModal: null,
+              callerInfo: null,
+              activeMessage: null,
+              isModalOptionsOpen: false,
+              options: []
             }
           }
         }),

@@ -1,8 +1,6 @@
 import React, { FC } from "react"
-import { useAuth } from "@clerk/clerk-react"
 import { motion } from "framer-motion"
-import { trpc } from "../../lib/trpcClient"
-import { useNavigate } from "react-router-dom"
+import useUser from "../../hooks/useUser"
 
 type UserDropdownProps = {
   dropdownRef: React.RefObject<HTMLDivElement>
@@ -25,16 +23,7 @@ const Li: FC<LiProps> = ({ onClick, text }) => {
 }
 
 const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
-  const { signOut } = useAuth()
-  const ctx = trpc.useUtils()
-  const navigate = useNavigate()
-
-  const handleLogOut = async () => {
-    navigate("/")
-    ctx.invalidate()
-    signOut()
-  }
-
+  const { logout } = useUser()
   return (
     <>
       <motion.div
@@ -46,7 +35,7 @@ const UserDropdown: FC<UserDropdownProps> = ({ dropdownRef }) => {
         className="right-15 absolute bottom-14 w-[200px] rounded-lg bg-neutral-800 p-2"
       >
         <ul>
-          <Li text="Log out" onClick={handleLogOut} />
+          <Li text="Log out" onClick={logout} />
         </ul>
       </motion.div>
     </>
