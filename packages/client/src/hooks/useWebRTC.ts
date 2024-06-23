@@ -147,7 +147,6 @@
 //     },
 //     [peerConnection]
 //   )
-
 //   const cleanUp = useCallback(() => {
 //     console.log("cleanup ran")
 //     socket.off("rtc", receiveRTCSignal)
@@ -160,11 +159,9 @@
 //     }
 //     clearAll()
 //   }, [peerConnection, clearAll, receiveRTCSignal])
-
 //   useEffect(() => {
 //     socket.on("rtc", receiveRTCSignal)
 //   }, [receiveRTCSignal])
-
 //   return {
 //     peerConnection,
 //     createOfferAndListenICE,

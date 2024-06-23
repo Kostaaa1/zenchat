@@ -184,9 +184,9 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
   const { width } = useWindowSize()
   const modalWidth = useMemo(() => {
     if (file) {
-      return width > 940 ? (file ? "880px" : "700px") : "calc(100vw - 60px)"
+      return width > 940 ? (file ? "880px" : "700px") : "90vw"
     } else {
-      return width > 720 ? (file ? "880px" : "700px") : "calc(100vw - 60px)"
+      return width > 780 ? (file ? "880px" : "700px") : "90vw"
     }
   }, [width, file])
 

@@ -1,10 +1,9 @@
 import { useCallback, useEffect } from "react"
 import useUser from "./useUser"
 import useChatStore from "../stores/chatStore"
-import { TChatroom, TMessage } from "../../../server/src/types/types"
+import { SocketCallPayload, TChatroom, TMessage, TReceiveNewSocketMessageType } from "../../../server/src/types/types"
 import { trpc } from "../lib/trpcClient"
 import { getCurrentDate } from "../utils/date"
-import { SocketCallPayload, TReceiveNewSocketMessageType } from "../../../server/src/types/sockets"
 import { loadImage } from "../utils/image"
 import { toast } from "react-toastify"
 import useModalStore from "../stores/modalStore"
@@ -15,7 +14,9 @@ import { stopSound } from "../utils/file"
 const useChatSocket = (socket: Socket | null) => {
   const { user, unreadChatIds } = useUser()
   const utils = trpc.useUtils()
-  const { setIsCallAccepted, setCallInfo } = usePeerConnectionStore((state) => state.actions)
+  const { setIsCallAccepted, setCallInfo, toggleMuteVideo, toggleShowVideo } = usePeerConnectionStore(
+    (state) => state.actions
+  )
   const { openModal } = useModalStore((state) => state.actions)
   const { activeChatroom } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom
@@ -144,7 +145,7 @@ const useChatSocket = (socket: Socket | null) => {
 
   const receiveCallPayload = useCallback(
     (payload: SocketCallPayload) => {
-      console.log("PAYLOAD", payload)
+      console.log("payload", payload)
       const { type } = payload
       stopSound("source1")
       if (type === "initiated") {
@@ -159,9 +160,18 @@ const useChatSocket = (socket: Socket | null) => {
         const btn = document.getElementById("hangup")
         if (btn) btn.click()
       }
-      // if (status === "declined") {
-      // handle declined.......
-      // }
+
+      if (type === "mute-remote") {
+        toggleMuteVideo()
+      }
+
+      if (type === "show-remote") {
+        toggleShowVideo()
+      }
+
+      if (type === "declined") {
+        // handle declined.......
+      }
     },
     [openModal]
   )

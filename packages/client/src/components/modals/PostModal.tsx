@@ -12,6 +12,7 @@ import useGeneralStore from "../../stores/generalStore"
 import { convertAndFormatDate } from "../../utils/date"
 import { cn } from "../../utils/utils"
 import useModals from "./hooks/useModals"
+import useUser from "../../hooks/useUser"
 
 type ModalProps = {
   post: TPost
@@ -53,10 +54,11 @@ const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({ post, posts, leftRe
   )
 }
 
-const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
+const PostHeader: FC<{ inspectedUser: TUserData }> = ({ inspectedUser }) => {
   const { setOptions } = useModalStore((state) => state.actions)
   const modalPostData = useModalStore((state) => state.modalPostData)
   const { deletePost } = useModals()
+  const { user } = useUser()
 
   const opts = [
     {
@@ -64,7 +66,7 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
       child: <p>Delete</p>,
       className: "text-red-500",
       onClick: deletePost,
-      condition: userData?.id === modalPostData?.user_id
+      condition: user?.id === modalPostData?.user_id
     },
     {
       id: 1,
@@ -82,8 +84,10 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
       }
     >
       <div className="flex w-full items-center space-x-2">
-        <Avatar image_url={userData?.image_url} size="md" />
-        <h3 className="text-normal cursor-pointer font-bold text-white active:text-opacity-60">{userData?.username}</h3>
+        <Avatar image_url={inspectedUser.image_url} size="md" />
+        <h3 className="text-normal cursor-pointer font-bold text-white active:text-opacity-60">
+          {inspectedUser.username}
+        </h3>
       </div>
       <Icon
         name="MoreHorizontal"
@@ -95,21 +99,24 @@ const PostHeader: FC<{ userData: TUserData }> = ({ userData }) => {
   )
 }
 
-const PostComments: FC<{ post: TPost; userData: TUserData }> = ({ post, userData }) => {
+const PostComments: FC<{ post: TPost; inspectedUser: TUserData }> = ({ post, inspectedUser }) => {
   const isMobile = useGeneralStore((state) => state.isMobile)
   return (
     <div
-      className={cn("flex flex-col bg-black", isMobile ? "h-[220px] w-full rounded-b-xl" : "w-[400px] rounded-r-xl")}
+      className={cn(
+        "flex flex-col bg-black",
+        isMobile ? "min-h-[220px] w-full rounded-b-xl" : "min-w-[320px] rounded-r-xl "
+      )}
     >
-      {isMobile ? null : <PostHeader userData={userData} />}
-      <ul className={cn("overflow-auto p-3 text-sm leading-4", isMobile ? "h-full max-h-[200px]" : "h-[46vw]")}>
+      {isMobile ? null : <PostHeader inspectedUser={inspectedUser} />}
+      <ul className={cn("overflow-auto p-3 text-sm leading-4", isMobile ? "h-full max-h-[200px]" : "max-h-[62vw]")}>
         {Array(1)
           .fill("")
           .map((_, id) => (
             <li key={id} className="flex items-start space-x-2 py-3">
-              <Avatar image_url={userData.image_url} />
+              <Avatar image_url={inspectedUser.image_url} />
               <div className="flex w-full flex-col space-y-2">
-                <h3 className="font-semibold text-white active:text-opacity-60">{userData.username} &nbsp;</h3>
+                <h3 className="font-semibold text-white active:text-opacity-60">{inspectedUser.username} &nbsp;</h3>
                 <div className="flex w-full flex-col space-y-1">
                   <p>{post.caption}</p>
                   <p className="text-neutral-400">{convertAndFormatDate(post.created_at)}</p>
@@ -138,25 +145,28 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(({ post, leftRef, right
           ref={ref}
           className={cn(
             "relative mx-auto flex max-h-[90svh] w-full",
-            isMobile ? "max-w-[76vw] flex-col" : "max-w-[90vw]"
+            isMobile ? "min-w-[60vw] max-w-[76vw] flex-col" : "max-w-[90vw]"
           )}
         >
           <ArrowCursors leftRef={leftRef} rightRef={rightRef} post={post} posts={inspectedUser.posts} />
-          {isMobile ? <PostHeader userData={inspectedUser} /> : null}
-          <div>
+          {isMobile ? <PostHeader inspectedUser={inspectedUser} /> : null}
+          <div className="bg-black">
             {post.type.startsWith("image/") ? (
-              <img key={post.media_url} src={post.media_url} />
+              <img className={cn(isMobile && "max-h-[420px]")} key={post.media_url} src={post.media_url} />
             ) : (
               <Video
                 controls={true}
                 autoPlay={true}
                 media_url={post.media_url}
                 poster={post.thumbnail_url}
-                className={cn("aspect-square h-full w-full max-w-[900px] bg-black object-cover")}
+                className={cn(
+                  "aspect-square h-full w-full max-w-[900px] bg-black object-cover",
+                  isMobile && "max-h-[420px]"
+                )}
               />
             )}
           </div>
-          <PostComments post={post!} userData={inspectedUser} />
+          <PostComments post={post!} inspectedUser={inspectedUser} />
         </div>
       )}
     </Modal>

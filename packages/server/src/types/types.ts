@@ -57,3 +57,26 @@ export type S3UploadResponse = {
   type: string;
   size: number;
 };
+////////////////////////
+export type MessagesChannelData = {
+  channel: "onMessage";
+  data: {
+    message: TMessage;
+    shouldActivate: boolean;
+    user_id: string;
+  };
+};
+export type TReceiveNewSocketMessageType = MessagesChannelData;
+
+type CallType = "initiated" | "declined" | "accepted" | "hangup" | "mute-remote" | "show-remote";
+
+export type SocketCallPayload = {
+  type: CallType;
+  chatroomId: string;
+  participants: string[];
+  initiator: {
+    id: string;
+    username: string;
+    image_url: string | null;
+  };
+};

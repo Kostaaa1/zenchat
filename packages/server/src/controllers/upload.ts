@@ -49,7 +49,6 @@ export default {
   },
   avatar: async (req: Request, res: Response) => {
     try {
-      console.log("Avatar body: ", JSON.stringify(req.body));
       const file = await sharpify(req.file as Express.Multer.File);
       await uploadToS3({
         folder: s3Buckets.AVATARS,

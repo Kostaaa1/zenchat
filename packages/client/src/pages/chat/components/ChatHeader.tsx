@@ -19,7 +19,8 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
     showDetails: state.showDetails
   }))
   const { setShowDetails, setActiveChatroom } = useChatStore((state) => state.actions)
-  const iconSize = showDetails ? 30 : 26
+
+  const iconSize = 30
   const fillColor = showDetails ? "white" : ""
   const color = showDetails ? "black" : "white"
   const { is_group, users } = chat
@@ -49,7 +50,7 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
         isMobile ? "pl-2 pr-4" : "px-4 py-6"
       )}
     >
-      {isMobile && <Icon name="ArrowLeft" onClick={navigateToPrevious} />}
+      {isMobile && <div className="flex-[3]">{<Icon name="ArrowLeft" onClick={navigateToPrevious} />}</div>}
       <div className="flex items-center space-x-2" onClick={handleNavigate}>
         {!isMobile && (
           <RenderAvatar
@@ -68,13 +69,11 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
         )}
         <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       </div>
-      <div className="flex space-x-3">
+      <div className="flex flex-[3] justify-end space-x-2">
         {!is_group && (
           <Phone
             width={iconSize}
             height={iconSize}
-            fill={fillColor}
-            color={color}
             strokeWidth={1.8}
             strokeLinecap="round"
             className="cursor-pointer"

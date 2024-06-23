@@ -44,7 +44,6 @@ exports.default = {
     },
     avatar: async (req, res) => {
         try {
-            console.log("Avatar body: ", JSON.stringify(req.body));
             const file = await (0, utils_1.sharpify)(req.file);
             await (0, s3_1.uploadToS3)({
                 folder: config_1.s3Buckets.AVATARS,

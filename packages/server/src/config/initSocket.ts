@@ -1,8 +1,7 @@
 import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
-import { TMessage } from "../types/types";
+import { TMessage, SocketCallPayload } from "../types/types";
 import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
-import { SocketCallPayload } from "../types/sockets";
 
 interface TCustomSocketType extends Socket {
   userId?: string;
@@ -20,10 +19,10 @@ export const initSocket = (io: Server) => {
     });
 
     socket.on("call", (payload: SocketCallPayload) => {
-      const { caller, participants, type } = payload;
+      const { initiator, participants, type } = payload;
       if (type === "initiated") {
         for (const receiver of participants) {
-          if (receiver !== caller.id) {
+          if (receiver !== initiator.id) {
             io.to(receiver).emit("call", payload);
           }
         }
@@ -31,8 +30,15 @@ export const initSocket = (io: Server) => {
         for (const receiver of participants) {
           io.to(receiver).emit("call", payload);
         }
+      } else if (type === "mute-remote" || type === "show-remote") {
+        console.log("RECEIVED PAYLOADJ", payload);
+        for (const receiver of participants) {
+          if (receiver !== initiator.id) {
+            io.to(receiver).emit("call", payload);
+          }
+        }
       } else {
-        io.to(caller.id).emit("call", payload);
+        io.to(initiator.id).emit("call", payload);
       }
     });
 

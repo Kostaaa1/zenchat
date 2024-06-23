@@ -3,7 +3,6 @@ import { Modal } from "./Modals"
 import { cn } from "../../utils/utils"
 import { PhoneCall, PhoneMissed } from "lucide-react"
 import useModalStore from "../../stores/modalStore"
-import { SocketCallPayload } from "../../../../server/src/types/sockets"
 import Avatar from "../avatar/Avatar"
 import useGeneralStore from "../../stores/generalStore"
 import incomming from "../../../public/incomming.mp3"
@@ -11,6 +10,7 @@ import usePeerConnection from "../../stores/peerConnection"
 import { socket } from "../../lib/socket"
 import { useNavigate } from "react-router-dom"
 import { playSound } from "../../utils/file"
+import { SocketCallPayload } from "../../../../server/src/types/types"
 
 type ModalProps = {
   callInfo: SocketCallPayload
@@ -18,11 +18,10 @@ type ModalProps = {
 
 const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref) => {
   const { setIsCallAccepted, setCallInfo } = usePeerConnection((state) => state.actions)
-  const { caller, chatroomId, participants } = callInfo
+  const { initiator, chatroomId, participants } = callInfo
   const volume = useGeneralStore((state) => state.volume)
   const navigate = useNavigate()
   const { closeModal } = useModalStore((state) => state.actions)
-
   // const playSound = (id: string, path: string, volume?: number) => {
   //   const init = document.getElementById(id)
   //   if (init) {
@@ -32,7 +31,6 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
   //     el.play()
   //   }
   // }
-
   const stopRinging = () => {
     const init = document.getElementById("ring")
     if (init) {
@@ -42,36 +40,34 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
       el.pause()
     }
   }
-
   ////////////////////////////////
   const pickup = () => {
-    const { caller, chatroomId, participants } = callInfo
+    const { initiator, chatroomId, participants } = callInfo
     setIsCallAccepted(true)
-    const p: SocketCallPayload = {
+    const payload: SocketCallPayload = {
       type: "accepted",
-      caller,
+      initiator,
       participants,
       chatroomId
     }
-    socket.emit("call", p)
+    socket.emit("call", payload)
     stopRinging()
     closeModal()
-
     if (!location.pathname.includes("/call")) {
       navigate(`/call/${chatroomId}`)
     }
   }
 
   const hangup = () => {
-    if (caller) {
+    if (initiator) {
       stopRinging()
-      const p: SocketCallPayload = {
+      const payload: SocketCallPayload = {
         type: "declined",
-        caller,
+        initiator,
         participants,
         chatroomId
       }
-      socket.emit("call", p)
+      socket.emit("call", payload)
       setCallInfo(null)
       closeModal()
     }
@@ -93,12 +89,12 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
       <div ref={ref} className={cn("relative mx-auto max-h-[90svh] w-full")}>
         <div className="flex w-max flex-col space-y-3 rounded-2xl bg-neutral-800 p-4">
           <div className="flex flex-col items-center justify-center">
-            {caller.image_url && (
+            {initiator.image_url && (
               <div className="rounded-full">
-                <Avatar image_url={caller.image_url} className="h-14 w-14" />
+                <Avatar image_url={initiator.image_url} className="h-14 w-14" />
               </div>
             )}
-            <p>{caller.username} is calling you</p>
+            <p>{initiator.username} is calling you</p>
           </div>
           <div className="flex w-full justify-between">
             <PhoneCall onClick={pickup} className="h-10 w-10 cursor-pointer rounded-full bg-green-600 p-2" />

@@ -68,27 +68,31 @@ export const DashboardHeader = ({
           isLoading={isAvatarUpdating}
         />
       </div>
-      <div className="flex flex-col space-y-4 p-0">
-        <div className="flex flex-wrap items-center justify-between space-x-1">
-          <h1 className="pr-2 text-2xl">{userData?.username}</h1>
+      <div className="flex flex-col space-y-3 p-0">
+        <div className="flex flex-wrap items-center justify-between space-y-1">
+          <div className="flex items-center">
+            <h1 className="pr-2 text-2xl">{userData?.username}</h1>
+          </div>
           {username !== userData?.username ? (
             <Button isLoading={isLoading} onClick={handleGetChatRoomId}>
               Message
             </Button>
           ) : (
-            <div className="space-x-1 space-y-1">
+            <div className="flex flex-wrap items-center space-x-1">
               <Button onClick={() => openModal("editprofile")} className="text-xs sm:text-sm">
                 Edit profile
               </Button>
               <Button onClick={() => openModal("uploadpost")} className="text-xs sm:text-sm">
                 New post
               </Button>
+              {isMobile && (
+                <Settings
+                  className="cursor-pointer duration-500 active:rotate-180"
+                  onClick={() => setOptions(userSettings)}
+                />
+              )}
             </div>
           )}
-          <Settings
-            className="cursor-pointer duration-500 active:rotate-180"
-            onClick={() => setOptions(userSettings)}
-          />
         </div>
         <div>
           <h4 className="font-semibold">{`${userData?.first_name} ${userData?.last_name}`}</h4>

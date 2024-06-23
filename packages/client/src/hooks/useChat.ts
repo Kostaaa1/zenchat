@@ -64,7 +64,6 @@ const useChatMessages = () => {
   useEffect(() => {
     if (activeChatroom && user) {
       const foundUser = activeChatroom.users.find((x) => x.user_id === user.id)
-      console.log("#CHECKRENDERING")
       if (foundUser && !foundUser.is_message_seen) {
         removeUnreadChatId(foundUser.user_id)
         triggerReadMessagesMutation.mutate(foundUser.id)

@@ -17,10 +17,10 @@ const initSocket = (io) => {
             console.log("Joined room: ", userId, "Rooms", exports.rooms);
         });
         socket.on("call", (payload) => {
-            const { caller, participants, type } = payload;
+            const { initiator, participants, type } = payload;
             if (type === "initiated") {
                 for (const receiver of participants) {
-                    if (receiver !== caller.id) {
+                    if (receiver !== initiator.id) {
                         io.to(receiver).emit("call", payload);
                     }
                 }
@@ -30,8 +30,16 @@ const initSocket = (io) => {
                     io.to(receiver).emit("call", payload);
                 }
             }
+            else if (type === "mute-remote" || type === "show-remote") {
+                console.log("RECEIVED PAYLOADJ", payload);
+                for (const receiver of participants) {
+                    if (receiver !== initiator.id) {
+                        io.to(receiver).emit("call", payload);
+                    }
+                }
+            }
             else {
-                io.to(caller.id).emit("call", payload);
+                io.to(initiator.id).emit("call", payload);
             }
         });
         socket.on("onMessage", () => {

@@ -10,8 +10,8 @@ import { cn } from "../../../utils/utils"
 import ringingPath from "../../../../public/ringing.mp3"
 import { socket } from "../../../lib/socket"
 import { Peer } from "peerjs"
-import { SocketCallPayload } from "../../../../../server/src/types/sockets"
 import { playSound } from "../../../utils/file"
+import { SocketCallPayload } from "../../../../../server/src/types/types"
 
 const iceServers = [
   { urls: "stun:stun.l.google.com:19302" },
@@ -32,12 +32,13 @@ const RTCVoiceCall = () => {
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
-  // const { startCall, createOfferAndListenICE, cleanUp, peerConnection } = useWebRTC()
-  const { setIsCalling, setCallInfo, setIsCallAccepted } = usePeerConnection((state) => state.actions)
-  const { isCalling, isCallAccepted, callInfo } = usePeerConnection((state) => ({
+  const { setIsCalling, clearAll, setIsVideo } = usePeerConnection((state) => state.actions)
+  const { isCalling, isVideoMuted, isVideoDisplayed, isCallAccepted, callInfo } = usePeerConnection((state) => ({
     isCalling: state.isCalling,
     isCallAccepted: state.isCallAccepted,
-    callInfo: state.callInfo
+    callInfo: state.callInfo,
+    isVideoDisplayed: state.isVideoDisplayed,
+    isVideoMuted: state.isVideoMuted
   }))
   const [peerConnection, setPeerConnection] = useState<Peer | null>(null)
   const { data: chatroomUsers, isLoading } = trpc.chat.get.chatroom_users.useQuery(chatroomId!, {
@@ -55,14 +56,13 @@ const RTCVoiceCall = () => {
   }
 
   const cleanup = () => {
-    setCallInfo(null)
-    setIsCallAccepted(false)
     videoCleanUp(".local-video")
     videoCleanUp(".remote-video")
     peerConnection?.off("call")
     peerConnection?.off("close")
     peerConnection?.destroy()
     peerConnection?.disconnect()
+    clearAll()
     setPeerConnection(null)
   }
 
@@ -78,7 +78,6 @@ const RTCVoiceCall = () => {
     if (!user) return
     const conn = new Peer(user.id, { config: { iceServers } })
     setPeerConnection(conn)
-
     conn.on("open", () => {
       conn.on("call", async (call) => {
         const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
@@ -90,6 +89,7 @@ const RTCVoiceCall = () => {
         }
         call.answer(localStream)
         call.on("stream", (callStream) => {
+          console.log("Remote video STREAM 1")
           const video = document.querySelector(".remote-video") as HTMLVideoElement
           video.srcObject = callStream
         })
@@ -118,6 +118,11 @@ const RTCVoiceCall = () => {
       if (!isCallAccepted || !callInfo || !user || !peerConnection) return
       const { participants } = callInfo
       const callee = participants.find((x) => x !== user.id)
+
+      peerConnection.on("call", () => {
+        setIsVideo(true)
+      })
+
       if (callee) {
         const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         const video = document.querySelector(".local-video") as HTMLVideoElement
@@ -128,6 +133,7 @@ const RTCVoiceCall = () => {
         }
         const conn = peerConnection.call(callee, localStream)
         conn.on("stream", (stream) => {
+          console.log("Remote video STREAM 2")
           const video = document.querySelector(".remote-video") as HTMLVideoElement
           video.srcObject = stream
         })
@@ -146,7 +152,7 @@ const RTCVoiceCall = () => {
       type: "initiated",
       chatroomId,
       participants,
-      caller: {
+      initiator: {
         id,
         image_url,
         username
@@ -154,27 +160,45 @@ const RTCVoiceCall = () => {
     } as SocketCallPayload)
   }
 
-  const iconSize = 25
   const triggerBtn = (id: number) => {
+    console.log("Called TRIGGER BUTTON")
     setButtons((state) => state.map((x, i) => (i === id ? { ...x, isOff: !x.isOff } : x)))
+    if (callInfo && user) {
+      const p = {
+        chatroomId: callInfo.chatroomId,
+        initiator: { id: user.id, username: user.username },
+        participants: callInfo.participants
+      } as SocketCallPayload
+
+      switch (id) {
+        case 0:
+          console.log("trigger btn called: ")
+          p.type = "show-remote"
+          socket.emit("call", p)
+          break
+        case 1:
+          console.log("dsako")
+          p.type = "mute-remote"
+          socket.emit("call", p)
+          break
+      }
+    }
   }
+  const iconSize = 25
   const [buttons, setButtons] = useState([
     {
       id: 0,
       onIcon: <Video size={iconSize} />,
       offIcon: <VideoOff size={iconSize} />,
-      isOff: false,
-      onClick: () => triggerBtn(0)
+      isOff: false
     },
     {
       id: 1,
       onIcon: <Mic size={iconSize} />,
       offIcon: <MicOff size={iconSize} />,
-      isOff: false,
-      onClick: () => triggerBtn(1)
+      isOff: false
     }
   ])
-
   const previousPage = () => {
     cleanup()
     navigate(-1)
@@ -214,17 +238,32 @@ const RTCVoiceCall = () => {
               </div>
             </>
           )}
-          {isCallAccepted && (
+          {callInfo && isCallAccepted && (
             <>
               <div id="video-calls" className="space-y-2 outline">
                 <video className="local-video" autoPlay muted />
-                <video className="remote-video" autoPlay />
+                <div
+                  className="flex h-full items-center justify-center"
+                  style={{ display: isVideoDisplayed ? "none" : "" }}
+                >
+                  <img
+                    src={user.image_url ?? ""}
+                    className="pointer-events-none absolute left-0 top-0 h-[100svh] w-screen blur-[400px]"
+                  />
+                  <Avatar image_url={user.image_url} size="xxl" />
+                </div>
+                <video
+                  className="remote-video"
+                  autoPlay
+                  muted={isVideoMuted}
+                  style={{ display: isVideoDisplayed ? "" : "none" }}
+                />
               </div>
               <div className="fixed bottom-4 flex w-full items-center justify-center space-x-4">
-                {buttons.map(({ onIcon, offIcon, id, onClick, isOff }) => (
+                {buttons.map(({ onIcon, offIcon, id, isOff }) => (
                   <div
                     key={id}
-                    onClick={onClick}
+                    onClick={() => triggerBtn(id)}
                     className={cn(
                       "flex h-max w-max cursor-pointer items-center justify-center rounded-full bg-white p-[10px] duration-200",
                       isOff ? "text-black" : "bg-neutral-800 hover:bg-neutral-700"
