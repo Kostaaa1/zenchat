@@ -3,165 +3,36 @@ import { useNavigate, useParams } from "react-router-dom"
 import { trpc } from "../../../lib/trpcClient"
 import useUser from "../../../hooks/useUser"
 import Avatar from "../../../components/avatar/Avatar"
-import usePeerConnection from "../../../stores/peerConnection"
-import { useEffect, useState } from "react"
+import {  useState } from "react"
 import { ArrowLeft, Mic, MicOff, Phone, Video, VideoOff } from "lucide-react"
 import { cn } from "../../../utils/utils"
-import ringingPath from "../../../../public/ringing.mp3"
 import { socket } from "../../../lib/socket"
-import { Peer } from "peerjs"
-import { playSound } from "../../../utils/file"
 import { SocketCallPayload } from "../../../../../server/src/types/types"
-
-const iceServers = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun.l.google.com:5349" },
-  { urls: "stun:stun1.l.google.com:3478" },
-  { urls: "stun:stun1.l.google.com:5349" },
-  { urls: "stun:stun2.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:5349" },
-  { urls: "stun:stun3.l.google.com:3478" },
-  { urls: "stun:stun3.l.google.com:5349" },
-  { urls: "stun:stun4.l.google.com:19302" },
-  { urls: "stun:stun4.l.google.com:5349" }
-]
+import usePeer from "../../../hooks/usePeer"
 
 const RTCVoiceCall = () => {
+  const {
+    callInfo,
+    cleanup,
+    hangup,
+    isCallAccepted,
+    isCalling,
+    isVideoDisplayed,
+    isVideoMuted,
+    peerConnection,
+    startCall
+  } = usePeer()
   const navigate = useNavigate()
   const { user } = useUser()
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
-  const { setIsCalling, clearAll, setIsVideo } = usePeerConnection((state) => state.actions)
-  const { isCalling, isVideoMuted, isVideoDisplayed, isCallAccepted, callInfo } = usePeerConnection((state) => ({
-    isCalling: state.isCalling,
-    isCallAccepted: state.isCallAccepted,
-    callInfo: state.callInfo,
-    isVideoDisplayed: state.isVideoDisplayed,
-    isVideoMuted: state.isVideoMuted
-  }))
-  const [peerConnection, setPeerConnection] = useState<Peer | null>(null)
   const { data: chatroomUsers, isLoading } = trpc.chat.get.chatroom_users.useQuery(chatroomId!, {
     enabled: !!chatroomId,
     refetchOnMount: true
   })
 
-  const videoCleanUp = (className: string) => {
-    const video = document.querySelector(className) as HTMLVideoElement
-    if (video && video.srcObject) {
-      const stream = video.srcObject as MediaStream
-      stream.getTracks().forEach((track) => track.stop())
-      video.srcObject = null
-    }
-  }
-
-  const cleanup = () => {
-    videoCleanUp(".local-video")
-    videoCleanUp(".remote-video")
-    peerConnection?.off("call")
-    peerConnection?.off("close")
-    peerConnection?.destroy()
-    peerConnection?.disconnect()
-    clearAll()
-    setPeerConnection(null)
-  }
-
-  const hangUp = () => {
-    const participants = chatroomUsers?.map((x) => x.user_id).filter((x) => x !== user?.id)
-    if (peerConnection) {
-      socket.emit("call", { type: "hangup", participants })
-      cleanup()
-    }
-  }
-
-  useEffect(() => {
-    if (!user) return
-    const conn = new Peer(user.id, { config: { iceServers } })
-    setPeerConnection(conn)
-    conn.on("open", () => {
-      conn.on("call", async (call) => {
-        const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        const video = document.querySelector(".local-video") as HTMLVideoElement
-        if (video) {
-          video.srcObject = localStream
-          video.muted = true
-          video.autoplay = true
-        }
-        call.answer(localStream)
-        call.on("stream", (callStream) => {
-          console.log("Remote video STREAM 1")
-          const video = document.querySelector(".remote-video") as HTMLVideoElement
-          video.srcObject = callStream
-        })
-        call.on("close", () => {
-          console.log("Call closed 1")
-          cleanup()
-        })
-      })
-    })
-
-    conn.on("close", () => {
-      cleanup()
-    })
-
-    return () => {
-      conn.off("open")
-      conn.off("call")
-      conn.off("close")
-      conn.disconnect()
-      conn.destroy()
-    }
-  }, [user])
-
-  useEffect(() => {
-    const call = async () => {
-      if (!isCallAccepted || !callInfo || !user || !peerConnection) return
-      const { participants } = callInfo
-      const callee = participants.find((x) => x !== user.id)
-
-      peerConnection.on("call", () => {
-        setIsVideo(true)
-      })
-
-      if (callee) {
-        const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        const video = document.querySelector(".local-video") as HTMLVideoElement
-        if (video) {
-          video.srcObject = localStream
-          video.muted = true
-          video.autoplay = true
-        }
-        const conn = peerConnection.call(callee, localStream)
-        conn.on("stream", (stream) => {
-          console.log("Remote video STREAM 2")
-          const video = document.querySelector(".remote-video") as HTMLVideoElement
-          video.srcObject = stream
-        })
-      }
-    }
-    call()
-  }, [peerConnection, isCallAccepted, callInfo, user])
-
-  const startCall = (data: { chatroomId: string; participants: string[] }) => {
-    const { participants, chatroomId } = data
-    if (!user) return
-    const { id, image_url, username } = user
-    playSound("source1", ringingPath)
-    setIsCalling(true)
-    socket.emit("call", {
-      type: "initiated",
-      chatroomId,
-      participants,
-      initiator: {
-        id,
-        image_url,
-        username
-      }
-    } as SocketCallPayload)
-  }
-
   const triggerBtn = (id: number) => {
-    console.log("Called TRIGGER BUTTON")
     setButtons((state) => state.map((x, i) => (i === id ? { ...x, isOff: !x.isOff } : x)))
     if (callInfo && user) {
       const p = {
@@ -199,6 +70,7 @@ const RTCVoiceCall = () => {
       isOff: false
     }
   ])
+
   const previousPage = () => {
     cleanup()
     navigate(-1)
@@ -275,7 +147,7 @@ const RTCVoiceCall = () => {
                 <div
                   id="hangup"
                   className="flex cursor-pointer items-center justify-center rounded-full bg-red-500 p-[10px] duration-200 hover:bg-red-400"
-                  onClick={hangUp}
+                  onClick={hangup}
                 >
                   <Phone size={iconSize} />
                 </div>

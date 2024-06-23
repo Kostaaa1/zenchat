@@ -145,32 +145,34 @@ const useChatSocket = (socket: Socket | null) => {
 
   const receiveCallPayload = useCallback(
     (payload: SocketCallPayload) => {
-      console.log("payload", payload)
       const { type } = payload
       stopSound("source1")
-      if (type === "initiated") {
-        setCallInfo(payload)
-        openModal("voiceCall")
-      }
-      if (type === "accepted") {
-        setCallInfo(payload)
-        setIsCallAccepted(true)
-      }
-      if (type === "hangup") {
-        const btn = document.getElementById("hangup")
-        if (btn) btn.click()
-      }
-
-      if (type === "mute-remote") {
-        toggleMuteVideo()
-      }
-
-      if (type === "show-remote") {
-        toggleShowVideo()
-      }
-
-      if (type === "declined") {
-        // handle declined.......
+      switch (type) {
+        case "initiated": {
+          setCallInfo(payload)
+          openModal("voiceCall")
+          break
+        }
+        case "accepted": {
+          setCallInfo(payload)
+          setIsCallAccepted(true)
+          break
+        }
+        case "hangup": {
+          const btn = document.getElementById("hangup")
+          if (btn) btn.click()
+          break
+        }
+        case "declined":
+          break
+        case "mute-remote": {
+          toggleMuteVideo()
+          break
+        }
+        case "show-remote": {
+          toggleShowVideo()
+          break
+        }
       }
     },
     [openModal]
