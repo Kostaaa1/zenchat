@@ -134,11 +134,9 @@ const useChatSocket = (socket: Socket | null) => {
     [
       activeChatroom,
       addNewMessageToChatCache,
-      unreadChatIds,
       replacePreviewImage,
       updateUserChatLastMessageCache,
       user,
-      unreadChatIds,
       utils.chat.get
     ]
   )

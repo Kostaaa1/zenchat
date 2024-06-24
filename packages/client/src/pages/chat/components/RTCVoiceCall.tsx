@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { trpc } from "../../../lib/trpcClient"
 import useUser from "../../../hooks/useUser"
 import Avatar from "../../../components/avatar/Avatar"
-import {  useState } from "react"
+import { useState } from "react"
 import { ArrowLeft, Mic, MicOff, Phone, Video, VideoOff } from "lucide-react"
 import { cn } from "../../../utils/utils"
 import { socket } from "../../../lib/socket"
@@ -18,8 +18,6 @@ const RTCVoiceCall = () => {
     isCallAccepted,
     isCalling,
     isVideoDisplayed,
-    isVideoMuted,
-    peerConnection,
     startCall
   } = usePeer()
   const navigate = useNavigate()
@@ -43,12 +41,10 @@ const RTCVoiceCall = () => {
 
       switch (id) {
         case 0:
-          console.log("trigger btn called: ")
           p.type = "show-remote"
           socket.emit("call", p)
           break
         case 1:
-          console.log("dsako")
           p.type = "mute-remote"
           socket.emit("call", p)
           break
@@ -82,7 +78,7 @@ const RTCVoiceCall = () => {
         <div>Loading...</div>
       ) : (
         <>
-          {!isCallAccepted && (
+          {!isCallAccepted ? (
             <>
               <div className="absolute left-2 top-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-white duration-200 hover:bg-neutral-800">
                 <ArrowLeft onClick={previousPage} />
@@ -109,7 +105,7 @@ const RTCVoiceCall = () => {
                 )}
               </div>
             </>
-          )}
+          ) : null}
           {callInfo && isCallAccepted && (
             <>
               <div id="video-calls" className="space-y-2 outline">
@@ -124,12 +120,12 @@ const RTCVoiceCall = () => {
                   />
                   <Avatar image_url={user.image_url} size="xxl" />
                 </div>
-                <video
+                {/* <video
                   className="remote-video"
                   autoPlay
                   muted={isVideoMuted}
-                  style={{ display: isVideoDisplayed ? "" : "none" }}
-                />
+                  // style={{ display: isVideoDisplayed ? "" : "none" }}
+                /> */}
               </div>
               <div className="fixed bottom-4 flex w-full items-center justify-center space-x-4">
                 {buttons.map(({ onIcon, offIcon, id, isOff }) => (
