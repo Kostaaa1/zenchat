@@ -22,6 +22,7 @@ const initSocket = (io) => {
             const caller = participants.find((x) => x.is_caller);
             if (type === "initiated") {
                 for (const receiver of participants) {
+                    console.log("RECEIVER", receiver);
                     if (!receiver.is_caller) {
                         io.to(receiver.id).emit("call", payload);
                     }

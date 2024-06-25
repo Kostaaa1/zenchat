@@ -105,14 +105,14 @@ const RTCVoiceCall = () => {
           ) : null}
           {callInfo && isCallAccepted && (
             <>
-              <div id="video-calls" className="h-full space-y-2 outline">
+              <div id="video-calls" className="h-full space-y-2">
                 <video className="local-video" autoPlay muted />
                 <>
                   {remoteVideos.map(({ id, isVideoDisplayed }) => (
                     <div
                       key={id}
                       id={id}
-                      className="flex h-full w-full items-center justify-center outline"
+                      className="flex h-full w-full items-center justify-center"
                       style={{ display: isVideoDisplayed ? "none" : "" }}
                     >
                       <img

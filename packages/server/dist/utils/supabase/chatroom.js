@@ -297,7 +297,11 @@ const deleteConversation = async (chatroom_id, user_id) => {
             }
         }
         else {
-            await supabase_1.default.from("chatroom_users").update({ is_active: false }).eq("user_id", user_id);
+            await supabase_1.default
+                .from("chatroom_users")
+                .update({ is_active: false })
+                .eq("user_id", user_id)
+                .eq("chatroom_id", chatroom_id);
         }
     }
     catch (error) {

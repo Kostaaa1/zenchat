@@ -332,7 +332,11 @@ export const deleteConversation = async (chatroom_id: string, user_id: string) =
         console.error("Unexpected error when deleting last field", error);
       }
     } else {
-      await supabase.from("chatroom_users").update({ is_active: false }).eq("user_id", user_id);
+      await supabase
+        .from("chatroom_users")
+        .update({ is_active: false })
+        .eq("user_id", user_id)
+        .eq("chatroom_id", chatroom_id);
     }
   } catch (error) {
     console.log(error);

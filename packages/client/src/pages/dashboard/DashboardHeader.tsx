@@ -32,8 +32,8 @@ export const DashboardHeader = ({
       userIds: [userData.id, loggedUser.id],
       admin: loggedUser.id
     }
-    await utils.chat.get.chatroom_id.invalidate(chatroomIdQuery)
     const path = await utils.chat.get.chatroom_id.fetch(chatroomIdQuery)
+    await utils.chat.get.user_chatrooms.refetch(loggedUser.id)
     if (path) {
       setIsLoading(false)
       navigate(`/inbox/${path}`)

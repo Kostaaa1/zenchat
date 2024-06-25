@@ -117,7 +117,6 @@ const useChatSocket = (socket: Socket | null) => {
           await user_chatrooms.refetch(user.id)
         }
         updateUserChatLastMessageCache(message)
-
         const isLoggedUserSender = sender_id === user?.id
         if (!isLoggedUserSender) {
           if (!activeChatroom && !location.pathname.includes("/inbox")) {
@@ -141,13 +140,10 @@ const useChatSocket = (socket: Socket | null) => {
     ]
   )
 
-  const receiveCallPayload = useCallback(
+  const receiveCall = useCallback(
     (payload: SocketCallPayload) => {
-      console.log("Payload: ", payload)
       const { type, participants } = payload
-      const id = participants.find((x) => x.is_caller)!.id
       stopSound("source1")
-
       switch (type) {
         case "initiated": {
           setCallInfo(payload)
@@ -165,10 +161,12 @@ const useChatSocket = (socket: Socket | null) => {
           break
         }
         case "mute-remote": {
+          const id = participants.find((x) => x.is_caller)!.id
           toggleMuteVideo(id)
           break
         }
         case "show-remote": {
+          const id = participants.find((x) => x.is_caller)!.id
           toggleDisplayVideo(id)
           break
         }
@@ -186,7 +184,7 @@ const useChatSocket = (socket: Socket | null) => {
       socket.emit("join-room", user.id)
       socket.emit("onMessage", user.id)
       socket.on("onMessage", receiveNewSocketMessage)
-      socket.on("call", receiveCallPayload)
+      socket.on("call", receiveCall)
     }
     return () => {
       socket.disconnect()

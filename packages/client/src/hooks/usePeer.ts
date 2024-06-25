@@ -40,10 +40,6 @@ const usePeer = () => {
     refetchOnMount: true
   })
 
-  useEffect(() => {
-    console.log("remoteVideos", remoteVideos)
-  }, [remoteVideos])
-
   const videoCleanup = () => {
     const local = document.querySelector(".local-video") as HTMLVideoElement
     if (local && local.srcObject) {
@@ -104,7 +100,6 @@ const usePeer = () => {
   useEffect(() => {
     if (remoteVideos.length > 0) {
       remoteVideos.forEach((video) => {
-        console.log("Video : ", video)
         const vid = document.getElementById(video.id) as HTMLVideoElement
         if (vid) {
           vid.style.display = video.isVideoDisplayed ? "" : "none"
