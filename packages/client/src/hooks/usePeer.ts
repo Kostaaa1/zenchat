@@ -2,12 +2,12 @@ import { useParams } from "react-router-dom"
 import useUser from "./useUser"
 import usePeerConnectionStore from "../stores/peerConnection"
 import Peer from "peerjs"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { createRef, useCallback, useEffect, useRef, useState } from "react"
 import { trpc } from "../lib/trpcClient"
 import { socket } from "../lib/socket"
 import { playSound } from "../utils/file"
 import ringingPath from "../../public/ringing.mp3"
-import { SocketCallPayload } from "../../../server/src/types/types"
+import { CallParticipant, SocketCallPayload } from "../../../server/src/types/types"
 
 const iceServers = [
   { urls: "stun:stun.l.google.com:19302" },
@@ -21,35 +21,38 @@ const iceServers = [
   { urls: "stun:stun4.l.google.com:19302" },
   { urls: "stun:stun4.l.google.com:5349" }
 ]
+
 const usePeer = () => {
   const { user } = useUser()
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
-  const { setIsCalling, clearAll, setIsVideo } = usePeerConnectionStore((state) => state.actions)
-  const { isCalling, isVideoMuted, isVideoDisplayed, isCallAccepted, callInfo } = usePeerConnectionStore((state) => ({
+  const {
+    setIsCalling,
+    clearAll,
+    addRemoteVideo,
+    removeRemoteVideo,
+    setCallInfo,
+    setIsCallAccepted,
+    setRemoteVideos,
+    toggleDisplayVideo,
+    toggleMuteVideo
+  } = usePeerConnectionStore((state) => state.actions)
+  const { remoteVideos, isCalling, isCallAccepted, callInfo } = usePeerConnectionStore((state) => ({
     isCalling: state.isCalling,
     isCallAccepted: state.isCallAccepted,
     callInfo: state.callInfo,
-    isVideoDisplayed: state.isVideoDisplayed,
-    isVideoMuted: state.isVideoMuted
+    remoteVideos: state.remoteVideos
   }))
   const [peerConnection, setPeerConnection] = useState<Peer | null>(null)
   const { data: chatroomUsers } = trpc.chat.get.chatroom_users.useQuery(chatroomId!, {
     enabled: !!chatroomId,
     refetchOnMount: true
   })
-  const remoteVideoRefs = useRef<HTMLVideoElement[]>([])
-  const videoRef = useRef<HTMLVideoElement | null>(null)
 
-  const videoCleanUp = useCallback((className: string) => {
-    const video = document.querySelector(className) as HTMLVideoElement
-    if (video && video.srcObject) {
-      const stream = video.srcObject as MediaStream
-      stream.getTracks().forEach((track) => track.stop())
-      video.srcObject = null
-    }
-  }, [])
+  useEffect(() => {
+    console.log("remoteVideos", remoteVideos)
+  }, [remoteVideos])
 
   const videoCleanup = () => {
     const local = document.querySelector(".local-video") as HTMLVideoElement
@@ -72,67 +75,62 @@ const usePeer = () => {
     }
     clearAll()
     setPeerConnection(null)
-  }, [peerConnection, clearAll, videoCleanUp])
+  }, [peerConnection, clearAll])
 
   const hangup = useCallback(() => {
-    if (!peerConnection || !user || !chatroomUsers) return
-    const participants = chatroomUsers.map((x) => x.user_id).filter((x) => x !== user.id)
+    if (!peerConnection || !user || !chatroomUsers || !callInfo) return
     if (peerConnection) {
-      socket.emit("call", { type: "hangup", participants })
+      socket.emit("call", {
+        type: "hangup",
+        participants: activateParticipant(callInfo.participants, user!.id)
+      })
       cleanup()
     }
-  }, [chatroomUsers, cleanup, peerConnection, user])
+  }, [chatroomUsers, callInfo, cleanup, peerConnection, user])
 
-  const createRemoteVideo = (srcObject: MediaStream, id: string) => {
-    const remoteVideo = document.getElementById(id) as HTMLVideoElement
-    const add = (video: HTMLVideoElement) => {
+  const createRemoteVideo = (id: string, srcObject: MediaStream) => {
+    const vid = document.getElementById(id) as HTMLVideoElement
+    const addProps = (video: HTMLVideoElement) => {
       video.classList.add("remote-video")
       video.setAttribute("id", id)
       video.srcObject = srcObject
       video.muted = false
       video.autoplay = true
     }
-    if (!remoteVideo) {
-      console.log("No remote video, creating it and appending")
+
+    if (!vid) {
       const parent = document.getElementById("video-calls")
       if (parent) {
         const newVid = document.createElement("video") as HTMLVideoElement
-        add(newVid)
-        videoRef.current = newVid
+        addProps(newVid)
+        addRemoteVideo({ id, isVideoDisplayed: true, isVideoMuted: false })
         parent.appendChild(newVid)
       }
     } else {
-      console.log("there is a remote video, adding srcObject")
-      remoteVideo.srcObject = srcObject
+      vid.srcObject = srcObject
     }
   }
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isVideoMuted
-      videoRef.current.style.display = isVideoDisplayed ? "" : "none"
+    if (remoteVideos.length > 0) {
+      remoteVideos.forEach((video) => {
+        console.log("Video : ", video)
+        const vid = document.getElementById(video.id) as HTMLVideoElement
+        if (vid) {
+          vid.style.display = video.isVideoDisplayed ? "" : "none"
+          vid.muted = video.isVideoMuted
+        }
+      })
     }
-  }, [videoRef, isVideoMuted, isVideoDisplayed])
-
-  // useEffect(() => {
-  //   if (videoRef.current) {
-  //     videoRef.current.muted = isVideoMuted
-  //   }
-  // }, [videoRef, isVideoMuted])
-  // useEffect(() => {
-  //   if (videoRef.current) {
-  //     videoRef.current.style.display = isVideoDisplayed ? "" : "none"
-  //   }
-  // }, [videoRef, isVideoDisplayed])
+  }, [remoteVideos])
 
   useEffect(() => {
     if (!isCallAccepted || !callInfo || !user) return
+    const { participants } = callInfo
     const peer = new Peer(user.id, { config: { iceServers } })
     setPeerConnection(peer)
-    const { participants, initiator } = callInfo
 
     peer.on("open", async () => {
-      const callee = participants.find((x) => x !== user.id)
       const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
       const video = document.querySelector(".local-video") as HTMLVideoElement
       if (video) {
@@ -140,62 +138,54 @@ const usePeer = () => {
         video.muted = true
         video.autoplay = true
       }
-      if (initiator.id === user.id && callee) {
-        const conn = peer.call(callee, localStream)
-        conn.on("stream", (stream) => {
-          console.log("creating remote video1")
-          createRemoteVideo(stream, callee)
-          setIsVideo(true)
-        })
-      } else {
-        peer.on("call", async (call) => {
-          call.answer(localStream)
-          call.on("stream", (callStream) => {
-            console.log("creating remote video 2")
-            createRemoteVideo(callStream, user.id)
-            setIsVideo(true)
+      participants.forEach((participant) => {
+        if (participant.is_caller) {
+          if (participant.id !== user.id) {
+            const conn = peer.call(participant.id, localStream)
+            conn.on("stream", (stream) => {
+              createRemoteVideo(participant.id, stream)
+            })
+          }
+        } else {
+          peer.on("call", async (call) => {
+            call.answer(localStream)
+            call.on("stream", (callStream) => {
+              if (participant.id !== user.id) {
+                createRemoteVideo(participant.id, callStream)
+              }
+            })
           })
-          call.on("close", () => {
-            console.log("Call closed 1")
-            cleanup()
-          })
-        })
-      }
+        }
+      })
     })
   }, [callInfo, user, isCallAccepted])
 
+  const activateParticipant = (participants: CallParticipant[], id: string) => {
+    return participants.map((participant) =>
+      participant.id === id ? { ...participant, is_caller: true } : { ...participant, is_caller: false }
+    )
+  }
+
   const startCall = useCallback(
-    (data: { chatroomId: string; participants: string[] }) => {
+    (data: SocketCallPayload) => {
       if (!user) return
-      const { participants, chatroomId } = data
-      const { id, image_url, username } = user
       playSound("source1", ringingPath)
       setIsCalling(true)
-      socket.emit("call", {
-        type: "initiated",
-        chatroomId,
-        participants,
-        initiator: {
-          id,
-          image_url,
-          username
-        }
-      } as SocketCallPayload)
+      socket.emit("call", data as SocketCallPayload)
     },
     [user]
   )
 
   return {
-    remoteVideoRefs,
     startCall,
     hangup,
     cleanup,
     isCalling,
-    isVideoMuted,
-    isVideoDisplayed,
     isCallAccepted,
     callInfo,
-    peerConnection
+    activateParticipant,
+    peerConnection,
+    remoteVideos
   }
 }
 

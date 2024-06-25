@@ -19,26 +19,29 @@ export const initSocket = (io: Server) => {
     });
 
     socket.on("call", (payload: SocketCallPayload) => {
-      const { initiator, participants, type } = payload;
+      console.log("Call", payload);
+      const { participants, type } = payload;
+      const caller = participants.find((x) => x.is_caller);
       if (type === "initiated") {
         for (const receiver of participants) {
-          if (receiver !== initiator.id) {
-            io.to(receiver).emit("call", payload);
+          if (!receiver.is_caller) {
+            io.to(receiver.id).emit("call", payload);
           }
         }
       } else if (type === "hangup") {
         for (const receiver of participants) {
-          io.to(receiver).emit("call", payload);
+          if (!receiver.is_caller) {
+            io.to(receiver.id).emit("call", payload);
+          }
         }
       } else if (type === "mute-remote" || type === "show-remote") {
-        console.log("RECEIVED PAYLOADJ", payload);
         for (const receiver of participants) {
-          if (receiver !== initiator.id) {
-            io.to(receiver).emit("call", payload);
+          if (!receiver.is_caller) {
+            io.to(receiver.id).emit("call", payload);
           }
         }
       } else {
-        io.to(initiator.id).emit("call", payload);
+        if (caller) io.to(caller.id).emit("call", payload);
       }
     });
 

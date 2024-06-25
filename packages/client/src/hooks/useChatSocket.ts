@@ -14,7 +14,7 @@ import { stopSound } from "../utils/file"
 const useChatSocket = (socket: Socket | null) => {
   const { user, unreadChatIds } = useUser()
   const utils = trpc.useUtils()
-  const { setIsCallAccepted, setCallInfo, toggleMuteVideo, toggleShowVideo } = usePeerConnectionStore(
+  const { setIsCallAccepted, setCallInfo, toggleDisplayVideo, toggleMuteVideo } = usePeerConnectionStore(
     (state) => state.actions
   )
   const { openModal } = useModalStore((state) => state.actions)
@@ -110,14 +110,14 @@ const useChatSocket = (socket: Socket | null) => {
         const { message, shouldActivate } = data
         const { is_image, sender_id } = message
         const { user_chatrooms } = utils.chat.get
-        if (is_image) await loadImage(message.content)
 
+        if (is_image) await loadImage(message.content)
         if (shouldActivate) {
           await user_chatrooms.invalidate(user.id)
           await user_chatrooms.refetch(user.id)
         }
-
         updateUserChatLastMessageCache(message)
+
         const isLoggedUserSender = sender_id === user?.id
         if (!isLoggedUserSender) {
           if (!activeChatroom && !location.pathname.includes("/inbox")) {
@@ -143,8 +143,11 @@ const useChatSocket = (socket: Socket | null) => {
 
   const receiveCallPayload = useCallback(
     (payload: SocketCallPayload) => {
-      const { type } = payload
+      console.log("Payload: ", payload)
+      const { type, participants } = payload
+      const id = participants.find((x) => x.is_caller)!.id
       stopSound("source1")
+
       switch (type) {
         case "initiated": {
           setCallInfo(payload)
@@ -161,14 +164,15 @@ const useChatSocket = (socket: Socket | null) => {
           if (btn) btn.click()
           break
         }
-        case "declined":
-          break
         case "mute-remote": {
-          toggleMuteVideo()
+          toggleMuteVideo(id)
           break
         }
         case "show-remote": {
-          toggleShowVideo()
+          toggleDisplayVideo(id)
+          break
+        }
+        case "declined": {
           break
         }
       }

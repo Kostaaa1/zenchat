@@ -68,15 +68,16 @@ export type MessagesChannelData = {
 };
 export type TReceiveNewSocketMessageType = MessagesChannelData;
 
+////////////////////////
 type CallType = "initiated" | "declined" | "accepted" | "hangup" | "mute-remote" | "show-remote";
-
+export type CallParticipant = {
+  id: string;
+  image_url: string | null | undefined;
+  username: string | undefined;
+  is_caller: boolean;
+};
 export type SocketCallPayload = {
   type: CallType;
   chatroomId: string;
-  participants: string[];
-  initiator: {
-    id: string;
-    username: string;
-    image_url: string | null;
-  };
+  participants: CallParticipant[];
 };

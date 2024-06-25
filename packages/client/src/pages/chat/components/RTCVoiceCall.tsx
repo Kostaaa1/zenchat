@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { trpc } from "../../../lib/trpcClient"
 import useUser from "../../../hooks/useUser"
 import Avatar from "../../../components/avatar/Avatar"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ArrowLeft, Mic, MicOff, Phone, Video, VideoOff } from "lucide-react"
 import { cn } from "../../../utils/utils"
 import { socket } from "../../../lib/socket"
@@ -11,15 +11,8 @@ import { SocketCallPayload } from "../../../../../server/src/types/types"
 import usePeer from "../../../hooks/usePeer"
 
 const RTCVoiceCall = () => {
-  const {
-    callInfo,
-    cleanup,
-    hangup,
-    isCallAccepted,
-    isCalling,
-    isVideoDisplayed,
-    startCall
-  } = usePeer()
+  const { callInfo, activateParticipant, remoteVideos, cleanup, hangup, isCallAccepted, isCalling, startCall } =
+    usePeer()
   const navigate = useNavigate()
   const { user } = useUser()
   const { chatroomId } = useParams<{
@@ -35,10 +28,8 @@ const RTCVoiceCall = () => {
     if (callInfo && user) {
       const p = {
         chatroomId: callInfo.chatroomId,
-        initiator: { id: user.id, username: user.username },
-        participants: callInfo.participants
+        participants: activateParticipant(callInfo.participants, user!.id)
       } as SocketCallPayload
-
       switch (id) {
         case 0:
           p.type = "show-remote"
@@ -96,7 +87,13 @@ const RTCVoiceCall = () => {
                     onClick={() =>
                       startCall({
                         chatroomId,
-                        participants: chatroomUsers.map((user) => user.user_id)
+                        type: "initiated",
+                        participants: chatroomUsers.map(({ user_id, image_url, username }) => ({
+                          is_caller: user.id === user_id,
+                          id: user_id,
+                          image_url,
+                          username
+                        }))
                       })
                     }
                   >
@@ -108,24 +105,24 @@ const RTCVoiceCall = () => {
           ) : null}
           {callInfo && isCallAccepted && (
             <>
-              <div id="video-calls" className="space-y-2 outline">
+              <div id="video-calls" className="h-full space-y-2 outline">
                 <video className="local-video" autoPlay muted />
-                <div
-                  className="flex h-full items-center justify-center"
-                  style={{ display: isVideoDisplayed ? "none" : "" }}
-                >
-                  <img
-                    src={user.image_url ?? ""}
-                    className="pointer-events-none absolute left-0 top-0 h-[100svh] w-screen blur-[400px]"
-                  />
-                  <Avatar image_url={user.image_url} size="xxl" />
-                </div>
-                {/* <video
-                  className="remote-video"
-                  autoPlay
-                  muted={isVideoMuted}
-                  // style={{ display: isVideoDisplayed ? "" : "none" }}
-                /> */}
+                <>
+                  {remoteVideos.map(({ id, isVideoDisplayed }) => (
+                    <div
+                      key={id}
+                      id={id}
+                      className="flex h-full w-full items-center justify-center outline"
+                      style={{ display: isVideoDisplayed ? "none" : "" }}
+                    >
+                      <img
+                        src={user.image_url ?? ""}
+                        className="pointer-events-none absolute left-0 top-0 h-full w-full blur-[400px]"
+                      />
+                      <Avatar image_url={user.image_url} size="xxl" />
+                    </div>
+                  ))}
+                </>
               </div>
               <div className="fixed bottom-4 flex w-full items-center justify-center space-x-4">
                 {buttons.map(({ onIcon, offIcon, id, isOff }) => (

@@ -10,7 +10,9 @@ import usePeerConnection from "../../stores/peerConnection"
 import { socket } from "../../lib/socket"
 import { useNavigate } from "react-router-dom"
 import { playSound } from "../../utils/file"
-import { SocketCallPayload } from "../../../../server/src/types/types"
+import { CallParticipant, SocketCallPayload } from "../../../../server/src/types/types"
+import useUser from "../../hooks/useUser"
+import usePeer from "../../hooks/usePeer"
 
 type ModalProps = {
   callInfo: SocketCallPayload
@@ -18,10 +20,13 @@ type ModalProps = {
 
 const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref) => {
   const { setIsCallAccepted, setCallInfo } = usePeerConnection((state) => state.actions)
-  const { initiator, chatroomId, participants } = callInfo
+  const { user } = useUser()
+  const { chatroomId, participants } = callInfo
   const volume = useGeneralStore((state) => state.volume)
   const navigate = useNavigate()
   const { closeModal } = useModalStore((state) => state.actions)
+  const { activateParticipant } = usePeer()
+
   // const playSound = (id: string, path: string, volume?: number) => {
   //   const init = document.getElementById(id)
   //   if (init) {
@@ -31,6 +36,7 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
   //     el.play()
   //   }
   // }
+
   const stopRinging = () => {
     const init = document.getElementById("ring")
     if (init) {
@@ -42,13 +48,14 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
   }
   ////////////////////////////////
   const pickup = () => {
-    const { initiator, chatroomId, participants } = callInfo
+    const { chatroomId, participants } = callInfo
     setIsCallAccepted(true)
     const payload: SocketCallPayload = {
       type: "accepted",
-      initiator,
-      participants,
-      chatroomId
+      chatroomId,
+      participants: participants.map((x) =>
+        x.id === user!.id ? { ...x, is_caller: false } : { ...x, is_caller: true }
+      )
     }
     socket.emit("call", payload)
     stopRinging()
@@ -59,18 +66,15 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
   }
 
   const hangup = () => {
-    if (initiator) {
-      stopRinging()
-      const payload: SocketCallPayload = {
-        type: "declined",
-        initiator,
-        participants,
-        chatroomId
-      }
-      socket.emit("call", payload)
-      setCallInfo(null)
-      closeModal()
+    stopRinging()
+    const payload: SocketCallPayload = {
+      type: "declined",
+      participants: activateParticipant(participants, user!.id),
+      chatroomId
     }
+    socket.emit("call", payload)
+    setCallInfo(null)
+    closeModal()
   }
 
   useEffect(() => {
@@ -88,14 +92,21 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
     <Modal>
       <div ref={ref} className={cn("relative mx-auto max-h-[90svh] w-full")}>
         <div className="flex w-max flex-col space-y-3 rounded-2xl bg-neutral-800 p-4">
-          <div className="flex flex-col items-center justify-center">
-            {initiator.image_url && (
-              <div className="rounded-full">
-                <Avatar image_url={initiator.image_url} className="h-14 w-14" />
-              </div>
-            )}
-            <p>{initiator.username} is calling you</p>
-          </div>
+          {participants.map((participant) => (
+            <div key={participant.id}>
+              {participant.is_caller && (
+                <div className="flex flex-col items-center justify-center">
+                  {participant.image_url && (
+                    <div className="rounded-full">
+                      <Avatar image_url={participant.image_url} className="h-14 w-14" />
+                    </div>
+                  )}
+                  <p>{participant.username} is calling you</p>
+                </div>
+              )}
+            </div>
+          ))}
+
           <div className="flex w-full justify-between">
             <PhoneCall onClick={pickup} className="h-10 w-10 cursor-pointer rounded-full bg-green-600 p-2" />
             <PhoneMissed onClick={hangup} className="h-10 w-10 cursor-pointer rounded-full bg-red-600 p-2" />

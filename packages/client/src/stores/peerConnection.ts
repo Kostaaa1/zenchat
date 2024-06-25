@@ -1,52 +1,82 @@
 import { create } from "zustand"
-import Peer from "peerjs"
 import { SocketCallPayload } from "../../../server/src/types/types"
 
 export type ActiveList = "inbox" | "user" | ""
+
+type RemoteVideo = {
+  id: string
+  isVideoDisplayed: boolean
+  isVideoMuted: boolean
+}
 
 type Store = {
   isCalling: boolean
   isCallAccepted: boolean
   callInfo: SocketCallPayload | null
-  peerConnections: Peer[]
-  isVideoMuted: boolean
-  isVideoDisplayed: boolean
+  remoteVideos: RemoteVideo[]
   actions: {
-    setIsVideo: (isVideo: boolean) => void
-    toggleMuteVideo: () => void
-    toggleShowVideo: () => void
-    setPeerConnections: (peerConnections: Peer[]) => void
-    setIsCallAccepted: (v: boolean) => void
     setCallInfo: (callInfo: SocketCallPayload | null) => void
     setIsCalling: (v: boolean) => void
+    setIsCallAccepted: (v: boolean) => void
+    setRemoteVideos: (videos: RemoteVideo[]) => void
+    addRemoteVideo: (video: RemoteVideo) => void
+    removeRemoteVideo: (video: RemoteVideo) => void
+    toggleDisplayVideo: (id: string) => void
+    toggleMuteVideo: (id: string) => void
     clearAll: () => void
   }
 }
 
 const usePeerConnectionStore = create<Store>(
   (set): Store => ({
+    callInfo: null,
     isCalling: false,
     isCallAccepted: false,
-    peerConnections: [],
-    callInfo: null,
-    isVideoMuted: false,
-    isVideoDisplayed: false,
+    remoteVideos: [],
     actions: {
-      setIsVideo: (isVideoDisplayed: boolean) => set({ isVideoDisplayed }),
-      toggleMuteVideo: () => set((state) => ({ isVideoMuted: !state.isVideoMuted })),
-      toggleShowVideo: () => set((state) => ({ isVideoDisplayed: !state.isVideoDisplayed })),
-      setPeerConnections: (peerConnections: Peer[]) => set({ peerConnections }),
-      setCallInfo: (callInfo: SocketCallPayload | null) => set({ callInfo }),
+      addRemoteVideo: (video: RemoteVideo) => set((state) => ({ remoteVideos: [...state.remoteVideos, video] })),
+      removeRemoteVideo: (video: RemoteVideo) =>
+        set((state) => ({ remoteVideos: state.remoteVideos.filter((x) => x.id !== video.id) })),
+      setRemoteVideos: (videos: RemoteVideo[]) => set({ remoteVideos: videos }),
+      toggleDisplayVideo: (id: string) =>
+        set((state) => {
+          return {
+            remoteVideos: state.remoteVideos.map((video) => {
+              if (video.id === id) {
+                const newValue = !video.isVideoDisplayed
+                const v = document.getElementById(id) as HTMLVideoElement
+                if (v) v.style.display = newValue ? "" : "none"
+                return { ...video, isVideoDisplayed: newValue }
+              } else {
+                return video
+              }
+            })
+          }
+        }),
+      toggleMuteVideo: (id: string) =>
+        set((state) => {
+          return {
+            remoteVideos: state.remoteVideos.map((video) => {
+              if (video.id === id) {
+                const newValue = !video.isVideoMuted
+                const vid = document.getElementById(id) as HTMLVideoElement
+                if (vid) vid.muted = newValue
+                return { ...video, isVideoMuted: newValue }
+              } else {
+                return video
+              }
+            })
+          }
+        }),
       setIsCallAccepted: (isCallAccepted: boolean) => set({ isCallAccepted }),
+      setCallInfo: (callInfo: SocketCallPayload | null) => set({ callInfo }),
       setIsCalling: (isCalling: boolean) => set({ isCalling }),
       clearAll: () =>
         set({
-          peerConnections: [],
-          isCallAccepted: false,
           callInfo: null,
+          isCallAccepted: false,
           isCalling: false,
-          isVideoDisplayed: false,
-          isVideoMuted: false
+          remoteVideos: []
         })
     }
   })
