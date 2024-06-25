@@ -10,7 +10,7 @@ import usePeerConnection from "../../stores/peerConnection"
 import { socket } from "../../lib/socket"
 import { useNavigate } from "react-router-dom"
 import { playSound } from "../../utils/file"
-import { CallParticipant, SocketCallPayload } from "../../../../server/src/types/types"
+import { SocketCallPayload } from "../../../../server/src/types/types"
 import useUser from "../../hooks/useUser"
 import usePeer from "../../hooks/usePeer"
 

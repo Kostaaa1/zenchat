@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom"
 import useUser from "./useUser"
 import usePeerConnectionStore from "../stores/peerConnection"
 import Peer from "peerjs"
-import { createRef, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { trpc } from "../lib/trpcClient"
 import { socket } from "../lib/socket"
 import { playSound } from "../utils/file"
@@ -27,17 +27,7 @@ const usePeer = () => {
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
-  const {
-    setIsCalling,
-    clearAll,
-    addRemoteVideo,
-    removeRemoteVideo,
-    setCallInfo,
-    setIsCallAccepted,
-    setRemoteVideos,
-    toggleDisplayVideo,
-    toggleMuteVideo
-  } = usePeerConnectionStore((state) => state.actions)
+  const { setIsCalling, clearAll, addRemoteVideo } = usePeerConnectionStore((state) => state.actions)
   const { remoteVideos, isCalling, isCallAccepted, callInfo } = usePeerConnectionStore((state) => ({
     isCalling: state.isCalling,
     isCallAccepted: state.isCallAccepted,
