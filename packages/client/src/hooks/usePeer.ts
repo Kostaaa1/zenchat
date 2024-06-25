@@ -5,8 +5,9 @@ import Peer from "peerjs"
 import { useCallback, useEffect, useState } from "react"
 import { trpc } from "../lib/trpcClient"
 import { socket } from "../lib/socket"
-import { playSound } from "../utils/file"
+import { playSound, stopSound } from "../utils/file"
 import ringingPath from "../../public/ringing.mp3"
+import hangupSound from "../../public/hangup.mp3"
 import { CallParticipant, SocketCallPayload } from "../../../server/src/types/types"
 
 const iceServers = [
@@ -154,9 +155,18 @@ const usePeer = () => {
   const startCall = useCallback(
     (data: SocketCallPayload) => {
       if (!user) return
-      playSound("source1", ringingPath)
+      playSound({ id: "source1", path: ringingPath, start: 1 })
       setIsCalling(true)
       socket.emit("call", data as SocketCallPayload)
+
+      const timeout = setTimeout(() => {
+        console.log("Hanging up, timed out")
+        stopSound("source1")
+        playSound({ id: "source1", path: hangupSound, start: 0.4 })
+        cleanup()
+      }, 20000)
+
+      return timeout
     },
     [user]
   )

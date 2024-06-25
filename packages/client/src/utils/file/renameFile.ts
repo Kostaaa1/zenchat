@@ -10,11 +10,13 @@ export const renameFile = (fileImage: File, chatroom_id?: string, cb?: (file: Fi
   return newFile
 }
 
-export const playSound = (id: string, path: string, volume?: number) => {
+export const playSound = (data: { id: string; path: string; start?: number; volume?: number }) => {
+  const { id, path, start, volume } = data
   const el = document.getElementById(id) as HTMLAudioElement
   if (el) {
     el.src = path
     el.volume = volume || 0.05
+    if (start) el.currentTime = start
     el.play()
   }
 }

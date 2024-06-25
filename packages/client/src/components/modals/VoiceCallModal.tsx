@@ -46,6 +46,7 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
       el.pause()
     }
   }
+
   ////////////////////////////////
   const pickup = () => {
     const { chatroomId, participants } = callInfo
@@ -78,15 +79,15 @@ const VoiceCallModal = forwardRef<HTMLDivElement, ModalProps>(({ callInfo }, ref
   }
 
   useEffect(() => {
-    playSound("ring", incomming, volume)
-    const timeout = setTimeout(() => {
-      console.log("CALL TIME EXCEEDED, HHANG UPHANG UPHANG UPANG UP!!!!")
-      hangup()
-    }, 20000)
-    return () => {
-      clearTimeout(timeout)
-    }
-  }, [closeModal])
+    playSound({ id: "ring", path: incomming, volume })
+    // const timeout = setTimeout(() => {
+    //   console.log("CALL TIME EXCEEDED, HHANG UPHANG UPHANG UPANG UP!!!!")
+    //   hangup()
+    // }, 20000)
+    // return () => {
+    //   clearTimeout(timeout)
+    // }
+  }, [])
 
   return (
     <Modal>

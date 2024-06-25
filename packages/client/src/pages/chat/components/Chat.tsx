@@ -103,8 +103,8 @@ const Chat: FC<ChatProps> = ({ activeChatroom }) => {
                       {user?.id === activeChatroom.admin
                         ? "You created this group."
                         : `${
-                            activeChatroom.users.find((x) => x.id === activeChatroom.admin)?.username
-                          } creates this group.`}
+                            activeChatroom.users.find((x) => x.user_id === activeChatroom.admin)?.username
+                          } created this group.`}
                     </p>
                   )}
                 </div>

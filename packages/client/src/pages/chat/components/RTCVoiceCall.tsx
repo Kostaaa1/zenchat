@@ -9,12 +9,14 @@ import { cn } from "../../../utils/utils"
 import { socket } from "../../../lib/socket"
 import { SocketCallPayload } from "../../../../../server/src/types/types"
 import usePeer from "../../../hooks/usePeer"
+import useGeneralStore from "../../../stores/generalStore"
 
 const RTCVoiceCall = () => {
   const { callInfo, activateParticipant, remoteVideos, cleanup, hangup, isCallAccepted, isCalling, startCall } =
     usePeer()
   const navigate = useNavigate()
   const { user } = useUser()
+  const isMobile = useGeneralStore((state) => state.isMobile)
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
@@ -71,7 +73,12 @@ const RTCVoiceCall = () => {
         <>
           {!isCallAccepted ? (
             <>
-              <div className="absolute left-2 top-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-white duration-200 hover:bg-neutral-800">
+              <div
+                className={cn(
+                  "absolute top-5 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-white duration-200 hover:bg-neutral-800",
+                  isMobile ? "left-0" : "left-4"
+                )}
+              >
                 <ArrowLeft onClick={previousPage} />
               </div>
               <div className="flex select-none flex-col items-center space-x-2 space-y-2">
