@@ -7,7 +7,6 @@ type TWindowSize = {
 }
 
 const useWindowSize = () => {
-  // Imrpove this.
   const [windowSize, setWindowSize] = useState<TWindowSize>({
     width: window.innerWidth,
     height: window.innerHeight

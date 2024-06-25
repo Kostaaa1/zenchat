@@ -20,8 +20,7 @@ export const listVariants = cva(
       }
     },
     defaultVariants: {
-      hover: "darker",
-      padding: "sm"
+      hover: "darker"
     }
   }
 )

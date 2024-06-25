@@ -33,8 +33,8 @@ const useNavbar = () => {
   const expendableLists: ActiveList[] = ["user"]
 
   useEffect(() => {
-    setIsResponsive(location.pathname.includes("inbox") || width <= 1024)
-  }, [width, location.pathname])
+    if (!isSearchActive) setIsResponsive(location.pathname.includes("inbox") || width <= 1024)
+  }, [width, location.pathname, isSearchActive])
 
   const handleActiveElement = useCallback(
     (list: ActiveList | null) => {

@@ -1,11 +1,11 @@
 import Icon from "../Icon"
-import { FC, forwardRef } from "react"
+import { FC, forwardRef, useEffect, useState } from "react"
 import useModalStore from "../../stores/modalStore"
 import { Modal } from "./Modals"
 import { trpc } from "../../lib/trpcClient"
 import { TPost, TUserData } from "../../../../server/src/types/types"
 import Avatar from "../avatar/Avatar"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import Video from "../Video"
 import useGeneralStore from "../../stores/generalStore"
@@ -13,6 +13,7 @@ import { convertAndFormatDate } from "../../utils/date"
 import { cn } from "../../utils/utils"
 import useModals from "./hooks/useModals"
 import useUser from "../../hooks/useUser"
+import { loadImage } from "../../utils/image"
 
 type ModalProps = {
   post: TPost
@@ -36,18 +37,18 @@ const ArrowCursors: FC<ModalProps & { posts: TPost[] }> = ({ post, posts, leftRe
         <div
           ref={leftRef}
           onClick={() => navigatePost("previous")}
-          className="absolute -left-9 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
+          className="text-neutral-700bejbek absolute left-2 top-1/2 flex h-max w-max -translate-y-1/2 cursor-pointer rounded-full bg-neutral-300 text-neutral-700"
         >
-          <ChevronLeft />
+          <ChevronLeft size={32} />
         </div>
       )}
       {posts[posts.length - 1].id !== post.id && (
         <div
           ref={rightRef}
           onClick={() => navigatePost("next")}
-          className="absolute -right-9 top-1/2 h-max w-max -translate-y-1/2 scale-125 cursor-pointer rounded-full bg-white text-black"
+          className="absolute right-2 top-1/2 h-max w-max -translate-y-1/2 cursor-pointer rounded-full bg-neutral-300 text-neutral-700"
         >
-          <ChevronRight />
+          <ChevronRight size={32} />
         </div>
       )}
     </>
@@ -105,12 +106,12 @@ const PostComments: FC<{ post: TPost; inspectedUser: TUserData }> = ({ post, ins
     <div
       className={cn(
         "flex flex-col bg-black",
-        isMobile ? "min-h-[220px] w-full rounded-b-xl" : "min-w-[320px] rounded-r-xl "
+        isMobile ? "h-full max-h-[220px] w-full rounded-b-xl" : "max-h-[66vw] min-w-[400px] rounded-r-xl"
       )}
     >
       {isMobile ? null : <PostHeader inspectedUser={inspectedUser} />}
-      <ul className={cn("overflow-auto p-3 text-sm leading-4", isMobile ? "h-full max-h-[200px]" : "max-h-[62vw]")}>
-        {Array(1)
+      <ul className="w-full overflow-y-auto p-3 text-sm leading-4">
+        {Array(30)
           .fill("")
           .map((_, id) => (
             <li key={id} className="flex items-start space-x-2 py-3">
@@ -137,37 +138,56 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(({ post, leftRef, right
     data: location.pathname.split("/")[1],
     type: "username"
   })
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  useEffect(() => {
+    const load = async () => {
+      await loadImage(post.thumbnail_url ?? post.media_url)
+      setIsLoading(true)
+    }
+    load()
+  }, [post])
+
+  useEffect(() => {
+    console.log("isLoading", isLoading)
+  }, [isLoading])
 
   return (
     <Modal>
-      {inspectedUser && post && (
-        <div
-          ref={ref}
-          className={cn(
-            "relative mx-auto flex max-h-[90svh] w-full",
-            isMobile ? "min-w-[60vw] max-w-[76vw] flex-col" : "max-w-[90vw]"
-          )}
-        >
-          <ArrowCursors leftRef={leftRef} rightRef={rightRef} post={post} posts={inspectedUser.posts} />
-          {isMobile ? <PostHeader inspectedUser={inspectedUser} /> : null}
-          <div className="bg-black">
-            {post.type.startsWith("image/") ? (
-              <img className={cn(isMobile && "max-h-[420px]")} key={post.media_url} src={post.media_url} />
-            ) : (
-              <Video
-                controls={true}
-                autoPlay={true}
-                media_url={post.media_url}
-                poster={post.thumbnail_url}
-                className={cn(
-                  "aspect-square h-full w-full max-w-[900px] bg-black object-cover",
-                  isMobile && "max-h-[420px]"
+      {!isLoading ? (
+        <Loader2 className="animate-spin" />
+      ) : (
+        <>
+          <ArrowCursors leftRef={leftRef} rightRef={rightRef} post={post} posts={inspectedUser!.posts} />
+          {inspectedUser && post && (
+            <div
+              ref={ref}
+              className={cn("relative flex max-h-[95svh] w-full max-w-[78vw]", isMobile ? " flex-col" : "")}
+            >
+              {isMobile ? <PostHeader inspectedUser={inspectedUser} /> : null}
+              <div className="bg-black">
+                {post.type.startsWith("image/") ? (
+                  <img
+                    className={cn("w-full object-cover", isMobile ? "max-h-[420px] max-w-[60vw]" : "max-h-[66vw]")}
+                    key={post.media_url}
+                    src={post.media_url}
+                  />
+                ) : (
+                  <Video
+                    autoPlay={true}
+                    media_url={post.media_url}
+                    poster={post.thumbnail_url}
+                    className={cn(
+                      "aspect-square h-full w-full bg-black object-cover",
+                      isMobile ? "max-h-[420px]" : "max-h-[66vw]"
+                    )}
+                  />
                 )}
-              />
-            )}
-          </div>
-          <PostComments post={post!} inspectedUser={inspectedUser} />
-        </div>
+              </div>
+              <PostComments post={post!} inspectedUser={inspectedUser} />
+            </div>
+          )}
+        </>
       )}
     </Modal>
   )
