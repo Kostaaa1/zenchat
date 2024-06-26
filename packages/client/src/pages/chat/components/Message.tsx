@@ -32,7 +32,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(({ message, rounded1, r
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "flex w-full items-center break-words pt-1",
+        "flex w-full items-center break-words pt-[1px]",
         isLoggedUserASender ? "flex-row-reverse justify-start self-start" : "justify-start self-start"
       )}
     >

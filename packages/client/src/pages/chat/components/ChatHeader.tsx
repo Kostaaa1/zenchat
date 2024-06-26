@@ -70,16 +70,14 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
         <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       </div>
       <div className="flex flex-[3] justify-end space-x-2">
-        {!is_group && (
-          <Phone
-            width={iconSize}
-            height={iconSize}
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            className="cursor-pointer"
-            onClick={callRoom}
-          />
-        )}
+        <Phone
+          width={iconSize}
+          height={iconSize}
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          className="cursor-pointer"
+          onClick={callRoom}
+        />
         <Info
           onClick={handleIconClick}
           width={iconSize}

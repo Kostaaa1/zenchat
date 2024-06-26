@@ -24,9 +24,9 @@ const useUser = () => {
   }
 
   const logout = () => {
-    navigate("/")
     ctx.invalidate()
     signOut()
+    navigate("/")
   }
 
   return {

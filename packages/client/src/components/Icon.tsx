@@ -1,16 +1,12 @@
-import { icons } from "lucide-react"
-import { FC } from "react"
+import { LucideIcon, icons } from "lucide-react"
+import { ComponentProps, FC } from "react"
 
 type IconProps = {
-  className?: string
   name: keyof typeof icons
-  color?: string
-  size?: string
-  strokeWidth?: string
   onClick?: () => void
-}
+} & ComponentProps<LucideIcon>
 
-const Icon: FC<IconProps> = ({ onClick, strokeWidth, className, name, size }) => {
+const Icon: FC<IconProps> = ({ name, onClick, ...props }) => {
   const LucideIcon = icons[name]
   if (!LucideIcon) return null
 
@@ -19,7 +15,7 @@ const Icon: FC<IconProps> = ({ onClick, strokeWidth, className, name, size }) =>
       onClick={onClick}
       className="duration-50 group-hover:scale-10 transform cursor-pointer transition-transform group-active:scale-90"
     >
-      <LucideIcon strokeWidth={strokeWidth ? strokeWidth : "2"} className={className} id="icon" size={size} />
+      <LucideIcon id="icon" {...props} strokeWidth={props.strokeWidth ? props.strokeWidth : "2"} />
     </div>
   )
 }

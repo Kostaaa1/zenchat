@@ -14,25 +14,17 @@ interface RenderAvatarProps {
 
 const RenderAvatar: FC<RenderAvatarProps> = ({ image_urls, avatarSize, isOnline, className }) => {
   const { image_url_1, image_url_2 } = image_urls
-  const hasImg2 = image_url_2 === undefined
   return (
-    <div
-      className={cn(
-        "relative flex h-full",
-        !hasImg2 && avatarSize == "md" && "scale-[0.8]",
-        !hasImg2 && avatarSize == "xl" && "scale-[1.8]",
-        className
-      )}
-    >
-      {!hasImg2 ? (
+    <div className={cn("relative flex h-full", className)}>
+      {image_url_2 ? (
         <>
-          <Avatar image_url={image_url_1} />
-          <Avatar image_url={image_url_2} className="-ml-8 mt-6 outline outline-1 outline-black" />
+          <Avatar image_url={image_url_1} size={avatarSize} />
+          <Avatar image_url={image_url_2} className="-ml-8 mt-6 outline outline-1 outline-black" size={avatarSize} />
         </>
       ) : (
         <Avatar image_url={image_url_1} size={avatarSize} />
       )}
-      {hasImg2 && isOnline && (
+      {!image_url_2 && isOnline && (
         <div className="absolute bottom-[6px] right-[2px] h-[10px] w-[10px] rounded-full bg-green-500 outline outline-black"></div>
       )}
     </div>

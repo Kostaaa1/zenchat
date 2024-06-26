@@ -17,9 +17,9 @@ const useChatCache = () => {
         {
           chatroom_id: messageData.chatroom_id
         },
-        (staleChats) => {
-          if (staleChats && messageData) {
-            return [messageData, ...staleChats]
+        (state) => {
+          if (state && messageData) {
+            return [messageData, ...state]
           }
         }
       )

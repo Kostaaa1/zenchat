@@ -83,7 +83,7 @@ const List: FC<ListProps> = ({
             {children}
             {avatarSize && (
               <RenderAvatar
-                avatarSize={avatarSize}
+                avatarSize={image_url?.[1] && avatarSize === "lg" ? "md" : avatarSize}
                 isOnline={isOnline}
                 image_urls={{
                   image_url_1: image_url?.[0],

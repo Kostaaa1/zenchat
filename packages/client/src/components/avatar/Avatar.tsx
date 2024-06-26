@@ -3,17 +3,18 @@ import { FC } from "react"
 import { cn } from "../../utils/utils"
 import { Loader2, User } from "lucide-react"
 
+const avatarSize = {
+  sm: "h-7 w-7",
+  md: "h-11 w-11",
+  lg: "h-14 w-14",
+  xl: "h-28 w-28",
+  xxl: "h-40 w-40"
+}
 const avatarVariance = cva(
   "relative flex cursor-pointer items-center justify-center text-white overflow-hidden rounded-full",
   {
     variants: {
-      size: {
-        sm: "h-7 w-7",
-        md: "h-12 w-12",
-        lg: "h-14 w-14",
-        xl: "h-28 w-28",
-        xxl: "h-40 w-40"
-      }
+      size: avatarSize
     },
     defaultVariants: {
       size: "md"

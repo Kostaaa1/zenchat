@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import useGeneralStore from "../stores/generalStore"
 import useModalStore from "../stores/modalStore"
 import useChatStore from "../stores/chatStore"
@@ -12,9 +12,10 @@ import { debounce } from "lodash"
 
 const MESSAGE_FETCH_LIMIT = 22
 
-const useChatMessages = () => {
+const useChat = () => {
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, removeUnreadChatId } = useUser()
   const { chatroomId } = useParams<{ chatroomId: string }>()
   const isMobile = useGeneralStore((state) => state.isMobile)
@@ -48,6 +49,16 @@ const useChatMessages = () => {
     }
   })
 
+  useEffect(() => {
+    if (activeChatroom && user) {
+      const foundUser = activeChatroom.users.find((x) => x.user_id === user.id)
+      if (foundUser && !foundUser.is_message_seen) {
+        removeUnreadChatId(foundUser.user_id)
+        triggerReadMessagesMutation.mutate(foundUser.id)
+      }
+    }
+  }, [location.pathname && location.pathname.includes("/inbox")])
+
   const loadMessages = useCallback(
     async (messages: TMessage[]) => {
       await Promise.all(
@@ -60,16 +71,6 @@ const useChatMessages = () => {
     [setIsMessagesLoading]
   )
   const scrollToStart = () => scrollRef.current?.scrollTo({ top: 0 })
-
-  useEffect(() => {
-    if (activeChatroom && user) {
-      const foundUser = activeChatroom.users.find((x) => x.user_id === user.id)
-      if (foundUser && !foundUser.is_message_seen) {
-        removeUnreadChatId(foundUser.user_id)
-        triggerReadMessagesMutation.mutate(foundUser.id)
-      }
-    }
-  }, [activeChatroom])
 
   const { mutateAsync: getMoreMutation } = trpc.chat.messages.getMore.useMutation({
     mutationKey: [{ chatroom_id: activeChatroom?.chatroom_id }],
@@ -116,7 +117,6 @@ const useChatMessages = () => {
         const { scrollTop, clientHeight, scrollHeight } = container
         const scrollTolerance = 40
         const diff = scrollHeight - clientHeight - scrollTolerance
-
         if (Math.abs(scrollTop) >= diff) {
           getMoreMutation({
             chatroom_id: activeChatroom?.chatroom_id,
@@ -130,7 +130,6 @@ const useChatMessages = () => {
       }
     }, 300)
     container.addEventListener("scroll", fetchMoreMessagesObserver)
-
     return () => {
       cleanup()
     }
@@ -159,4 +158,4 @@ const useChatMessages = () => {
   }
 }
 
-export default useChatMessages
+export default useChat

@@ -88,12 +88,12 @@ const useApp = () => {
 
   useEffect(() => {
     if (!userChats || !user) return
-    const splitPath = location.pathname.split("/")
-    if (splitPath.length > 2 && splitPath[2] === activeChatroom?.chatroom_id) return
-
+    // const splitPath = location.pathname.split("/")
+    // if (splitPath.length > 2 && splitPath[2] === activeChatroom?.chatroom_id) return
     const unreadIds = userChats
       .flatMap(({ users }) => users.filter(({ user_id, is_message_seen }) => user_id === user.id && !is_message_seen))
       .map(({ user_id }) => user_id)
+
     setUnreadChatIds(unreadIds)
   }, [userChats, user, activeChatroom])
 
