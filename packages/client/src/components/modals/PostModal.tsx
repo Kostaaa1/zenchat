@@ -106,7 +106,7 @@ const PostComments: FC<{ post: TPost; inspectedUser: TUserData }> = ({ post, ins
     <div
       className={cn(
         "flex flex-col bg-black",
-        isMobile ? "h-full max-h-[220px] w-full rounded-b-xl" : "max-h-[66vw] min-w-[400px] rounded-r-xl"
+        isMobile ? "h-full max-h-[220px] w-full rounded-b-xl" : "max-h-[66vw] min-w-[420px] rounded-r-xl"
       )}
     >
       {isMobile ? null : <PostHeader inspectedUser={inspectedUser} />}
@@ -147,10 +147,6 @@ const PostModal = forwardRef<HTMLDivElement, ModalProps>(({ post, leftRef, right
     }
     load()
   }, [post])
-
-  useEffect(() => {
-    console.log("isLoading", isLoading)
-  }, [isLoading])
 
   return (
     <Modal>

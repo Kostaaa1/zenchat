@@ -30,6 +30,7 @@ img {
   height: 100%;
   width: 100%;
   object-fit: cover;
+  user-select: none;
 }
 
 li {
@@ -82,7 +83,7 @@ textarea {
 }
 
 .no-scroll-padding {
-  padding-right: 12px;
+  padding-right: 11px;
 }
 
 #video-calls {

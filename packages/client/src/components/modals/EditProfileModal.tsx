@@ -82,16 +82,17 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
   const onSubmit: SubmitHandler<Inputs> = async (formData: Inputs) => {
     try {
       if (!user) return
-
       const { file } = formData
       setIsLoading(true)
+
       if (file && file.length > 0) {
         setIsAvatarUpdating(true)
-        const renamedFile = renameFile(file[0])
 
+        const renamedFile = renameFile(file[0])
         const form = new FormData()
         form.append("serialized", JSON.stringify({ userId: user.id }))
         form.append("images", renamedFile)
+
         const { data: image_url } = await axios.post(`${serverURL}/api/upload/avatar`, form, {
           headers: {
             Authorization: `Bearer ${sessionToken}`
@@ -102,13 +103,11 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
         setIsAvatarUpdating(false)
         setFileUrl(image_url)
       }
-
       if (Object.values(dirtyFields).length === 1 && dirtyFields.file) {
         setIsLoading(false)
         reset()
         return
       }
-
       utils.user.get.invalidate({
         data: user?.username,
         type: "username"
@@ -117,7 +116,6 @@ const EditProfileModal = forwardRef<HTMLDivElement>((_, ref) => {
       // @ts-expect-error dsako
       delete formData.file
       delete formData.image_url
-
       updateUserDataMutation.mutate({
         userId: user.id,
         userData: formData

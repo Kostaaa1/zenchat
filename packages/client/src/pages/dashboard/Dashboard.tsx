@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom"
+import { useLocation, useParams } from "react-router-dom"
 import { Loader2 } from "lucide-react"
 import { trpc } from "../../lib/trpcClient"
 import ErrorPage from "../ErrorPage"
@@ -26,7 +26,8 @@ const Dashboard = () => {
   const { user } = useUser()
   const { openModal } = useModalStore((state) => state.actions)
   const isMobile = useGeneralStore((state) => state.isMobile)
-  const [postsLoaded, setPostsLoaded] = useState<boolean>(false)
+  const location = useLocation()
+  const [isDashboardLoading, setIsDashboardLoading] = useState<boolean>(false)
   const { data: inspectedUserData, isFetched } = trpc.user.get.useQuery(
     { data: params.username!, type: "username" },
     {
@@ -35,10 +36,16 @@ const Dashboard = () => {
     }
   )
 
+  useEffect(() => {
+    return () => {
+      setIsDashboardLoading(false)
+    }
+  }, [location && location.pathname])
+
   const loadImages = async (urls: string[]) => {
     try {
       await Promise.all(urls.map(async (x) => await loadImage(x)))
-      setPostsLoaded(true)
+      setIsDashboardLoading(true)
     } catch (error) {
       console.log(error)
     }
@@ -54,7 +61,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     return () => {
-      setPostsLoaded(false)
+      setIsDashboardLoading(false)
     }
   }, [])
 
@@ -71,11 +78,7 @@ const Dashboard = () => {
           <ErrorPage />
         ) : (
           <>
-            {!isFetched || !postsLoaded ? (
-              <div className="mt-10 flex items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin" />
-              </div>
-            ) : (
+            {isFetched && isDashboardLoading ? (
               <>
                 <DashboardHeader username={user?.username} userData={inspectedUserData} />
                 <Separator className="mb-8" />
@@ -124,6 +127,10 @@ const Dashboard = () => {
                   </ul>
                 )}
               </>
+            ) : (
+              <div className="mt-10 flex items-center justify-center">
+                <Loader2 className="h-10 w-10 animate-spin" />
+              </div>
             )}
           </>
         )}

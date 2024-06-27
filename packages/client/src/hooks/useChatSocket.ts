@@ -157,6 +157,7 @@ const useChatSocket = (socket: Socket | null) => {
   useEffect(() => {
     if (!user || !socket) return
     if (socket) {
+      console.log("Listening to sockets.")
       socket.emit("join-room", user.id)
       socket.emit("onMessage", user.id)
       socket.on("call", receiveCall)
