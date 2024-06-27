@@ -72,8 +72,8 @@ const updateUserData = async (userId, userData) => {
         .eq("id", userId)
         .select("*");
     if (error)
-        return { success: false, message: error.message };
-    return { success: true, data: data[0] };
+        return { status: "error", data: error };
+    return { status: "success", data: data[0] };
 };
 exports.updateUserData = updateUserData;
 const getSeachedUsers = async (username, searchValue) => {

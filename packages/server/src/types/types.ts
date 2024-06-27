@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CreateUserSchema, MessageSchema } from "./zodSchemas";
 import supabase from "../config/supabase";
 import { Tables } from "./supabase";
-import { QueryData } from "@supabase/supabase-js";
+import { PostgrestError, QueryData } from "@supabase/supabase-js";
 
 export type TMessage = z.infer<typeof MessageSchema>;
 export type TCreateUserInput = z.infer<typeof CreateUserSchema>;
@@ -14,7 +14,6 @@ export type TChatHistory = QueryData<typeof chatHistory>[0];
 const userWithPosts = supabase.from("users").select("*, posts(*)");
 export type TUserData = QueryData<typeof userWithPosts>[0];
 export type TUserDataState = Omit<TUserData, "posts">;
-
 export type TUserQueryParam = {
   data: string;
   type: "userId" | "email" | "username";
@@ -23,8 +22,8 @@ export type TUserQueryParam = {
 const populatedChat = supabase
   .from("chatroom_users")
   .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)");
-
 export type TPopulatedChat = QueryData<typeof populatedChat>[0];
+
 export type TChatroom = {
   chatroom_id: string;
   last_message: string | null;
@@ -41,6 +40,7 @@ export type TChatroom = {
     is_socket_active: boolean;
   }[];
 };
+
 export type TPost = Tables<"posts">;
 export type UploadPostRequest = {
   user_id: string;
@@ -48,15 +48,21 @@ export type UploadPostRequest = {
   media_name: string;
   media_url: string;
 };
-export type SupabaseResponse<T> =
-  | { success: true; data: T }
-  | { success: false; message: string };
+
+// export type SupabaseResponse<T> =
+// | { success: true; data: T }
+// | { success: false; message: string };
+
+export type DbSuccess<T> = { status: "success"; data: T };
+export type DbError = { status: "error"; data: PostgrestError };
+export type DbResponse<T> = DbError | DbSuccess<T>;
 
 export type S3UploadResponse = {
   key: string;
   type: string;
   size: number;
 };
+
 ////////////////////////
 export type MessagesChannelData = {
   channel: "onMessage";
@@ -80,4 +86,11 @@ export type SocketCallPayload = {
   type: CallType;
   chatroomId: string;
   participants: CallParticipant[];
+};
+
+export type SocketCallUser = {
+  user_id: string;
+  is_active: boolean;
+  image_url?: string | null | undefined;
+  username?: string | undefined;
 };

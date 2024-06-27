@@ -3,9 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.triggerReadMessages = exports.getChatroomUsersFromID = exports.deleteConversation = exports.getChatroomId = exports.insertUserChatroom = exports.createChatRoom = exports.addUserToChatHistory = exports.deleteAllSearchedChats = exports.deleteSearchChat = exports.getSearchedHistory = exports.getUserChatRooms = exports.getChatroomData = exports.sendMessage = exports.unsendMessage = exports.getMoreMessages = exports.getMessages = void 0;
+exports.triggerReadMessages = exports.getChatroomUsersFromID = exports.deleteConversation = exports.getChatroomImages = exports.getChatroomID = exports.insertUserChatroom = exports.createChatRoom = exports.addUserToChatHistory = exports.deleteAllSearchedChats = exports.deleteSearchChat = exports.getSearchedHistory = exports.getUserChatRooms = exports.getChatroomData = exports.sendMessage = exports.unsendMessage = exports.getMoreMessages = exports.getMessages = void 0;
 require("dotenv/config");
-const server_1 = require("@trpc/server");
 const supabase_1 = __importDefault(require("../../config/supabase"));
 const initSocket_1 = require("../../config/initSocket");
 const s3_1 = require("../s3");
@@ -18,9 +17,9 @@ const getMessages = async (chatroom_id) => {
         ascending: false,
     })
         .limit(22);
-    if (!data || error)
-        throw new Error(`Error when fetching all messages: ${error.message}`);
-    return data;
+    if (error)
+        return { status: "error", data: error };
+    return { status: "success", data };
 };
 exports.getMessages = getMessages;
 const getMoreMessages = async (chatroom_id, lastMessageDate) => {
@@ -31,13 +30,9 @@ const getMoreMessages = async (chatroom_id, lastMessageDate) => {
         .lt("created_at", lastMessageDate)
         .order("created_at", { ascending: false })
         .limit(22);
-    if (!data || error) {
-        throw new server_1.TRPCError({
-            code: "BAD_REQUEST",
-            message: `Error when fetching all messages: ${error.message}`,
-        });
-    }
-    return data;
+    if (error)
+        return { status: "error", data: error };
+    return { status: "success", data };
 };
 exports.getMoreMessages = getMoreMessages;
 const unsendMessage = async ({ id, imageUrl, }) => {
@@ -57,35 +52,33 @@ const sendMessage = async (messageData) => {
     if (messageData.is_image)
         messageData.content = (0, s3_1.s3KeyConstructor)({ folder: "messages", name: messageData.content });
     const { chatroom_id, content, created_at, is_image } = messageData;
-    const { error: newMessageError } = await supabase_1.default.from("messages").insert(messageData);
-    const { error: lastMessageUpdateError } = await supabase_1.default
-        .from("chatrooms")
-        .update({
-        last_message: is_image ? "Photo" : content,
-        created_at,
-    })
-        .eq("id", chatroom_id);
-    if (lastMessageUpdateError) {
-        throw new server_1.TRPCError({
-            code: "BAD_REQUEST",
-            message: `Error when updating chatroom last message: ${lastMessageUpdateError}`,
-        });
+    const updates = [
+        supabase_1.default.from("messages").insert(messageData),
+        supabase_1.default
+            .from("chatrooms")
+            .update({
+            last_message: is_image ? "Photo" : content,
+            created_at,
+        })
+            .eq("id", chatroom_id),
+        supabase_1.default
+            .from("chatroom_users")
+            .update({ is_message_seen: false })
+            .eq("chatroom_id", chatroom_id)
+            .neq("user_id", messageData.sender_id),
+        supabase_1.default.from("chatroom_users").update({ is_active: true }).eq("chatroom_id", chatroom_id),
+    ];
+    const errors = [];
+    await Promise.all(updates.map(async (t) => {
+        const { error } = await t;
+        if (error)
+            errors.push(error);
+    }));
+    for (const err in errors) {
+        console.log("MESSAGE NOT SENT: ", err);
+        return { status: "error", data: errors[0] };
     }
-    await supabase_1.default
-        .from("chatroom_users")
-        .update({ is_message_seen: false })
-        .eq("chatroom_id", chatroom_id)
-        .neq("user_id", messageData.sender_id);
-    await supabase_1.default
-        .from("chatroom_users")
-        .update({ is_active: true })
-        .eq("chatroom_id", chatroom_id);
-    if (newMessageError) {
-        throw new server_1.TRPCError({
-            code: "BAD_REQUEST",
-            message: `Error when inserting new message: ${newMessageError}`,
-        });
-    }
+    return null;
 };
 exports.sendMessage = sendMessage;
 const getChatroomData = async (chatroom_id) => {
@@ -93,9 +86,13 @@ const getChatroomData = async (chatroom_id) => {
         .from("chatroom_users")
         .select("*, users(username, image_url), chatrooms(last_message, created_at, is_group, admin)")
         .eq("chatroom_id", chatroom_id);
-    if (!data) {
-        throw new Error(`Error fetching chat data for chatroom ${chatroom_id}: ${error?.message || "No data"}`);
-    }
+    if (error)
+        return { status: "error", data: error };
+    if (!data || !data[0].chatrooms)
+        return {
+            status: "error",
+            data: { code: "500", message: `Could not get the chatrooms`, details: "", hint: "" },
+        };
     const chatroomUsers = [];
     for (const item of data) {
         const { users, user_id, id, is_active, is_message_seen } = item;
@@ -114,8 +111,6 @@ const getChatroomData = async (chatroom_id) => {
         }
     }
     const { chatrooms } = data[0];
-    if (!chatrooms)
-        return null;
     const result = {
         chatroom_id,
         ...chatrooms,
@@ -126,33 +121,29 @@ const getChatroomData = async (chatroom_id) => {
             return 0;
         }),
     };
-    return result;
+    return { status: "success", data: result };
 };
 exports.getChatroomData = getChatroomData;
 const getUserChatRooms = async (userId) => {
-    try {
-        const { data: chatData, error } = await supabase_1.default
-            .from("chatroom_users")
-            .select("chatroom_id")
-            .eq("user_id", userId);
-        if (!chatData)
-            throw new Error(`Error while getting user chatrooms: ${error}`);
-        const chatrooms = await Promise.all(chatData.map(async (chatroom) => {
-            const s = await (0, exports.getChatroomData)(chatroom.chatroom_id);
-            return s;
-        }));
-        const validChatrooms = chatrooms.filter((x) => x !== null);
-        validChatrooms.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-            return dateB - dateA;
-        });
-        return validChatrooms;
+    const { data: chatroomUsers, error } = await supabase_1.default
+        .from("chatroom_users")
+        .select("chatroom_id")
+        .eq("user_id", userId);
+    if (error)
+        return { status: "error", data: error };
+    const chatrooms = [];
+    for (const chatroom of chatroomUsers) {
+        const { data, status } = await (0, exports.getChatroomData)(chatroom.chatroom_id);
+        if (status === "error")
+            return { data, status };
+        chatrooms.push(data);
     }
-    catch (error) {
-        console.error(error);
-        return [];
-    }
+    chatrooms.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
+    });
+    return { status: "success", data: chatrooms };
 };
 exports.getUserChatRooms = getUserChatRooms;
 const getSearchedHistory = async (id) => {
@@ -190,18 +181,17 @@ const addUserToChatHistory = async ({ main_user_id, user_id, }) => {
         .from("searched_users")
         .select("main_user_id")
         .eq("user_id", user_id);
-    if (existingError) {
-        console.log(existingError);
-        return;
-    }
+    if (existingError)
+        return { status: "error", data: existingError };
     if (existingData.length === 0) {
         const { error } = await supabase_1.default.from("searched_users").insert({
             main_user_id,
             user_id,
         });
         if (error)
-            console.log(error);
+            return { status: "error", data: error };
     }
+    return null;
 };
 exports.addUserToChatHistory = addUserToChatHistory;
 const createChatRoom = async (is_group, admin) => {
@@ -225,88 +215,88 @@ const insertUserChatroom = async (chatroomId, userId, isActive) => {
         console.error("Failed inserting chatroom for user!", error);
 };
 exports.insertUserChatroom = insertUserChatroom;
-const getChatroomId = async (userIds, admin) => {
-    try {
-        const { data, error } = await supabase_1.default.rpc("get_chatroom_id", {
-            user_ids: userIds,
-        });
-        if (error) {
-            throw new Error(`Error executing SQL Procedure: ${JSON.stringify(error)}`);
+const getChatroomID = async (userIds, admin) => {
+    const { data, error } = await supabase_1.default.rpc("get_chatroom_id", {
+        user_ids: userIds,
+    });
+    if (error)
+        return { data: error, status: "error" };
+    if (!data || data.length === 0) {
+        const isGroupChat = userIds.length > 2;
+        const chatroomId = await (0, exports.createChatRoom)(isGroupChat, admin);
+        for (const user of userIds) {
+            const isActive = user === admin;
+            await (0, exports.insertUserChatroom)(chatroomId, user, isActive);
         }
-        if (!data || data.length === 0) {
-            const isGroupChat = userIds.length > 2;
-            const chatroomId = await (0, exports.createChatRoom)(isGroupChat, admin);
-            for (const user of userIds) {
-                const isActive = user === admin;
-                await (0, exports.insertUserChatroom)(chatroomId, user, isActive);
-            }
-            return chatroomId;
-        }
-        else {
-            const { error: err0 } = await supabase_1.default
-                .from("chatroom_users")
-                .update({ is_active: true })
-                .eq("chatroom_id", data[0].chatroom_id)
-                .eq("user_id", admin);
-            if (error)
-                console.log("Error while updating is_active", err0);
-            return data[0].chatroom_id;
-        }
+        return { status: "success", data: chatroomId };
     }
-    catch (error) {
-        console.error(error);
+    else {
+        const { error: err0 } = await supabase_1.default
+            .from("chatroom_users")
+            .update({ is_active: true })
+            .eq("chatroom_id", data[0].chatroom_id)
+            .eq("user_id", admin);
+        if (err0)
+            return { status: "error", data: err0 };
+        return { status: "success", data: data[0].chatroom_id };
     }
 };
-exports.getChatroomId = getChatroomId;
+exports.getChatroomID = getChatroomID;
+const getChatroomImages = async (chatroom_id) => {
+    const { data: images, error } = await supabase_1.default
+        .from("messages")
+        .select("content")
+        .eq("chatroom_id", chatroom_id)
+        .eq("is_image", true);
+    if (error)
+        return { status: "error", data: error };
+    return { status: "success", data: images.map((x) => x.content) };
+};
+exports.getChatroomImages = getChatroomImages;
 const deleteConversation = async (chatroom_id, user_id) => {
-    try {
-        const { data } = await supabase_1.default.from("chatroom_users").select("*").match({ chatroom_id });
-        if (data && data.filter((x) => x.is_active).length === 1) {
-            const tables = [
-                "chatroom_users",
-                "messages",
-                "chatrooms",
-            ];
-            async function deleteRow(table) {
-                const { error } = await supabase_1.default
-                    .from(table)
-                    .delete()
-                    .eq(table === "chatrooms" ? "id" : "chatroom_id", chatroom_id);
-                return { error, table };
-            }
-            try {
-                const { data: images } = await supabase_1.default
-                    .from("messages")
-                    .select("content")
-                    .eq("chatroom_id", chatroom_id)
-                    .eq("is_image", true);
-                if (images && images.length > 0) {
-                    for (const img of images) {
-                        await (0, s3_1.deleteS3Object)(img.content);
-                    }
-                }
-                for (const table of tables) {
-                    const res = await deleteRow(table);
-                    res.error
-                        ? console.log(`Error deleting from ${table}:`, res.error)
-                        : console.log("Deleted successfull", chatroom_id);
-                }
-            }
-            catch (error) {
-                console.error("Unexpected error when deleting last field", error);
-            }
+    const { data, error: e1 } = await supabase_1.default
+        .from("chatroom_users")
+        .select("*")
+        .match({ chatroom_id });
+    if (e1)
+        return { status: "error", data: e1 };
+    if (data && data.filter((x) => x.is_active).length === 1) {
+        const tables = [
+            "chatroom_users",
+            "messages",
+            "chatrooms",
+        ];
+        async function deleteRow(table) {
+            const { error } = await supabase_1.default
+                .from(table)
+                .delete()
+                .eq(table === "chatrooms" ? "id" : "chatroom_id", chatroom_id);
+            return { error, table };
         }
-        else {
-            await supabase_1.default
-                .from("chatroom_users")
-                .update({ is_active: false })
-                .eq("user_id", user_id)
-                .eq("chatroom_id", chatroom_id);
+        const { status, data: images } = await (0, exports.getChatroomImages)(chatroom_id);
+        if (status === "error")
+            return { status: "error", data: images };
+        if (images && images.length > 0) {
+            await Promise.all(images.map(async (img) => {
+                await (0, s3_1.deleteS3Object)(img);
+            }));
+        }
+        for (const table of tables) {
+            const { error } = await deleteRow(table);
+            if (error)
+                return { status: "error", data: error };
         }
     }
-    catch (error) {
-        console.log(error);
+    else {
+        const { error } = await supabase_1.default
+            .from("chatroom_users")
+            .update({ is_active: false })
+            .eq("user_id", user_id)
+            .eq("chatroom_id", chatroom_id);
+        if (error)
+            return { status: "error", data: error };
     }
+    return null;
 };
 exports.deleteConversation = deleteConversation;
 const getChatroomUsersFromID = async (chatroom_id) => {
@@ -314,9 +304,8 @@ const getChatroomUsersFromID = async (chatroom_id) => {
         .from("chatroom_users")
         .select("user_id, is_active, users(image_url, username)")
         .eq("chatroom_id", chatroom_id);
-    if (error) {
+    if (error)
         return { status: "error", data: error };
-    }
     const users = data.map((user) => ({
         ...user.users,
         is_active: user.is_active,
@@ -331,7 +320,8 @@ const triggerReadMessages = async (id) => {
         .update({ is_message_seen: true })
         .eq("id", id);
     if (error)
-        throw new Error(`Error while triggering Read Messages value: ${error.message}`);
+        return { status: "error", data: error };
+    return null;
 };
 exports.triggerReadMessages = triggerReadMessages;
 //# sourceMappingURL=chatroom.js.map

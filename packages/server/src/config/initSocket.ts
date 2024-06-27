@@ -22,6 +22,7 @@ export const initSocket = (io: Server) => {
       console.log("Call", payload);
       const { participants, type } = payload;
       const caller = participants.find((x) => x.is_caller);
+
       if (type === "initiated") {
         for (const receiver of participants) {
           console.log("RECEIVER", receiver);

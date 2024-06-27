@@ -8,6 +8,7 @@ import {
   unsendMessage,
 } from "../../utils/supabase/chatroom";
 import { MessageSchema } from "../../types/zodSchemas";
+import { TRPCError } from "@trpc/server";
 
 export const messageRouter = t.router({
   get: protectedProcedure
@@ -19,8 +20,11 @@ export const messageRouter = t.router({
     .query(async ({ input }) => {
       const { chatroom_id } = input;
       if (!chatroom_id) return;
-      const messages = await getMessages(chatroom_id);
-      return messages;
+      const { data, status } = await getMessages(chatroom_id);
+      if (status === "error") {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: data.message });
+      }
+      return data;
     }),
   getMore: protectedProcedure
     .input(
@@ -31,16 +35,18 @@ export const messageRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { chatroom_id, lastMessageDate } = input;
-      if (!chatroom_id) return;
-      console.log("Called get more messages: ", input);
-      const messages = await getMoreMessages(chatroom_id, lastMessageDate);
-      return messages;
+      const { data, status } = await getMoreMessages(chatroom_id, lastMessageDate);
+      if (status === "error") {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: data.message });
+      }
+      return data;
     }),
   send: protectedProcedure.input(MessageSchema).mutation(async ({ input: messageData }) => {
     try {
       const { content, is_image } = messageData;
       if (is_image) messageData["content"] = content;
-      await sendMessage(messageData);
+      const res = await sendMessage(messageData);
+      if (res) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: res.data.message });
     } catch (error) {
       console.log(error);
     }
@@ -51,6 +57,7 @@ export const messageRouter = t.router({
       await unsendMessage(input);
     }),
   triggerReadMessages: protectedProcedure.input(z.string()).mutation(async ({ input: id }) => {
-    await triggerReadMessages(id);
+    const res = await triggerReadMessages(id);
+    if (res) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: res.data.message });
   }),
 });

@@ -51,11 +51,11 @@ export const userRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { userData, userId } = input;
-      const response = await updateUserData(userId, userData);
-      if (!response.success) {
-        throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: response.message });
+      const { data, status } = await updateUserData(userId, userData);
+      if (status === "error") {
+        throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: data.message });
       }
-      return response.data;
+      return data;
     }),
   create: protectedProcedure.input(CreateUserSchema).mutation(async ({ input }) => {
     try {

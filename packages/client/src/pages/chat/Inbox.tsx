@@ -23,7 +23,6 @@ const Inbox = () => {
     activeChatroomTitle: state.activeChatroomTitle,
     showDetails: state.showDetails
   }))
-  // const isUserChatsLoading = useChatStore((state) => state.isUserChatsLoading)
   const { setActiveChatroom, setActiveChatroomTitle } = useChatStore((state) => state.actions)
   const { user, userChats, areChatsLoading } = useUser()
 

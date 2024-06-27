@@ -1,7 +1,7 @@
 import supabase from "../../config/supabase";
 import { Tables } from "../../types/supabase";
 import { deleteS3Object } from "../s3";
-import { SupabaseResponse, TCreateUserInput, TUserQueryParam } from "../../types/types";
+import { DbResponse, TCreateUserInput, TUserQueryParam } from "../../types/types";
 
 export const getUser = async ({ data, type }: TUserQueryParam) => {
   if (!data) return null;
@@ -77,15 +77,15 @@ export const updateUserData = async (
     first_name?: string | undefined;
     image_url?: string | undefined;
   }
-): Promise<SupabaseResponse<Tables<"users">>> => {
+): Promise<DbResponse<Tables<"users">>> => {
   const { data, error } = await supabase
     .from("users")
     .update({ ...userData })
     .eq("id", userId)
     .select("*");
 
-  if (error) return { success: false, message: error.message };
-  return { success: true, data: data[0] };
+  if (error) return { status: "error", data: error };
+  return { status: "success", data: data[0] };
 };
 
 export const getSeachedUsers = async (username: string, searchValue: string) => {

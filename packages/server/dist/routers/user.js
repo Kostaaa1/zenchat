@@ -44,11 +44,11 @@ exports.userRouter = trpc_1.t.router({
     }))
         .mutation(async ({ input }) => {
         const { userData, userId } = input;
-        const response = await (0, user_1.updateUserData)(userId, userData);
-        if (!response.success) {
-            throw new server_1.TRPCError({ code: "UNPROCESSABLE_CONTENT", message: response.message });
+        const { data, status } = await (0, user_1.updateUserData)(userId, userData);
+        if (status === "error") {
+            throw new server_1.TRPCError({ code: "UNPROCESSABLE_CONTENT", message: data.message });
         }
-        return response.data;
+        return data;
     }),
     create: trpc_1.protectedProcedure.input(zodSchemas_1.CreateUserSchema).mutation(async ({ input }) => {
         try {
