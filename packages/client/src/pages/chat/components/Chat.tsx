@@ -2,7 +2,6 @@ import React, { FC, useRef } from "react"
 import Button from "../../../components/Button"
 import { TChatroom } from "../../../../../server/src/types/types"
 import { Loader2 } from "lucide-react"
-import useChatStore from "../../../stores/chatStore"
 import RenderAvatar from "../../../components/avatar/RenderAvatar"
 import Message from "./Message"
 import MessageInput from "./MessageInput"
@@ -17,6 +16,10 @@ type ChatProps = {
 }
 
 const Chat: FC<ChatProps> = ({ activeChatroom }) => {
+  const { user } = useUser()
+  const isMobile = useGeneralStore((state) => state.isMobile)
+  const iconRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const {
     scrollRef,
     shouldFetchMoreMessages,
@@ -25,15 +28,9 @@ const Chat: FC<ChatProps> = ({ activeChatroom }) => {
     messages,
     navigate,
     setActiveMessage,
+    activeChatroomTitle,
     scrollToStart
   } = useChat()
-  const { user } = useUser()
-  const isMobile = useGeneralStore((state) => state.isMobile)
-  const iconRef = useRef<HTMLDivElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const { activeChatroomTitle } = useChatStore((state) => ({
-    activeChatroomTitle: state.activeChatroomTitle
-  }))
 
   return (
     <div className={cn("relative flex h-full w-full flex-col justify-between", !isMobile && "pb-2")}>
@@ -45,8 +42,8 @@ const Chat: FC<ChatProps> = ({ activeChatroom }) => {
           </div>
         ) : (
           <div
-            ref={scrollRef}
             className="flex h-full flex-col-reverse justify-between overflow-x-hidden overflow-y-scroll"
+            ref={scrollRef}
           >
             <ul className={cn("mb-2 flex flex-col-reverse", isMobile ? "px-2" : "px-4")}>
               {messages?.map((message, id) => (
@@ -73,16 +70,12 @@ const Chat: FC<ChatProps> = ({ activeChatroom }) => {
               <div className="mt-8 flex flex-col items-center">
                 <RenderAvatar
                   avatarSize="xl"
-                  image_urls={
+                  image_url={
                     activeChatroom.is_group
-                      ? {
-                          image_url_1: activeChatroom.users[0]?.image_url,
-                          image_url_2: activeChatroom.users[1]?.image_url
-                        }
-                      : {
-                          image_url_1: activeChatroom.users.find((x) => x.user_id !== user?.id)?.image_url
-                        }
+                      ? activeChatroom.users[0]?.image_url
+                      : activeChatroom.users.find((x) => x.user_id !== user?.id)?.image_url
                   }
+                  image_url_2={activeChatroom.users[1]?.image_url}
                 />
                 <div className={cn("flex flex-col items-center ", activeChatroom.is_group ? "pt-12" : "pt-4")}>
                   <h3 className="text-md py-1 font-semibold">

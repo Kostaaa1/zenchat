@@ -85,10 +85,8 @@ const List: FC<ListProps> = ({
               <RenderAvatar
                 avatarSize={image_url?.[1] && avatarSize === "lg" ? "md" : avatarSize}
                 isOnline={isOnline}
-                image_urls={{
-                  image_url_1: image_url?.[0],
-                  image_url_2: image_url?.[1]
-                }}
+                image_url={image_url?.[0]}
+                image_url_2={image_url?.[1]}
               />
             )}
             <div className="flex w-full flex-col text-start">

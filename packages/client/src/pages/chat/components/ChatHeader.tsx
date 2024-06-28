@@ -53,19 +53,7 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
       {isMobile && <div className="flex-[3]">{<Icon name="ArrowLeft" onClick={navigateToPrevious} />}</div>}
       <div className="flex items-center space-x-2" onClick={handleNavigate}>
         {!isMobile && (
-          <RenderAvatar
-            avatarSize="md"
-            image_urls={
-              is_group
-                ? {
-                    image_url_1: users[0]?.image_url,
-                    image_url_2: users[1]?.image_url
-                  }
-                : {
-                    image_url_1: users.find((x) => x.user_id !== user?.id)?.image_url
-                  }
-            }
-          />
+          <RenderAvatar avatarSize="md" image_url={users[0]?.image_url} image_url_2={users[1]?.image_url} />
         )}
         <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       </div>
