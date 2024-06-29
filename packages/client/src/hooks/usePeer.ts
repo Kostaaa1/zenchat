@@ -28,9 +28,7 @@ const usePeer = () => {
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
-  const { setIsCalling, clearAll, setIsRemoteDisplayed, addRemoteVideo } = usePeerConnectionStore(
-    (state) => state.actions
-  )
+  const { setIsCalling, clearAll, setIsRemoteDisplayed } = usePeerConnectionStore((state) => state.actions)
   const { remoteVideos, isRemoteMuted, isRemoteDisplayed, isCalling, isCallAccepted, callInfo } =
     usePeerConnectionStore((state) => ({
       isCalling: state.isCalling,

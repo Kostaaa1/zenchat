@@ -15,7 +15,6 @@ const RTCVoiceCall = () => {
   const {
     callInfo,
     activateParticipant,
-    remoteVideos,
     isRemoteDisplayed,
     isRemoteMuted,
     cleanup,
