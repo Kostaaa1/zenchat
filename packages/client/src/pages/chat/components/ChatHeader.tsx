@@ -66,7 +66,7 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
           <Icon name="ArrowLeft" />
         )}
       </div>
-      <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
+      <h1 className="pl-2 text-lg font-semibold">{activeChatroomTitle}</h1>
       <div className="flex flex-[3] justify-end space-x-2">
         <Phone
           width={iconSize}

@@ -12,8 +12,18 @@ import usePeer from "../../../hooks/usePeer"
 import useGeneralStore from "../../../stores/generalStore"
 
 const RTCVoiceCall = () => {
-  const { callInfo, activateParticipant, remoteVideos, cleanup, hangup, isCallAccepted, isCalling, startCall } =
-    usePeer()
+  const {
+    callInfo,
+    activateParticipant,
+    remoteVideos,
+    isRemoteDisplayed,
+    isRemoteMuted,
+    cleanup,
+    hangup,
+    isCallAccepted,
+    isCalling,
+    startCall
+  } = usePeer()
   const navigate = useNavigate()
   const { user } = useUser()
   const isMobile = useGeneralStore((state) => state.isMobile)
@@ -114,7 +124,23 @@ const RTCVoiceCall = () => {
             <>
               <div id="video-calls" className="h-full space-y-2">
                 <video className="local-video" autoPlay muted />
-                <>
+                <video
+                  className="remote-video"
+                  autoPlay
+                  style={{ display: isRemoteDisplayed ? "" : "none" }}
+                  muted={isRemoteMuted}
+                />
+                <div
+                  className="flex h-full w-full items-center justify-center"
+                  style={{ display: isRemoteDisplayed ? "none" : "" }}
+                >
+                  <img
+                    src={user.image_url ?? ""}
+                    className="pointer-events-none absolute left-0 top-0 h-full w-full blur-[400px]"
+                  />
+                  <Avatar image_url={user.image_url} size="xxl" />
+                </div>
+                {/* <>
                   {remoteVideos.map(({ id, isVideoDisplayed }) => (
                     <div
                       key={id}
@@ -129,7 +155,7 @@ const RTCVoiceCall = () => {
                       <Avatar image_url={user.image_url} size="xxl" />
                     </div>
                   ))}
-                </>
+                </> */}
               </div>
               <div className="fixed bottom-4 flex w-full items-center justify-center space-x-4">
                 {buttons.map(({ onIcon, offIcon, id, isOff }) => (

@@ -28,13 +28,18 @@ const usePeer = () => {
   const { chatroomId } = useParams<{
     chatroomId: string
   }>()
-  const { setIsCalling, clearAll, addRemoteVideo } = usePeerConnectionStore((state) => state.actions)
-  const { remoteVideos, isCalling, isCallAccepted, callInfo } = usePeerConnectionStore((state) => ({
-    isCalling: state.isCalling,
-    isCallAccepted: state.isCallAccepted,
-    callInfo: state.callInfo,
-    remoteVideos: state.remoteVideos
-  }))
+  const { setIsCalling, clearAll, setIsRemoteDisplayed, addRemoteVideo } = usePeerConnectionStore(
+    (state) => state.actions
+  )
+  const { remoteVideos, isRemoteMuted, isRemoteDisplayed, isCalling, isCallAccepted, callInfo } =
+    usePeerConnectionStore((state) => ({
+      isCalling: state.isCalling,
+      isCallAccepted: state.isCallAccepted,
+      callInfo: state.callInfo,
+      remoteVideos: state.remoteVideos,
+      isRemoteDisplayed: state.isRemoteDisplayed,
+      isRemoteMuted: state.isRemoteMuted
+    }))
   const [peerConnection, setPeerConnection] = useState<Peer | null>(null)
   const { data: chatroomUsers } = trpc.chat.get.chatroom_users.useQuery(chatroomId!, {
     enabled: !!chatroomId,
@@ -48,12 +53,16 @@ const usePeer = () => {
       stream.getTracks().forEach((track) => track.stop())
       local.srcObject = null
     }
-    const remote = document.querySelectorAll(".remote-video")
-    if (remote) remote.forEach((el) => el.remove())
+
+    const remote = document.querySelector(".remote-video") as HTMLVideoElement
+    if (remote) {
+      const stream = remote.srcObject as MediaStream
+      stream.getTracks().forEach((track) => track.stop())
+      local.srcObject = null
+    }
   }
 
   const cleanup = useCallback(() => {
-    videoCleanup()
     if (peerConnection) {
       peerConnection.off("call")
       peerConnection.off("close")
@@ -61,6 +70,7 @@ const usePeer = () => {
       peerConnection.disconnect()
     }
     clearAll()
+    videoCleanup()
     setPeerConnection(null)
   }, [peerConnection, clearAll])
 
@@ -75,40 +85,48 @@ const usePeer = () => {
     }
   }, [chatroomUsers, callInfo, cleanup, peerConnection, user])
 
-  const createRemoteVideo = (id: string, srcObject: MediaStream) => {
-    const vid = document.getElementById(id) as HTMLVideoElement
-    const addProps = (video: HTMLVideoElement) => {
-      video.classList.add("remote-video")
-      video.setAttribute("id", id)
+  // const createRemoteVideo = (id: string, srcObject: MediaStream) => {
+  //   const vid = document.getElementById(id) as HTMLVideoElement
+  //   const addProps = (video: HTMLVideoElement) => {
+  //     video.classList.add("remote-video")
+  //     video.setAttribute("id", id)
+  //     video.srcObject = srcObject
+  //     video.muted = false
+  //     video.autoplay = true
+  //   }
+  //   if (!vid) {
+  //     const parent = document.getElementById("video-calls")
+  //     if (parent) {
+  //       const newVid = document.createElement("video") as HTMLVideoElement
+  //       addProps(newVid)
+  //       addRemoteVideo({ id, isVideoDisplayed: true, isVideoMuted: false })
+  //       parent.appendChild(newVid)
+  //     }
+  //   } else {
+  //     vid.srcObject = srcObject
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   if (remoteVideos.length > 0) {
+  //     remoteVideos.forEach((video) => {
+  //       const vid = document.getElementById(video.id) as HTMLVideoElement
+  //       if (vid) {
+  //         vid.style.display = video.isVideoDisplayed ? "" : "none"
+  //         vid.muted = video.isVideoMuted
+  //       }
+  //     })
+  //   }
+  // }, [remoteVideos])
+
+  const remoteVideoSetup = (srcObject: MediaStream) => {
+    const video = document.querySelector(".remote-video") as HTMLVideoElement
+    if (video) {
+      setIsRemoteDisplayed(true)
       video.srcObject = srcObject
-      video.muted = false
       video.autoplay = true
     }
-
-    if (!vid) {
-      const parent = document.getElementById("video-calls")
-      if (parent) {
-        const newVid = document.createElement("video") as HTMLVideoElement
-        addProps(newVid)
-        addRemoteVideo({ id, isVideoDisplayed: true, isVideoMuted: false })
-        parent.appendChild(newVid)
-      }
-    } else {
-      vid.srcObject = srcObject
-    }
   }
-
-  useEffect(() => {
-    if (remoteVideos.length > 0) {
-      remoteVideos.forEach((video) => {
-        const vid = document.getElementById(video.id) as HTMLVideoElement
-        if (vid) {
-          vid.style.display = video.isVideoDisplayed ? "" : "none"
-          vid.muted = video.isVideoMuted
-        }
-      })
-    }
-  }, [remoteVideos])
 
   useEffect(() => {
     if (!isCallAccepted || !callInfo || !user) return
@@ -124,12 +142,14 @@ const usePeer = () => {
         video.muted = true
         video.autoplay = true
       }
+
       participants.forEach((participant) => {
         if (participant.is_caller) {
           if (participant.id !== user.id) {
             const conn = peer.call(participant.id, localStream)
             conn.on("stream", (stream) => {
-              createRemoteVideo(participant.id, stream)
+              // createRemoteVideo(participant.id, stream)
+              remoteVideoSetup(stream)
             })
           }
         } else {
@@ -137,7 +157,8 @@ const usePeer = () => {
             call.answer(localStream)
             call.on("stream", (callStream) => {
               if (participant.id !== user.id) {
-                createRemoteVideo(participant.id, callStream)
+                // createRemoteVideo(participant.id, callStream)
+                remoteVideoSetup(callStream)
               }
             })
           })
@@ -152,21 +173,27 @@ const usePeer = () => {
     )
   }
 
+  useEffect(() => {
+    let timeout: NodeJS.Timeout
+    if (isCalling) {
+      timeout = setTimeout(() => {
+        stopSound("source1")
+        playSound({ id: "source1", path: hangupSound, start: 0.4 })
+        cleanup()
+      }, 20000)
+    }
+
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [isCalling])
+
   const startCall = useCallback(
     (data: SocketCallPayload) => {
       if (!user) return
       playSound({ id: "source1", path: ringingPath, start: 1 })
       setIsCalling(true)
       socket.emit("call", data as SocketCallPayload)
-
-      const timeout = setTimeout(() => {
-        console.log("Hanging up, timed out")
-        stopSound("source1")
-        playSound({ id: "source1", path: hangupSound, start: 0.4 })
-        cleanup()
-      }, 20000)
-
-      return timeout
     },
     [user]
   )
@@ -180,7 +207,9 @@ const usePeer = () => {
     callInfo,
     activateParticipant,
     peerConnection,
-    remoteVideos
+    remoteVideos,
+    isRemoteMuted,
+    isRemoteDisplayed
   }
 }
 

@@ -15,7 +15,7 @@ const useChatSocket = (socket: Socket | null) => {
   const { user } = useUser()
   const utils = trpc.useUtils()
   const { markParticipantsMsgSeen, updateLastMessage } = useChatCache()
-  const { setIsCallAccepted, setCallInfo, toggleDisplayVideo, toggleMuteVideo } = usePeerConnectionStore(
+  const { setIsCallAccepted, setIsCalling, setCallInfo, toggleDisplayVideo, toggleMuteVideo } = usePeerConnectionStore(
     (state) => state.actions
   )
   const { openModal } = useModalStore((state) => state.actions)
@@ -96,6 +96,7 @@ const useChatSocket = (socket: Socket | null) => {
         case "accepted": {
           setCallInfo(payload)
           setIsCallAccepted(true)
+          setIsCalling(false)
           break
         }
         case "hangup": {
@@ -104,13 +105,13 @@ const useChatSocket = (socket: Socket | null) => {
           break
         }
         case "mute-remote": {
-          const id = participants.find((x) => x.is_caller)!.id
-          toggleMuteVideo(id)
+          // const id = participants.find((x) => x.is_caller)!.id
+          toggleMuteVideo()
           break
         }
         case "show-remote": {
-          const id = participants.find((x) => x.is_caller)!.id
-          toggleDisplayVideo(id)
+          // const id = participants.find((x) => x.is_caller)!.id
+          toggleDisplayVideo()
           break
         }
         case "declined": {
@@ -124,7 +125,6 @@ const useChatSocket = (socket: Socket | null) => {
   useEffect(() => {
     if (!socket || !user) return
     socket.on("onMessage", receiveNewSocketMessage)
-
     return () => {
       socket.off("onMessage")
     }
