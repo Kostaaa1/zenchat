@@ -85,7 +85,7 @@ const useChatSocket = (socket: Socket | null) => {
 
   const receiveCall = useCallback(
     (payload: SocketCallPayload) => {
-      const { type, participants } = payload
+      const { type } = payload
       stopSound("source1")
       switch (type) {
         case "initiated": {
