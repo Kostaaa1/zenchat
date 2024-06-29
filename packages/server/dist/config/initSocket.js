@@ -47,6 +47,12 @@ const initSocket = (io) => {
                     io.to(caller.id).emit("call", payload);
             }
         });
+        socket.on("msgSeen", (payload) => {
+            const { participants, chatroomId } = payload;
+            for (const p of participants) {
+                io.to(p).emit("msgSeen", chatroomId);
+            }
+        });
         socket.on("onMessage", () => {
             try {
                 supabase_1.default
@@ -58,8 +64,8 @@ const initSocket = (io) => {
                         supabase_1.default.channel("onMessage").unsubscribe();
                         return;
                     }
-                    for (const reciever of data) {
-                        const { is_active, user_id } = reciever;
+                    for (const receiver of data) {
+                        const { is_active, user_id } = receiver;
                         io.to(user_id).emit("onMessage", {
                             channel: "onMessage",
                             data: { message: messageData, shouldActivate: !is_active, user_id },

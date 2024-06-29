@@ -52,32 +52,31 @@ const sendMessage = async (messageData) => {
     if (messageData.is_image)
         messageData.content = (0, s3_1.s3KeyConstructor)({ folder: "messages", name: messageData.content });
     const { chatroom_id, content, created_at, is_image } = messageData;
-    const updates = [
-        supabase_1.default.from("messages").insert(messageData),
-        supabase_1.default
-            .from("chatrooms")
-            .update({
-            last_message: is_image ? "Photo" : content,
-            created_at,
-        })
-            .eq("id", chatroom_id),
-        supabase_1.default
-            .from("chatroom_users")
-            .update({ is_message_seen: false })
-            .eq("chatroom_id", chatroom_id)
-            .neq("user_id", messageData.sender_id),
-        supabase_1.default.from("chatroom_users").update({ is_active: true }).eq("chatroom_id", chatroom_id),
-    ];
-    const errors = [];
-    await Promise.all(updates.map(async (t) => {
-        const { error } = await t;
-        if (error)
-            errors.push(error);
-    }));
-    for (const err in errors) {
-        console.log("MESSAGE NOT SENT: ", err);
-        return { status: "error", data: errors[0] };
-    }
+    const { error } = await supabase_1.default.from("messages").insert(messageData);
+    if (error)
+        return { status: "error", data: error };
+    const { error: err0 } = await supabase_1.default
+        .from("chatrooms")
+        .update({
+        last_message: is_image ? "Photo" : content,
+        created_at,
+    })
+        .eq("id", chatroom_id);
+    if (err0)
+        return { status: "error", data: err0 };
+    const { error: err1 } = await supabase_1.default
+        .from("chatroom_users")
+        .update({ is_message_seen: false })
+        .eq("chatroom_id", chatroom_id)
+        .neq("user_id", messageData.sender_id);
+    if (err1)
+        return { status: "error", data: err1 };
+    const { error: err2 } = await supabase_1.default
+        .from("chatroom_users")
+        .update({ is_active: true })
+        .eq("chatroom_id", chatroom_id);
+    if (err2)
+        return { status: "error", data: err2 };
     return null;
 };
 exports.sendMessage = sendMessage;

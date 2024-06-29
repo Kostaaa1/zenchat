@@ -11,7 +11,6 @@ import {
 import { Database } from "../../types/supabase";
 import { rooms } from "../../config/initSocket";
 import { deleteS3Object, s3KeyConstructor } from "../s3";
-import { PostgrestError } from "@supabase/supabase-js";
 
 export const getMessages = async (chatroom_id: string): Promise<DbResponse<TMessage[]>> => {
   const { data, error } = await supabase
