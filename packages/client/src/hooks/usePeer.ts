@@ -104,7 +104,6 @@ const usePeer = () => {
   //     vid.srcObject = srcObject
   //   }
   // }
-
   // useEffect(() => {
   //   if (remoteVideos.length > 0) {
   //     remoteVideos.forEach((video) => {
@@ -180,7 +179,6 @@ const usePeer = () => {
         cleanup()
       }, 20000)
     }
-
     return () => {
       clearTimeout(timeout)
     }

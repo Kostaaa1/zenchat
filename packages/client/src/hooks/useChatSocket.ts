@@ -66,7 +66,6 @@ const useChatSocket = (socket: Socket | null) => {
 
         updateLastMessage(message)
         const isLoggedUserSender = sender_id === user?.id
-
         if (!isLoggedUserSender) {
           if (!activeChatroom && !location.pathname.includes("/inbox")) {
             toast(`${message.sender_username}: ${message.content}`)

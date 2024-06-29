@@ -13,12 +13,12 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
   const { user } = useUser()
   const navigate = useNavigate()
   const isMobile = useGeneralStore((state) => state.isMobile)
+  const { setShowDetails, setActiveChatroom } = useChatStore((state) => state.actions)
   const { activeChatroomTitle, showDetails } = useChatStore((state) => ({
     activeChatroom: state.activeChatroom,
     activeChatroomTitle: state.activeChatroomTitle,
     showDetails: state.showDetails
   }))
-  const { setShowDetails, setActiveChatroom } = useChatStore((state) => state.actions)
 
   const iconSize = 30
   const fillColor = showDetails ? "white" : ""
