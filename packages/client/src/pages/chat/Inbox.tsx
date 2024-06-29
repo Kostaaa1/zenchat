@@ -11,7 +11,6 @@ import Button from "../../components/Button"
 import useModalStore from "../../stores/modalStore"
 import useUser from "../../hooks/useUser"
 import { useEffect } from "react"
-// import useInbox from "../../hooks/useInbox"
 
 const Inbox = () => {
   const location = useLocation()
@@ -28,6 +27,7 @@ const Inbox = () => {
 
   useEffect(() => {
     if (!userChats || !user) return
+    console.log(" user chats changes", userChats)
     const activeChat = userChats.find((chat) => chat.chatroom_id === chatroomId)
     if (activeChat) {
       setActiveChatroom(activeChat)
@@ -44,7 +44,9 @@ const Inbox = () => {
     <MainContainer>
       <div className={cn("flex h-[100svh] w-full items-center", isMobile ? "pb-16" : "pl-20")}>
         {(!chatroomId || (chatroomId && !isMobile)) && <UserChats />}
-        {location.pathname !== "/inbox" && activeChatroom && <Chat activeChatroom={activeChatroom} />}
+        {user && location.pathname !== "/inbox" && activeChatroom && (
+          <Chat activeChatroom={activeChatroom} user={user} />
+        )}
         {showDetails && activeChatroom && <ChatDetails />}
         {!isMobile && location.pathname === "/inbox" && (
           <div className="flex h-full w-full flex-col items-center justify-center text-center">

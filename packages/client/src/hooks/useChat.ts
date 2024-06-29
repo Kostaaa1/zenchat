@@ -9,10 +9,12 @@ import { TMessage } from "../../../server/src/types/types"
 import useUser from "./useUser"
 import { loadImage } from "../utils/image"
 import { debounce } from "lodash"
+import { socket } from "../lib/socket"
 
 const MESSAGE_FETCH_LIMIT = 22
 
 const useChat = () => {
+  const utils = trpc.useUtils()
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -24,9 +26,7 @@ const useChat = () => {
     activeMessage: state.activeMessage
   }))
   const [lastMessageDate, setLastMessageDate] = useState<string | null>(null)
-
-  const utils = trpc.useUtils()
-  const { updateUserReadMessage } = useChatCache()
+  const { markUserMsgSeen } = useChatCache()
   const { setActiveChatroom } = useChatStore((state) => state.actions)
   const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(true)
   const { setShouldFetchMoreMessages, setShowDetails } = useChatStore((state) => state.actions)
@@ -42,19 +42,52 @@ const useChat = () => {
 
   const triggerReadMessagesMutation = trpc.chat.messages.triggerReadMessages.useMutation({
     onSuccess: () => {
-      if (activeChatroom) updateUserReadMessage(activeChatroom.chatroom_id, true)
+      if (activeChatroom && user) {
+        const receivers = activeChatroom.users.filter((x) => x.user_id !== user.id).map((x) => x.user_id)
+        socket.emit("msgSeen", {
+          chatroomId,
+          participants: receivers
+        })
+      }
     },
     onError: (err) => {
       console.log("error", err)
     }
   })
 
+  const handleReadMessages = (user_id: string, id: string) => {
+    if (!chatroomId) return
+    console.log("ran ", chatroomId)
+    removeUnreadChatId(user_id)
+    markUserMsgSeen(chatroomId, user_id, true)
+    triggerReadMessagesMutation.mutate(id)
+  }
+
+  useEffect(() => {
+    if (activeChatroom && user) {
+      const foundUser = activeChatroom.users.find((x) => x.user_id === user.id)
+      if (foundUser) {
+        const eventHandler = () => {
+          console.log("Event handle ran")
+          handleReadMessages(foundUser.user_id, foundUser.id)
+          document.removeEventListener("click", eventHandler)
+        }
+
+        if (!foundUser.is_message_seen) {
+          document.addEventListener("click", eventHandler)
+        }
+        return () => {
+          document.removeEventListener("click", eventHandler)
+        }
+      }
+    }
+  }, [activeChatroom, user])
+
   useEffect(() => {
     if (activeChatroom && user) {
       const foundUser = activeChatroom.users.find((x) => x.user_id === user.id)
       if (foundUser && !foundUser.is_message_seen) {
-        removeUnreadChatId(foundUser.user_id)
-        triggerReadMessagesMutation.mutate(foundUser.id)
+        handleReadMessages(foundUser.user_id, foundUser.id)
       }
     }
   }, [location.pathname && location.pathname.includes("/inbox")])

@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import supabase from "./supabase";
-import { TMessage, SocketCallPayload } from "../types/types";
+import { TMessage, SocketCallPayload, SocketMsgSeenPayload } from "../types/types";
 import { getChatroomUsersFromID } from "../utils/supabase/chatroom";
 
 interface TCustomSocketType extends Socket {
@@ -22,7 +22,6 @@ export const initSocket = (io: Server) => {
       console.log("Call", payload);
       const { participants, type } = payload;
       const caller = participants.find((x) => x.is_caller);
-
       if (type === "initiated") {
         for (const receiver of participants) {
           console.log("RECEIVER", receiver);
@@ -47,6 +46,13 @@ export const initSocket = (io: Server) => {
       }
     });
 
+    socket.on("msgSeen", (payload: SocketMsgSeenPayload) => {
+      const { participants, chatroomId } = payload;
+      for (const p of participants) {
+        io.to(p).emit("msgSeen", chatroomId);
+      }
+    });
+
     socket.on("onMessage", () => {
       try {
         supabase
@@ -61,8 +67,8 @@ export const initSocket = (io: Server) => {
                 supabase.channel("onMessage").unsubscribe();
                 return;
               }
-              for (const reciever of data) {
-                const { is_active, user_id } = reciever;
+              for (const receiver of data) {
+                const { is_active, user_id } = receiver;
                 io.to(user_id).emit("onMessage", {
                   channel: "onMessage",
                   data: { message: messageData, shouldActivate: !is_active, user_id },

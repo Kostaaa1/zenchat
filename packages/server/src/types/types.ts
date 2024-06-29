@@ -94,3 +94,8 @@ export type SocketCallUser = {
   image_url?: string | null | undefined;
   username?: string | undefined;
 };
+
+export type SocketMsgSeenPayload = {
+  participants: string[];
+  chatroomId: string;
+};

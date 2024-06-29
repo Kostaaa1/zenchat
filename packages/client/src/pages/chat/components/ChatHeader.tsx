@@ -28,16 +28,17 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
   const handleIconClick = () => {
     setShowDetails(!showDetails)
   }
-
   const navigateToPrevious = () => {
     setActiveChatroom(null)
     navigate("/inbox")
   }
-
   const handleNavigate = () => {
+    if (isMobile) {
+      navigateToPrevious()
+      return
+    }
     is_group ? setShowDetails(true) : navigate(`/${users.find((x) => x.username !== user?.username)?.username}`)
   }
-
   const callRoom = () => {
     const url = `/call/${chat.chatroom_id}`
     navigate(url)
@@ -46,17 +47,26 @@ const ChatHeader: FC<{ chat: TChatroom }> = ({ chat }) => {
   return (
     <div
       className={cn(
-        "z-10 flex h-[90px] cursor-pointer items-center justify-between border-b border-[#262626] bg-black",
+        "z-10 flex h-[90px] items-center justify-between border-b border-[#262626] bg-black",
         isMobile ? "pl-2 pr-4" : "px-4 py-6"
       )}
     >
-      {isMobile && <div className="flex-[3]">{<Icon name="ArrowLeft" onClick={navigateToPrevious} />}</div>}
-      <div className="flex items-center space-x-2" onClick={handleNavigate}>
-        {!isMobile && (
-          <RenderAvatar avatarSize="md" image_url={users[0]?.image_url} image_url_2={users[1]?.image_url} />
+      <div
+        className={cn("flex cursor-pointer items-center space-x-2", isMobile && "flex-[3]")}
+        onClick={handleNavigate}
+      >
+        {!isMobile ? (
+          <RenderAvatar
+            avatarSize="md"
+            image_url={users[0]?.image_url}
+            image_url_2={users[1]?.image_url}
+            is_group={is_group}
+          />
+        ) : (
+          <Icon name="ArrowLeft" />
         )}
-        <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       </div>
+      <h1 className="text-lg font-semibold">{activeChatroomTitle}</h1>
       <div className="flex flex-[3] justify-end space-x-2">
         <Phone
           width={iconSize}

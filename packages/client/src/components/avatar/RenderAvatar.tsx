@@ -4,13 +4,21 @@ import { cn } from "../../utils/utils"
 
 interface RenderAvatarProps {
   image_url: string | null | undefined
-  image_url_2?: string | null | undefined
   avatarSize: "sm" | "md" | "lg" | "xl"
+  is_group?: boolean
+  image_url_2?: string | null | undefined
   isOnline?: boolean
   className?: string
 }
 
-const RenderAvatar: FC<RenderAvatarProps> = ({ image_url, image_url_2, avatarSize, isOnline, className }) => {
+const RenderAvatar: FC<RenderAvatarProps> = ({
+  image_url,
+  is_group = false,
+  image_url_2,
+  avatarSize,
+  isOnline,
+  className
+}) => {
   const spacings = {
     sm: "",
     md: "-ml-7 mt-6",
@@ -20,7 +28,7 @@ const RenderAvatar: FC<RenderAvatarProps> = ({ image_url, image_url_2, avatarSiz
 
   return (
     <div className={cn("relative flex h-full", className)}>
-      {image_url_2 ? (
+      {is_group && image_url_2 ? (
         <>
           <Avatar image_url={image_url} size={avatarSize} />
           <Avatar

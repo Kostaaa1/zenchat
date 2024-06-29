@@ -18,15 +18,21 @@ const BottomNavbar: FC<BottomNavbarProps> = ({ navListItems }) => {
     >
       {navListItems.map((li, id) => (
         <div key={id} ref={li.ref} className="relative">
-          <NavList variant="default" onClick={li.onClick} className={li.className}>
+          <NavList variant="default" onClick={li.onClick} title={li.title} className={li.className}>
             {li.iconName ? (
-              <Icon strokeWidth={li.iconStrokeWidth} name={li.iconName} color="white" size="28px" />
+              <Icon
+                strokeWidth={li.iconStrokeWidth}
+                name={li.iconName}
+                color="white"
+                size="28px"
+                fill={li.iconName === "MessageCircle" && unreadChatIds.length > 0 ? "white" : ""}
+              />
             ) : (
               <Avatar image_url={user?.image_url} size="sm" />
             )}
           </NavList>
           {li.iconName === "MessageCircle" && unreadChatIds.length > 0 && (
-            <span className="absolute left-[2px] top-[2px] flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-base">
+            <span className="absolute right-[2px] top-[6px] flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-sm">
               {unreadChatIds.length}
             </span>
           )}

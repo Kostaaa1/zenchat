@@ -99,13 +99,13 @@ const useMessageInput = (chatroom: TChatroom) => {
   const sendTextMessage = useCallback(
     async (input_message: string, chatroom_id: string) => {
       clearMessageInput(chatroom_id)
-      const messageData = createNewMessage({
+      const newMessage = createNewMessage({
         content: input_message,
         is_image: false,
         chatroom_id
       })
-      addNewMessageToChatCache(messageData)
-      if (messageData) await sendMessageMutation.mutateAsync(messageData)
+      addNewMessageToChatCache(newMessage)
+      if (newMessage) await sendMessageMutation.mutateAsync(newMessage)
     },
     [addNewMessageToChatCache, clearMessageInput, sendMessageMutation, createNewMessage]
   )
@@ -119,15 +119,15 @@ const useMessageInput = (chatroom: TChatroom) => {
 
       for (const fileUrl of input_images) {
         const id = uuidv4()
-        const messageData = createNewMessage({
+        const newMsg = createNewMessage({
           id,
           chatroom_id: chatroomId,
           content: "",
           is_image: true
         })
-        messageData.content = fileUrl
-        newMessagesStack.push(messageData)
-        addNewMessageToChatCache(messageData)
+        newMsg.content = fileUrl
+        newMessagesStack.push(newMsg)
+        addNewMessageToChatCache(newMsg)
       }
 
       const { data } = await axios.post(`${serverURL}/api/upload/message`, formData, {
@@ -162,7 +162,7 @@ const useMessageInput = (chatroom: TChatroom) => {
   const sendMessage = useCallback(
     async (e: FormEvent) => {
       e.preventDefault()
-      if (chatroom) {
+      if (chatroom && user) {
         const { chatroom_id } = chatroom
         const message = inputMessages.get(chatroom_id)
         const images = inputImages.get(chatroom_id)
@@ -174,7 +174,7 @@ const useMessageInput = (chatroom: TChatroom) => {
         }
       }
     },
-    [inputImages, sendImageMessage, inputMessages, sendTextMessage, chatroom]
+    [inputImages, user, sendImageMessage, inputMessages, sendTextMessage, chatroom]
   )
 
   const selectEmoji = (e: Skin) => {

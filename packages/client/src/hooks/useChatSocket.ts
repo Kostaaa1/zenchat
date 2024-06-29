@@ -1,9 +1,8 @@
 import { useCallback, useEffect } from "react"
 import useUser from "./useUser"
 import useChatStore from "../stores/chatStore"
-import { SocketCallPayload, TChatroom, TMessage, TReceiveNewSocketMessageType } from "../../../server/src/types/types"
+import { SocketCallPayload, TMessage, TReceiveNewSocketMessageType } from "../../../server/src/types/types"
 import { trpc } from "../lib/trpcClient"
-import { getCurrentDate } from "../utils/date"
 import { loadImage } from "../utils/image"
 import { toast } from "react-toastify"
 import useModalStore from "../stores/modalStore"
@@ -15,6 +14,7 @@ import useChatCache from "./useChatCache"
 const useChatSocket = (socket: Socket | null) => {
   const { user } = useUser()
   const utils = trpc.useUtils()
+  const { markParticipantsMsgSeen, updateLastMessage } = useChatCache()
   const { setIsCallAccepted, setCallInfo, toggleDisplayVideo, toggleMuteVideo } = usePeerConnectionStore(
     (state) => state.actions
   )
@@ -46,38 +46,12 @@ const useChatSocket = (socket: Socket | null) => {
     },
     [utils.chat.messages.get]
   )
-  const updateUserChatLastMessageCache = useCallback(
-    (msg: TMessage) => {
-      const { content, chatroom_id, sender_id } = msg
-      const updateChatroom = (chatroom: TChatroom): TChatroom => {
-        if (chatroom.chatroom_id !== chatroom_id) return chatroom
-        const updatedUsers = chatroom.users.map((user) => ({
-          ...user,
-          is_message_seen: user.user_id === sender_id,
-          is_socket_active: true
-        }))
-        return { ...chatroom, last_message: content, created_at: getCurrentDate(), users: updatedUsers }
-      }
-      const sortByCreatedAt = (a: TChatroom, b: TChatroom) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-
-      let newChatrooms: TChatroom[] = []
-      utils.chat.get.user_chatrooms.setData(user!.id, (chats) => {
-        if (!chats) return chats
-        const updatedChats = chats.map(updateChatroom).sort(sortByCreatedAt)
-        newChatrooms = updatedChats
-        return updatedChats
-      })
-
-      return newChatrooms
-    },
-    [utils.chat.get.user_chatrooms, user, activeChatroom]
-  )
 
   const receiveNewSocketMessage = useCallback(
     async (socketData: TReceiveNewSocketMessageType) => {
-      if (!user || !activeChatroom) return
+      if (!user) return
       const { channel, data } = socketData
+
       if (channel === "onMessage") {
         const { message, shouldActivate } = data
         const { is_image, sender_id } = message
@@ -85,13 +59,14 @@ const useChatSocket = (socket: Socket | null) => {
 
         if (is_image) await loadImage(message.content)
         if (shouldActivate) {
-          console.log("The chat is shadow banned...")
+          console.log("The chat is shadow deleted...")
           await user_chatrooms.invalidate(user.id)
           await user_chatrooms.refetch(user.id)
         }
 
-        updateUserChatLastMessageCache(message)
+        updateLastMessage(message)
         const isLoggedUserSender = sender_id === user?.id
+
         if (!isLoggedUserSender) {
           if (!activeChatroom && !location.pathname.includes("/inbox")) {
             toast(`${message.sender_username}: ${message.content}`)
@@ -105,16 +80,8 @@ const useChatSocket = (socket: Socket | null) => {
         }
       }
     },
-    [activeChatroom, user]
+    [activeChatroom, user, addNewMessageToChatCache, replacePreviewImage, updateLastMessage]
   )
-
-  useEffect(() => {
-    if (!activeChatroom || !socket || !user) return
-    socket.on("onMessage", receiveNewSocketMessage)
-    return () => {
-      socket.off("onMessage")
-    }
-  }, [user, socket, receiveNewSocketMessage])
 
   const receiveCall = useCallback(
     (payload: SocketCallPayload) => {
@@ -155,12 +122,24 @@ const useChatSocket = (socket: Socket | null) => {
   )
 
   useEffect(() => {
+    if (!socket || !user) return
+    socket.on("onMessage", receiveNewSocketMessage)
+
+    return () => {
+      socket.off("onMessage")
+    }
+  }, [user, socket, receiveNewSocketMessage])
+
+  useEffect(() => {
     if (!user || !socket) return
     if (socket) {
       console.log("Listening to sockets.")
       socket.emit("join-room", user.id)
       socket.emit("onMessage", user.id)
       socket.on("call", receiveCall)
+      socket.on("msgSeen", (chatroomId: string) => {
+        markParticipantsMsgSeen(chatroomId, true)
+      })
     }
 
     return () => {
