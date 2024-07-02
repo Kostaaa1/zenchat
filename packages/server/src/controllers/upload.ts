@@ -15,7 +15,6 @@ export default {
         folder: s3Buckets.POSTS,
         data: transcoded.buffer,
       });
-
       const name = s3KeyConstructor({ folder: "posts", name: originalname });
       deserialized["media_url"] = name;
     },
@@ -29,10 +28,8 @@ export default {
           data: videoFile.buffer,
           key: videoFile.originalname,
         });
-
         const { originalname } = videoFile;
         deserialized.media_url = s3KeyConstructor({ folder: "posts", name: originalname });
-
         if (thumbnailFile) {
           uploadToS3({
             folder: s3Buckets.THUMBNAILS,
@@ -50,6 +47,7 @@ export default {
   avatar: async (req: Request, res: Response) => {
     try {
       const file = await sharpify(req.file as Express.Multer.File);
+      // const file = req.file as Express.Multer.File
       await uploadToS3({
         folder: s3Buckets.AVATARS,
         key: file.originalname,

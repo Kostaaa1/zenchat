@@ -132,14 +132,17 @@ const usePeer = () => {
     setPeerConnection(peer)
 
     peer.on("open", async () => {
-      const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const hasVideoInput = devices.some((x) => x.kind === "videoinput")
+      const hasAudioInput = devices.some((x) => x.kind === "audioinput")
+
+      const localStream = await navigator.mediaDevices.getUserMedia({ audio: hasAudioInput, video: hasVideoInput })
       const video = document.querySelector(".local-video") as HTMLVideoElement
       if (video) {
         video.srcObject = localStream
         video.muted = true
         video.autoplay = true
       }
-
       participants.forEach((participant) => {
         if (participant.is_caller) {
           if (participant.id !== user.id) {

@@ -8,11 +8,11 @@ import uploadController from "../controllers/upload";
 
 const upload = multer();
 
-const uplaodPost = async (req: Request, res: Response, fileType: string) => {
+const uploadPost = async (req: Request, res: Response, fileType: string) => {
   const { file, files, body } = req;
+  console.log("Upload POST ran");
   if (!file && !files) return res.status(400).json({ error: "No file provided" });
   if (!body) return res.status(400).json({ error: "No body provided" });
-
   const { serialized } = body;
   const deserialized: TPost = JSON.parse(serialized);
   if (fileType === "image" && file) {
@@ -32,10 +32,10 @@ const uplaodPost = async (req: Request, res: Response, fileType: string) => {
 };
 
 uploadRouter.post("/post/image", upload.single("post"), async (req: Request, res: Response) => {
-  await uplaodPost(req, res, "image");
+  await uploadPost(req, res, "image");
 });
 uploadRouter.post("/post/video", upload.array("post"), async (req: Request, res: Response) => {
-  await uplaodPost(req, res, "video");
+  await uploadPost(req, res, "video");
 });
 uploadRouter.post("/avatar", upload.single("images"), uploadController.avatar);
 uploadRouter.post("/message", upload.array("images"), uploadController.message);
