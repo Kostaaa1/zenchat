@@ -139,22 +139,6 @@ const RTCVoiceCall = () => {
                   />
                   <Avatar image_url={user.image_url} size="xxl" />
                 </div>
-                {/* <>
-                  {remoteVideos.map(({ id, isVideoDisplayed }) => (
-                    <div
-                      key={id}
-                      id={id}
-                      className="flex h-full w-full items-center justify-center"
-                      style={{ display: isVideoDisplayed ? "none" : "" }}
-                    >
-                      <img
-                        src={user.image_url ?? ""}
-                        className="pointer-events-none absolute left-0 top-0 h-full w-full blur-[400px]"
-                      />
-                      <Avatar image_url={user.image_url} size="xxl" />
-                    </div>
-                  ))}
-                </> */}
               </div>
               <div className="fixed bottom-4 flex w-full items-center justify-center space-x-4">
                 {buttons.map(({ onIcon, offIcon, id, isOff }) => (

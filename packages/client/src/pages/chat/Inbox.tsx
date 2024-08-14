@@ -27,7 +27,6 @@ const Inbox = () => {
 
   useEffect(() => {
     if (!userChats || !user) return
-    console.log(" user chats changes", userChats)
     const activeChat = userChats.find((chat) => chat.chatroom_id === chatroomId)
     if (activeChat) {
       setActiveChatroom(activeChat)

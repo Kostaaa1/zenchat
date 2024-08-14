@@ -25,8 +25,6 @@ type Store = {
     setRemoteVideos: (videos: RemoteVideo[]) => void
     addRemoteVideo: (video: RemoteVideo) => void
     removeRemoteVideo: (video: RemoteVideo) => void
-    // toggleDisplayVideo: (id: string) => void
-    // toggleMuteVideo: (id: string) => void
     toggleDisplayVideo: () => void
     toggleMuteVideo: () => void
     clearAll: () => void
@@ -50,37 +48,6 @@ const usePeerConnectionStore = create<Store>(
       setRemoteVideos: (videos: RemoteVideo[]) => set({ remoteVideos: videos }),
       toggleDisplayVideo: () => set((state) => ({ isRemoteDisplayed: !state.isRemoteDisplayed })),
       toggleMuteVideo: () => set((state) => ({ isRemoteMuted: !state.isRemoteMuted })),
-      // toggleDisplayVideo: (id: string) =>
-      // toggleDisplayVideo: (id: string) =>
-      //   set((state) => {
-      //     return {
-      //       remoteVideos: state.remoteVideos.map((video) => {
-      //         if (video.id === id) {
-      //           const newValue = !video.isVideoDisplayed
-      //           const v = document.getElementById(id) as HTMLVideoElement
-      //           if (v) v.style.display = newValue ? "" : "none"
-      //           return { ...video, isVideoDisplayed: newValue }
-      //         } else {
-      //           return video
-      //         }
-      //       })
-      //     }
-      //   }),
-      // toggleMuteVideo: (id: string) =>
-      //   set((state) => {
-      //     return {
-      //       remoteVideos: state.remoteVideos.map((video) => {
-      //         if (video.id === id) {
-      //           const newValue = !video.isVideoMuted
-      //           const vid = document.getElementById(id) as HTMLVideoElement
-      //           if (vid) vid.muted = newValue
-      //           return { ...video, isVideoMuted: newValue }
-      //         } else {
-      //           return video
-      //         }
-      //       })
-      //     }
-      //   }),
       setIsCallAccepted: (isCallAccepted: boolean) => set({ isCallAccepted }),
       setCallInfo: (callInfo: SocketCallPayload | null) => set({ callInfo }),
       setIsCalling: (isCalling: boolean) => set({ isCalling }),
