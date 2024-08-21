@@ -25,7 +25,7 @@ const deletePost = async (id, fileKeys) => {
         }
         // Max 2 iterations (thumbnail and video)
         for (const key of fileKeys) {
-            await (0, s3_1.deleteS3Object)(key, "posts");
+            await (0, s3_1.deleteS3Object)(key);
         }
         return { success: true };
     }

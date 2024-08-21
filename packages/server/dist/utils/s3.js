@@ -16,9 +16,9 @@ const s3KeyConstructor = (data) => {
     return `${AWS_BUCKET_URL}/${folder}/${name}`;
 };
 exports.s3KeyConstructor = s3KeyConstructor;
-const s3KeyExtractor = (name, bucketName) => {
+const s3KeyExtractor = (name) => {
     if (name.startsWith(AWS_BUCKET_URL)) {
-        const p = name.split(`${AWS_BUCKET_URL}/${bucketName}/`)[1];
+        const p = name.split(`${AWS_BUCKET_URL}/`)[1];
         const id = p.indexOf("/");
         return p.slice(id + 1);
     }
@@ -27,10 +27,10 @@ const s3KeyExtractor = (name, bucketName) => {
     }
 };
 exports.s3KeyExtractor = s3KeyExtractor;
-const deleteS3Object = async (key, bucketName) => {
+const deleteS3Object = async (key) => {
     let name = key;
     if (key.startsWith(AWS_BUCKET_URL)) {
-        name = (0, exports.s3KeyExtractor)(name, bucketName);
+        name = (0, exports.s3KeyExtractor)(name);
     }
     const params = {
         Bucket: AWS_BUCKETNAME,
