@@ -21,7 +21,7 @@ const s3Buckets = {
     MESSAGES: "messages",
     POSTS: "posts",
     THUMBNAILS: "thumbnails",
-};
+}; // Using 'as const' to make the values readonly and preserve the literal types
 exports.s3Buckets = s3Buckets;
 const processenv = () => {
     const missingVars = envs.filter((x) => !process.env[x]);

@@ -9,7 +9,7 @@ const multer_1 = __importDefault(require("multer"));
 const uploadRouter = express_1.default.Router();
 const upload_1 = __importDefault(require("../controllers/upload"));
 const upload = (0, multer_1.default)();
-const uplaodPost = async (req, res, fileType) => {
+const uploadPost = async (req, res, fileType) => {
     const { file, files, body } = req;
     if (!file && !files)
         return res.status(400).json({ error: "No file provided" });
@@ -34,10 +34,10 @@ const uplaodPost = async (req, res, fileType) => {
     }
 };
 uploadRouter.post("/post/image", upload.single("post"), async (req, res) => {
-    await uplaodPost(req, res, "image");
+    await uploadPost(req, res, "image");
 });
 uploadRouter.post("/post/video", upload.array("post"), async (req, res) => {
-    await uplaodPost(req, res, "video");
+    await uploadPost(req, res, "video");
 });
 uploadRouter.post("/avatar", upload.single("images"), upload_1.default.avatar);
 uploadRouter.post("/message", upload.array("images"), upload_1.default.message);

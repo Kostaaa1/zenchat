@@ -3,6 +3,7 @@ import { CreateUserSchema, MessageSchema } from "./zodSchemas";
 import supabase from "../config/supabase";
 import { Tables } from "./supabase";
 import { PostgrestError, QueryData } from "@supabase/supabase-js";
+import { s3Buckets } from "../config/config";
 
 export type TMessage = z.infer<typeof MessageSchema>;
 export type TCreateUserInput = z.infer<typeof CreateUserSchema>;
@@ -99,3 +100,5 @@ export type SocketMsgSeenPayload = {
   participants: string[];
   chatroomId: string;
 };
+
+export type S3BucketType = (typeof s3Buckets)[keyof typeof s3Buckets];

@@ -104,12 +104,10 @@ const useChatSocket = (socket: Socket | null) => {
           break
         }
         case "mute-remote": {
-          // const id = participants.find((x) => x.is_caller)!.id
           toggleMuteVideo()
           break
         }
         case "show-remote": {
-          // const id = participants.find((x) => x.is_caller)!.id
           toggleDisplayVideo()
           break
         }

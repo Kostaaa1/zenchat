@@ -6,7 +6,7 @@ export const InputPostSchema = z.object({
   media_name: z.string(),
   size: z.number(),
   type: z.string(),
-  id: z.string(),
+  // id: z.string(),
   media_url: z.string(),
   thumbnail_url: z.string().nullish(),
 });

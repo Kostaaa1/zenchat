@@ -8,7 +8,7 @@ exports.InputPostSchema = zod_1.z.object({
     media_name: zod_1.z.string(),
     size: zod_1.z.number(),
     type: zod_1.z.string(),
-    id: zod_1.z.string(),
+    // id: z.string(),
     media_url: zod_1.z.string(),
     thumbnail_url: zod_1.z.string().nullish(),
 });

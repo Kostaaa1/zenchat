@@ -10,6 +10,7 @@ import { socket } from "../../../lib/socket"
 import { SocketCallPayload } from "../../../../../server/src/types/types"
 import usePeer from "../../../hooks/usePeer"
 import useGeneralStore from "../../../stores/generalStore"
+import { stopSound } from "../../../utils/file"
 
 const RTCVoiceCall = () => {
   const {
@@ -23,6 +24,7 @@ const RTCVoiceCall = () => {
     isCalling,
     startCall
   } = usePeer()
+
   const navigate = useNavigate()
   const { user } = useUser()
   const isMobile = useGeneralStore((state) => state.isMobile)
@@ -70,6 +72,8 @@ const RTCVoiceCall = () => {
   ])
 
   const previousPage = () => {
+    stopSound("source1")
+    stopSound("source22")
     cleanup()
     navigate(-1)
   }

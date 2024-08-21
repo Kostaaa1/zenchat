@@ -15,7 +15,6 @@ import { toast } from "react-toastify"
 import useGeneralStore from "../../stores/generalStore"
 import { DndProvider, useDrop } from "react-dnd"
 import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend"
-import { nanoid } from "nanoid"
 import { TPost } from "../../../../server/src/types/types"
 import axios from "axios"
 import Video from "../Video"
@@ -146,7 +145,7 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
 
     const formData = new FormData()
     const unified: Partial<TPost> = {
-      id: nanoid(),
+      // id: nanoid(),
       user_id: user.id,
       caption,
       type,
@@ -154,7 +153,6 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
       size,
       thumbnail_url: thumbnailFile?.name ?? null
     }
-
     formData.append("serialized", JSON.stringify(unified))
     formData.append("post", file)
     if (thumbnailFile) formData.append("post", thumbnailFile)
@@ -167,7 +165,6 @@ const DndUploadModal = forwardRef<HTMLDivElement>((_, ref) => {
           Authorization: `Bearer ${sessionToken}`
         }
       })
-
       await loadImage(data.thumbnail_url ?? data.media_url)
       utils.user.get.setData({ data: user.username, type: "username" }, (state) => {
         if (state) {

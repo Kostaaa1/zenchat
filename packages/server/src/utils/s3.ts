@@ -1,5 +1,6 @@
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { BucketFolders, env } from "../config/config";
+import { S3BucketType } from "../types/types";
 
 const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_BUCKETNAME, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_URL } =
   env;
@@ -19,7 +20,7 @@ export const s3KeyConstructor = (data: { folder: BucketFolders; name: string }) 
 
 export const s3KeyExtractor = (name: string) => {
   if (name.startsWith(AWS_BUCKET_URL)) {
-    const p = name.split(AWS_BUCKET_URL)[1];
+    const p = name.split(`${AWS_BUCKET_URL}/`)[1];
     const id = p.indexOf("/");
     return p.slice(id + 1);
   } else {
@@ -32,6 +33,7 @@ export const deleteS3Object = async (key: string) => {
   if (key.startsWith(AWS_BUCKET_URL)) {
     name = s3KeyExtractor(name);
   }
+
   const params = {
     Bucket: AWS_BUCKETNAME,
     Key: name,

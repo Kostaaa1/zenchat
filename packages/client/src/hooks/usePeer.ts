@@ -166,6 +166,9 @@ const usePeer = () => {
         }
       })
     })
+    peer.on("error", err => {
+      console.log("Peer error: ", err)
+    })
   }, [callInfo, user, isCallAccepted])
 
   const activateParticipant = (participants: CallParticipant[], id: string) => {

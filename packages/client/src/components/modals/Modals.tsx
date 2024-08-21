@@ -4,7 +4,7 @@ import ImageModal from "./ImageModal"
 import NewMessageModal from "./NewMessageModal"
 import UnsendMessageModal from "./UnsendMessageModal"
 import DeleteChatModal from "./DeleteChatModal"
-import DndUpload from "./DndUploadModal"
+import DndUploadModal from "./DndUploadModal"
 import React, { FC, useEffect, useRef } from "react"
 import PostModal from "./PostModal"
 import useOutsideClick from "../../hooks/useOutsideClick"
@@ -25,18 +25,38 @@ export const Modal: FC<ModalProps> = ({ children }) => {
       document.querySelector("#bottomnav")?.classList.add("no-scroll-padding")
     }
   }, [])
-
   return (
     <motion.div
       className="fixed z-[10000] flex h-[100svh] w-screen items-center justify-center overflow-hidden bg-black bg-opacity-40"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      // initial={{ opacity: 0 }}
+      // animate={{ opacity: 1 }}
+      // exit={{ opacity: 0 }}
     >
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
+        // initial={{ scale: 0.8, opacity: 0 }}
+        // animate={{ scale: 1, opacity: 1 }}
+        // exit={{ scale: 0.8, opacity: 0 }}
+
+        initial={{
+          opacity: 0,
+          scale: 0.75
+        }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          transition: {
+            ease: "easeOut",
+            duration: 0.15
+          }
+        }}
+        exit={{
+          opacity: 0,
+          scale: 0.75,
+          transition: {
+            ease: "easeIn",
+            duration: 0.15
+          }
+        }}
       >
         {children}
       </motion.div>
@@ -80,7 +100,7 @@ const Modals = () => {
             {activeModal === "post" && modalPostData && (
               <PostModal post={modalPostData} ref={modalRef} leftRef={leftRef} rightRef={rightRef} />
             )}
-            {activeModal === "uploadpost" && <DndUpload ref={modalRef} />}
+            {activeModal === "uploadpost" && <DndUploadModal ref={modalRef} />}
             {activeModal === "voiceCall" && callInfo && <VoiceCallModal ref={modalRef} callInfo={callInfo} />}
             {options.length > 0 && <ModalOptions ref={modalOptionRef} />}
           </>

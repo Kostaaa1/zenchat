@@ -4,7 +4,7 @@ import { trpc } from "../../../lib/trpcClient"
 import useUser from "../../../hooks/useUser"
 
 const useModals = () => {
-  const { setModalPostData } = useModalStore((state) => state.actions)
+  const { setModalPostData, closeModal } = useModalStore((state) => state.actions)
   const post = useModalStore((state) => state.modalPostData)
   const { user } = useUser()
   const utils = trpc.useUtils()
@@ -32,6 +32,7 @@ const useModals = () => {
       })
       setModalPostData(null)
       setIsDeleting(false)
+      closeModal()
     } catch (error) {
       console.log("error deleting post", error)
     }

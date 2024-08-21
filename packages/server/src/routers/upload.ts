@@ -10,7 +10,6 @@ const upload = multer();
 
 const uploadPost = async (req: Request, res: Response, fileType: string) => {
   const { file, files, body } = req;
-  console.log("Upload POST ran");
   if (!file && !files) return res.status(400).json({ error: "No file provided" });
   if (!body) return res.status(400).json({ error: "No body provided" });
   const { serialized } = body;
