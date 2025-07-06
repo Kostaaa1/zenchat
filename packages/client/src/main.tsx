@@ -17,6 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     navigate={(to: string) => {
       const navigate = useNavigate()
       navigate(to)
+      test()
     }}
   >
     <TRPCWrapper>
